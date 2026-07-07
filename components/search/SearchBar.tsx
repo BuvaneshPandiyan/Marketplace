@@ -1,0 +1,120 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
+import type { SearchHit } from "@/lib/client/searchHitAdapter";
+
+export function SearchBar() {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query, 300);
+  const [suggestions, setSuggestions] = useState<SearchHit[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    async function fetchSuggestions() {
+      if (debouncedQuery.trim().length < 2) { setSuggestions([]); return; }
+      try {
+        const response = await fetch(`/api/search/query?q=${encodeURIComponent(debouncedQuery)}&limit=5`);
+        const data = await response.json();
+        setSuggestions(data.hits ?? []);
+      } catch { setSuggestions([]); }
+    }
+    fetchSuggestions();
+  }, [debouncedQuery]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) setIsOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function goToResults(searchText: string) {
+    setIsOpen(false);
+    router.push(`/search?q=${encodeURIComponent(searchText)}`);
+  }
+
+  return (
+    <div ref={wrapperRef} className="relative flex-1">
+      <form onSubmit={(e) => { e.preventDefault(); if (query.trim()) goToResults(query); }}>
+        {/* Input + submit button wrapper */}
+        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
+            onFocus={() => setIsOpen(true)}
+            placeholder="Search"
+            className="w-full rounded-full border border-neutral-300 bg-neutral-50 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-orange-500 focus:bg-white focus:outline-none"
+            style={{
+              paddingTop: 8, paddingBottom: 8,
+              paddingLeft: 16,
+              // Extra right padding so text never slides under the button
+              paddingRight: 48,
+            }}
+          />
+
+          {/* Visible search submit button — gradient circle docked at right edge */}
+          <button
+            type="submit"
+            aria-label="Search"
+            style={{
+              position: "absolute",
+              right: 4,
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              border: "none",
+              background: "linear-gradient(135deg, #ea580c, #f97316)",
+              color: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              flexShrink: 0,
+              transition: "transform 200ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 200ms ease",
+              boxShadow: "0 2px 8px rgba(234,88,12,0.35)",
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.1)";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 16px rgba(234,88,12,0.5)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 2px 8px rgba(234,88,12,0.35)";
+            }}
+            onMouseDown={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.92)"; }}
+            onMouseUp={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+          </button>
+        </div>
+      </form>
+
+      {/* Autocomplete dropdown */}
+      {isOpen && suggestions.length > 0 && (
+        <ul className="absolute z-20 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-lg">
+          {suggestions.map((hit) => (
+            <li key={hit.id}>
+              <button
+                type="button"
+                onClick={() => goToResults(hit.title)}
+                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-neutral-50"
+              >
+                <span className="truncate">{hit.title}</span>
+                <span className="ml-2 shrink-0 text-xs text-neutral-400">{hit.category_name}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,31 @@
+/* Import Tailwind CSS's base styles, components, and utility classes */
+@import "tailwindcss";
+
+/* Define a couple of reusable color variables for light mode */
+:root {
+  /* The default page background color */
+  --background: #ffffff;
+  /* The default page text color */
+  --foreground: #171717;
+}
+
+/* Tell Tailwind to expose these CSS variables as theme tokens it can use in utility classes */
+@theme inline {
+  /* Map Tailwind's "background" color token to our --background variable */
+  --color-background: var(--background);
+  /* Map Tailwind's "foreground" color token to our --foreground variable */
+  --color-foreground: var(--foreground);
+}
+
+/* Apply our background/foreground variables and a system font stack to the whole page body */
+body {
+  /* Use the background color variable defined above */
+  background: var(--background);
+  /* Use the foreground (text) color variable defined above */
+  color: var(--foreground);
+  /* Use a fast-loading system font stack instead of fetching a custom web font */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* NOTE: Dark mode support is intentionally left out at this scaffolding stage. */
+/* It's listed as an "advanced feature" to add later once the core app is built. */
