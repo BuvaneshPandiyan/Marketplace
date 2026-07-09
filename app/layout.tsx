@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 // Import Next.js's Metadata and Viewport types for type-safe head configuration
 import type { Metadata, Viewport } from "next";
 // Import the global stylesheet (includes Tailwind base/components/utilities)
-// @ts-ignore: allow side-effect CSS import in Next.js app router layout
+// @ts-expect-error: CSS module imports lack type declarations
 import "./globals.css";
 // Import the provider that tracks the logged-in user/profile across the whole app
 import { UserProvider } from "@/components/providers/UserProvider";
@@ -50,7 +50,7 @@ export default function RootLayout({
     <html lang="en">
       {/* suppressHydrationWarning prevents a false mismatch warning from browser extensions
           that modify the DOM (e.g., password managers, translation extensions) */}
-      <body suppressHydrationWarning>
+      <body suppressHydrationWarning className="bg-neutral-50">
         {/* UserProvider tracks the logged-in user/profile in React Context */}
         <UserProvider>
           {/* LocationProvider tracks the active location (default + browsing) in React Context */}

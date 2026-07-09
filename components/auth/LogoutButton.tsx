@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -11,15 +11,14 @@ export function LogoutButton({ iconOnly = false }: LogoutButtonProps) {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
   const [isSigningOut, setIsSigningOut] = useState(false);
-  // Tooltip visibility for the icon-only variant
   const [showTip, setShowTip] = useState(false);
-  let tipTimer: ReturnType<typeof setTimeout>;
+  const tipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function handleLogout() {
     setIsSigningOut(true);
-    // Show tooltip briefly on tap (for touch devices that don't have hover)
     setShowTip(true);
-    tipTimer = setTimeout(() => setShowTip(false), 1500);
+    if (tipTimer.current) clearTimeout(tipTimer.current);
+    tipTimer.current = setTimeout(() => setShowTip(false), 1500);
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();

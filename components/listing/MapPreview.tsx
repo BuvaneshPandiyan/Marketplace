@@ -1,5 +1,5 @@
 "use client";
-// @ts-ignore: CSS imports don't have type declarations in this project
+// @ts-expect-error: CSS imports don't have type declarations in this project
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { fuzzCoordinate } from "@/lib/client/fuzzCoordinate";

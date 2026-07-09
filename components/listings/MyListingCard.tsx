@@ -24,9 +24,9 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
   removed: { label: "Removed",      color: "#9ca3af", bg: "rgba(156,163,175,0.15)" },
 };
 
-type Props = { listing: MyListingRow };
+type Props = { listing: MyListingRow; layout?: "grid" | "list" };
 
-export function MyListingCard({ listing }: Props) {
+export function MyListingCard({ listing, layout = "grid" }: Props) {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -106,7 +106,34 @@ export function MyListingCard({ listing }: Props) {
           width: 100%; height: 100%; object-fit: cover;
           transition: transform 360ms ease-out;
         }
-        .mlc-price { transition: color 200ms ease; }
+        /* Quick-actions overlay (Netflix hover pattern) */
+        .mlc-overlay {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+          padding: 28px 8px 8px;
+          display: flex; gap: 6px; justify-content: flex-end;
+          opacity: 0; transform: translateY(6px);
+          transition: opacity 200ms ease, transform 200ms ease;
+          pointer-events: none;
+        }
+        .mlc-overlay-btn {
+          width: 30px; height: 30px; border-radius: 50%;
+          background: rgba(255,255,255,0.9); border: none; cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          transition: background 150ms ease, transform 150ms ease;
+          pointer-events: all;
+        }
+        .mlc-overlay-btn:hover { background: white; transform: scale(1.1); }
+        @media (hover: hover) {
+          .mlc-wrap:hover .mlc-overlay { opacity: 1; transform: translateY(0); }
+        }
+
+        /* List mode overrides */
+        .mlc-list { display: flex; flex-direction: row; align-items: stretch; min-height: 90px; }
+        .mlc-list .mlc-photo-wrap { width: 90px !important; flex-shrink: 0; aspect-ratio: unset !important; }
+        .mlc-list .mlc-text { flex: 1; display: flex; align-items: center; gap: 16px; padding: 10px 12px; }
+        .mlc-list .mlc-title { font-size: 13px !important; -webkit-line-clamp: 1 !important; }
+        .mlc-list .mlc-bottom-bar { display: none; }
         @keyframes dot-pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.5; transform: scale(0.8); }
@@ -148,11 +175,11 @@ export function MyListingCard({ listing }: Props) {
         }
       `}</style>
 
-      <div className="mlc-wrap" style={{ opacity: isUpdating ? 0.6 : 1 }}>
+      <div className={`mlc-wrap${layout === "list" ? " mlc-list" : ""}`} style={{ opacity: isUpdating ? 0.6 : 1 }}>
 
         {/* Photo */}
-        <Link href={`/listing/${listing.id}`} style={{ display: "block", textDecoration: "none" }}>
-          <div style={{ position: "relative", aspectRatio: "1", overflow: "hidden", background: "#f3f4f6" }}>
+        <Link href={`/listing/${listing.id}`} style={{ display: "block", textDecoration: "none", flexShrink: layout === "list" ? 0 : undefined }}>
+          <div className="mlc-photo-wrap" style={{ position: "relative", aspectRatio: layout === "list" ? undefined : "1", height: layout === "list" ? "100%" : undefined, overflow: "hidden", background: "#f3f4f6" }}>
             {coverPhoto ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={coverPhoto.url} alt={listing.title} className="mlc-img" />
@@ -177,8 +204,32 @@ export function MyListingCard({ listing }: Props) {
               </span>
             </div>
 
-            {/* Gradient bottom fade for readability */}
-            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 48, background: "linear-gradient(to top, rgba(0,0,0,0.25), transparent)", pointerEvents: "none" }} />
+            {/* Gradient bottom fade */}
+            {layout !== "list" && (
+              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 48, background: "linear-gradient(to top, rgba(0,0,0,0.25), transparent)", pointerEvents: "none" }} />
+            )}
+
+            {/* Quick-actions overlay */}
+            {layout !== "list" && (
+              <div className="mlc-overlay">
+                <button type="button" className="mlc-overlay-btn" title="View" onClick={e => { e.preventDefault(); e.stopPropagation(); router.push(`/listing/${listing.id}`); }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth={2} strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button type="button" className="mlc-overlay-btn" title="Edit" onClick={e => { e.preventDefault(); e.stopPropagation(); setMenuOpen(false); setIsEditOpen(true); }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth={2} strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                {listing.status === "active" && (
+                  <button type="button" className="mlc-overlay-btn" title="Mark as sold" onClick={e => { e.preventDefault(); e.stopPropagation(); handleMarkAsSold(); }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth={2} strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  </button>
+                )}
+                {listing.status === "sold" && (
+                  <button type="button" className="mlc-overlay-btn" title="Reactivate" onClick={e => { e.preventDefault(); e.stopPropagation(); handleReactivate(); }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth={2} strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </Link>
 
