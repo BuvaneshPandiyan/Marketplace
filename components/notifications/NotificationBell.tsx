@@ -81,13 +81,18 @@ export function NotificationBell() {
     return () => { if (channel) supabase.removeChannel(channel); };
   }, [supabase]);
 
+  // Outside-click closes the DESKTOP dropdown.
+  // On mobile we skip this entirely — the portal sheet renders into document.body
+  // which is outside containerRef, so every tap inside the sheet would wrongly
+  // trigger setIsOpen(false) before the <a href> navigation can fire.
   useEffect(() => {
+    if (isMobile) return;
     function onOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) setIsOpen(false);
     }
     document.addEventListener("mousedown", onOutside);
     return () => document.removeEventListener("mousedown", onOutside);
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -156,19 +161,17 @@ export function NotificationBell() {
           );
 
           if (closeSheet) {
-            // Mobile: navigate via router.push from OUTSIDE the portal,
-            // sheet closes automatically when pathname changes.
+            // Mobile: plain <a href> — guaranteed navigation regardless of portal state.
+            // Next.js will intercept this for client-side navigation when possible.
             return (
               <li key={n.id}>
-                <div
-                  role="button" tabIndex={0}
-                  style={{ ...rowStyle, cursor: "pointer" }}
+                <a
+                  href={href}
+                  style={{ ...rowStyle, textDecoration: "none" }}
                   className="hover:bg-orange-50 active:bg-orange-100"
-                  onClick={() => router.push(href)}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") router.push(href); }}
                 >
                   {inner}
-                </div>
+                </a>
               </li>
             );
           }
