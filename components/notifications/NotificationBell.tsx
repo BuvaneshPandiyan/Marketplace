@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatRelativeDate } from "@/lib/client/formatRelativeDate";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import type { AppNotification, NotificationType } from "@/types";
@@ -36,7 +37,12 @@ function resolveLink(n: AppNotification): string {
 }
 
 // The notification list content — shared between desktop dropdown and mobile sheet
-function NotifList({ notifications, onClose }: { notifications: AppNotification[]; onClose: () => void }) {
+function NotifList({ notifications, onClose, isMobile }: {
+  notifications: AppNotification[];
+  onClose: () => void;
+  isMobile: boolean;
+}) {
+  const router = useRouter();
   if (notifications.length === 0) {
     return (
       <div style={{ padding: "40px 16px", textAlign: "center" }}>
@@ -79,16 +85,39 @@ function NotifList({ notifications, onClose }: { notifications: AppNotification[
 
         return (
           <li key={n.id}>
-            {/* Every notification is always a Link — resolveLink() guarantees a destination
-                even for older rows that were inserted before the link column was populated. */}
-            <Link
-              href={resolveLink(n)}
-              onClick={onClose}
-              style={rowStyle}
-              className="hover:bg-orange-50 active:bg-orange-100"
-            >
-              {row}
-            </Link>
+            {/* Mobile: use router.push() explicitly so navigation is guaranteed before
+                the portal unmounts. Desktop: plain Link with onClose is fine. */}
+            {isMobile ? (
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  const dest = resolveLink(n);
+                  router.push(dest);
+                  // Close after a tiny delay so router.push() is already queued
+                  setTimeout(onClose, 80);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    router.push(resolveLink(n));
+                    setTimeout(onClose, 80);
+                  }
+                }}
+                style={{ ...rowStyle, cursor: "pointer" }}
+                className="hover:bg-orange-50 active:bg-orange-100"
+              >
+                {row}
+              </div>
+            ) : (
+              <Link
+                href={resolveLink(n)}
+                onClick={onClose}
+                style={rowStyle}
+                className="hover:bg-orange-50 active:bg-orange-100"
+              >
+                {row}
+              </Link>
+            )}
           </li>
         );
       })}
@@ -230,7 +259,7 @@ export function NotificationBell() {
             style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.14), 0 4px 16px rgba(0,0,0,0.08)" }}>
             <NotifHeader unreadCount={unreadCount} onClose={() => setIsOpen(false)} />
             <div className="max-h-80 overflow-y-auto">
-              <NotifList notifications={notifications} onClose={() => setIsOpen(false)} />
+              <NotifList notifications={notifications} onClose={() => setIsOpen(false)} isMobile={false} />
             </div>
           </div>
         )}
@@ -262,7 +291,7 @@ export function NotificationBell() {
             </div>
             <NotifHeader unreadCount={unreadCount} onClose={() => setIsOpen(false)} />
             <div style={{ overflowY: "auto", flex: 1, paddingBottom: "env(safe-area-inset-bottom)" }}>
-              <NotifList notifications={notifications} onClose={() => setIsOpen(false)} />
+              <NotifList notifications={notifications} onClose={() => setIsOpen(false)} isMobile={true} />
             </div>
           </div>
         </>,
