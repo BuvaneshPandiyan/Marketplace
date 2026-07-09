@@ -383,15 +383,20 @@ export function Header() {
             <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#f3f4f6" }} />
           ) : user ? (
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              {/* Fix 2: Unified UserAvatar — orange person icon, same .header-icon-btn sizing */}
-              <button type="button" className="header-icon-btn logo-row-item"
-                title={profile?.name ?? "Account"}
-                style={{ color: "#ea580c", cursor: "default" }}
-                // TODO: onPress could open an account sheet/menu in a future iteration
+              {/* Person icon → /my-listings on mobile (no My Listings nav item on mobile) */}
+              <Link
+                href="/my-listings"
+                className={`header-icon-btn logo-row-item ${isMyListingsActive ? "" : ""}`}
+                title="My Listings"
+                style={{
+                  color: isMyListingsActive ? "#ea580c" : "#ea580c",
+                  background: isMyListingsActive ? "rgba(234,88,12,0.1)" : "transparent",
+                  textDecoration: "none",
+                }}
               >
                 <UserAvatar profile={profile} iconSize={22} />
-              </button>
-              {/* Fix 3: LogoutButton iconOnly on mobile too */}
+              </Link>
+              {/* LogoutButton icon on mobile */}
               <div className="logo-row-item">
                 <LogoutButton iconOnly />
               </div>
