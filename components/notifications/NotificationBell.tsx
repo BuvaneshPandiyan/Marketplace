@@ -19,6 +19,22 @@ const TYPE_ICON: Record<NotificationType, (isRead: boolean) => React.ReactElemen
   welcome:         (r) => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={r?"#9ca3af":"#ea580c"} strokeWidth={2} strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
 };
 
+// Fallback links for older notifications that were inserted before link support was added.
+// New notifications always have n.link set by the API routes / RPC. This function handles
+// the edge case where n.link is null (e.g., notifications created before migration 0026).
+function resolveLink(n: AppNotification): string {
+  if (n.link) return n.link;
+  switch (n.type) {
+    case "new_message":      return "/messages";         // message list as fallback
+    case "listing_sold":     return "/messages";         // conversation list as fallback
+    case "new_match":        return "/search";           // search page as fallback
+    case "price_drop":       return "/wishlist";         // wishlisted listings as fallback
+    case "listing_expiring": return "/my-listings";      // seller's own listings
+    case "welcome":          return "/";
+    default:                 return "/";
+  }
+}
+
 // The notification list content — shared between desktop dropdown and mobile sheet
 function NotifList({ notifications, onClose }: { notifications: AppNotification[]; onClose: () => void }) {
   if (notifications.length === 0) {
@@ -63,15 +79,16 @@ function NotifList({ notifications, onClose }: { notifications: AppNotification[
 
         return (
           <li key={n.id}>
-            {n.link ? (
-              <Link href={n.link} onClick={onClose}
-                style={rowStyle}
-                className="hover:bg-orange-50 active:bg-orange-100">
-                {row}
-              </Link>
-            ) : (
-              <div style={rowStyle} className="hover:bg-orange-50">{row}</div>
-            )}
+            {/* Every notification is always a Link — resolveLink() guarantees a destination
+                even for older rows that were inserted before the link column was populated. */}
+            <Link
+              href={resolveLink(n)}
+              onClick={onClose}
+              style={rowStyle}
+              className="hover:bg-orange-50 active:bg-orange-100"
+            >
+              {row}
+            </Link>
           </li>
         );
       })}
