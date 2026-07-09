@@ -4,7 +4,8 @@ export const dynamic = "force-dynamic";
 // Import Next.js's Metadata and Viewport types for type-safe head configuration
 import type { Metadata, Viewport } from "next";
 // Import the global stylesheet (includes Tailwind base/components/utilities)
-// @ts-expect-error: CSS module imports lack type declarations
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import "./globals.css";
 // Import the provider that tracks the logged-in user/profile across the whole app
 import { UserProvider } from "@/components/providers/UserProvider";

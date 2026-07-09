@@ -37,13 +37,11 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
   const searchParams = useSearchParams();
   const urlQuery = searchParams.get("q") ?? "";
 
-  const [queryInput, setQueryInput] = useState(initialQuery);
   const [submittedQuery, setSubmittedQuery] = useState(initialQuery);
 
   // Keep input + submitted query in sync when URL changes (e.g. header autocomplete)
   useEffect(() => {
     setSubmittedQuery(urlQuery);
-    setQueryInput(urlQuery);
   }, [urlQuery]);
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -487,7 +485,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
           Few results for &quot;{submittedQuery}&quot;. Did you mean{" "}
           <button
             type="button"
-            onClick={() => { setQueryInput(topHit.title); setSubmittedQuery(topHit.title); }}
+            onClick={() => setSubmittedQuery(topHit.title)}
             className="font-medium text-orange-600 hover:text-orange-700"
           >
             {topHit.title}
