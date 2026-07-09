@@ -36,6 +36,7 @@ function UserAvatar({ profile, iconSize = 22 }: {
   const avatarUrl = profile?.avatarUrl;
   if (avatarUrl) {
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={avatarUrl}
         alt={profile?.name ?? "Account"}
@@ -409,44 +410,54 @@ export function Header() {
         </div>
 
         {/* ══════════════════════════════════════════
-            MOBILE ROW 2 — sm:hidden, logged-in only
-            Wishlist / SearchBar / Bell / Sell
-            Content and order completely unchanged.
+            MOBILE ROW 2 — sm:hidden, ALL users
+            Guests:     Wishlist(→login) / SearchBar / Start selling
+            Logged-in:  Wishlist / SearchBar / Bell / Sell
         ══════════════════════════════════════════ */}
         <div className="flex items-center gap-2 px-4 pb-2.5 pt-1 sm:hidden">
-            <Link href="/wishlist" aria-label="Wishlist" onClick={handleWishlistClick}
-              className={`header-icon-btn row2-item-1 ${wishlistPop ? "heart-pop" : ""} ${
-                isWishlistActive ? "text-red-500" : ""
-              }`}
-              style={{ textDecoration: "none", background: isWishlistActive ? "rgba(239,68,68,0.08)" : undefined }}
-            >
-              <HeartIcon active={isWishlistActive} />
-            </Link>
 
-            <div className="row2-item-2 min-w-0 flex-1"
-              style={{ height: 44, display: "flex", alignItems: "center" }}
-            >
-              <SearchBar />
-            </div>
+          {/* Wishlist — always visible; guests redirected to login rather than toggling */}
+          <Link
+            href={user ? "/wishlist" : "/login?redirect=/wishlist"}
+            aria-label="Wishlist"
+            onClick={user ? handleWishlistClick : undefined}
+            className={`header-icon-btn row2-item-1 ${wishlistPop ? "heart-pop" : ""} ${
+              isWishlistActive ? "text-red-500" : ""
+            }`}
+            style={{ textDecoration: "none", background: isWishlistActive ? "rgba(239,68,68,0.08)" : undefined }}
+          >
+            <HeartIcon active={isWishlistActive} />
+          </Link>
 
+          {/* SearchBar — always visible, identical for guests and logged-in. This is the actual fix. */}
+          <div className="row2-item-2 min-w-0 flex-1"
+            style={{ height: 44, display: "flex", alignItems: "center" }}
+          >
+            <SearchBar />
+          </div>
+
+          {/* NotificationBell — logged-in only; notifications are account-specific */}
+          {user && (
             <div className="row2-item-3 header-icon-btn" style={{ flexShrink: 0 }}>
               <NotificationBell />
             </div>
+          )}
 
-            <Link href="/sell"
-              className="sell-btn row2-item-4 flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold text-white"
-              style={{
-                background: "linear-gradient(135deg, #ea580c 0%, #f97316 100%)",
-                boxShadow: "0 2px 12px rgba(234,88,12,0.4)",
-                textDecoration: "none", height: 44,
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              Sell
-            </Link>
-          </div>
+          {/* Sell — always visible; label mirrors the desktop pattern (Sell vs Start selling) */}
+          <Link href="/sell"
+            className="sell-btn row2-item-4 flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold text-white"
+            style={{
+              background: "linear-gradient(135deg, #ea580c 0%, #f97316 100%)",
+              boxShadow: "0 2px 12px rgba(234,88,12,0.4)",
+              textDecoration: "none", height: 44,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            {user ? "Sell" : "Start selling"}
+          </Link>
+        </div>
       </header>
 
       {/* Location Bottom Sheet — completely unchanged */}

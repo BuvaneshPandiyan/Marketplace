@@ -1,5 +1,6 @@
 "use client";
-// @ts-expect-error: CSS imports don't have type declarations in this project
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { fuzzCoordinate } from "@/lib/client/fuzzCoordinate";
