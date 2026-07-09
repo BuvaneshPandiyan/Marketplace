@@ -37,10 +37,12 @@ function resolveLink(n: AppNotification): string {
 }
 
 // The notification list content — shared between desktop dropdown and mobile sheet
-function NotifList({ notifications, onClose, isMobile }: {
+function NotifList({ notifications, onClose, isMobile, onNavigate }: {
   notifications: AppNotification[];
   onClose: () => void;
   isMobile: boolean;
+  // Mobile: parent handles navigation AFTER closing. Desktop: undefined (Link handles it).
+  onNavigate?: (url: string) => void;
 }) {
   const router = useRouter();
   if (notifications.length === 0) {
@@ -92,15 +94,14 @@ function NotifList({ notifications, onClose, isMobile }: {
                 role="button"
                 tabIndex={0}
                 onClick={() => {
-                  const dest = resolveLink(n);
-                  router.push(dest);
-                  // Close after a tiny delay so router.push() is already queued
-                  setTimeout(onClose, 80);
+                  // Tell the parent the destination; parent closes the sheet then navigates.
+                  onNavigate?.(resolveLink(n));
+                  onClose();
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
-                    router.push(resolveLink(n));
-                    setTimeout(onClose, 80);
+                    onNavigate?.(resolveLink(n));
+                    onClose();
                   }
                 }}
                 style={{ ...rowStyle, cursor: "pointer" }}
@@ -150,10 +151,23 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // Pending navigation URL — set when user taps a notification on mobile.
+  // The useEffect below navigates after isOpen becomes false (portal fully gone).
+  const [pendingNavUrl, setPendingNavUrl] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 639px)");
+  const router = useRouter();
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Navigate after the mobile sheet has closed — avoids router.push() firing
+  // while the portal is mid-unmount (which silently cancels the navigation).
+  useEffect(() => {
+    if (!isOpen && pendingNavUrl) {
+      router.push(pendingNavUrl);
+      setPendingNavUrl(null);
+    }
+  }, [isOpen, pendingNavUrl, router]);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -291,7 +305,12 @@ export function NotificationBell() {
             </div>
             <NotifHeader unreadCount={unreadCount} onClose={() => setIsOpen(false)} />
             <div style={{ overflowY: "auto", flex: 1, paddingBottom: "env(safe-area-inset-bottom)" }}>
-              <NotifList notifications={notifications} onClose={() => setIsOpen(false)} isMobile={true} />
+              <NotifList
+                notifications={notifications}
+                onClose={() => setIsOpen(false)}
+                isMobile={true}
+                onNavigate={(url) => setPendingNavUrl(url)}
+              />
             </div>
           </div>
         </>,
