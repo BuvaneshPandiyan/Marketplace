@@ -5,14 +5,17 @@ import { Header } from "@/components/ui/Header";
 
 // Define the layout component that wraps every page inside the (main) route group
 export default function MainLayout({ children }: { children: ReactNode }) {
-  // Render the shared header above whatever page content is nested inside
   return (
-    // A wrapper with no extra styling beyond a minimum height, so individual pages control their own layout
     <div className="min-h-screen bg-neutral-50">
-      {/* The persistent header shown across the whole "main" part of the app */}
       <Header />
-      {/* Render the actual page (home feed, search results, listing detail, sell flow, etc.) */}
-      <main>{children}</main>
+      {/*
+        padding-top compensates for the fixed header so content doesn't slide under it.
+        Desktop header: ~56px (one row). Mobile header: ~108px (two rows).
+      */}
+      <main style={{ paddingTop: 56 }}>
+        <style>{`@media(max-width:639px){ main{ padding-top: 108px !important; } }`}</style>
+        {children}
+      </main>
     </div>
   );
 }

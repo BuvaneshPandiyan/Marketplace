@@ -316,15 +316,11 @@ export function NotificationBell() {
           />
           <div className="notif-sheet" style={{
             position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9991,
-            background: "white", borderRadius: "24px 24px 0 0",
+            background: "white", borderRadius: "28px 28px 0 0",
             maxHeight: "78vh", display: "flex", flexDirection: "column",
-            boxShadow: "0 -12px 48px rgba(0,0,0,0.18)",
+            boxShadow: "0 -16px 60px rgba(0,0,0,0.2)",
             overflow: "hidden",
           }}>
-            {/* Drag handle — dark background matches the gradient header below it, no white line */}
-            <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 0", flexShrink: 0, background: "linear-gradient(135deg,#1a0a00,#3d1500)" }}>
-              <div style={{ width: 36, height: 4, borderRadius: 100, background: "rgba(255,255,255,0.3)", marginBottom: 10 }} />
-            </div>
             {popupContent(true)}
           </div>
         </>,

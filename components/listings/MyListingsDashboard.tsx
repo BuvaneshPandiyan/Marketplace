@@ -142,8 +142,18 @@ export function MyListingsDashboard({ listings }: Props) {
         /* Hero gradient animation */
         @keyframes grad-shift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
         .hero-grad { background: linear-gradient(135deg,#1a0a00,#3d1500,#ea580c,#f97316,#3d1500,#1a0a00); background-size:400% 400%; animation: grad-shift 12s ease infinite; }
-        /* Mobile: two-row header is ~108px, override the sticky top */
-        @media(max-width:639px){ .hero-grad{ top: 108px !important; } }
+        /* Mobile: compact hero — slim bar, stat cards scroll horizontally */
+        @media(max-width:639px){
+          .hero-grad { top: 108px !important; padding: 10px 0 !important; }
+          .hero-blob  { display: none !important; }
+          .hero-eyebrow { font-size: 9px !important; margin-bottom: 2px !important; }
+          .hero-title { font-size: 18px !important; }
+          .hero-sub   { display: none !important; }
+          .sell-btn-dash { padding: 8px 14px !important; font-size: 12px !important; }
+          .stat-grid  { display:flex!important; flex-direction:row!important; overflow-x:auto!important; gap:8px!important; padding-bottom:4px!important; scrollbar-width:none!important; -ms-overflow-style:none!important; }
+          .stat-grid::-webkit-scrollbar { display:none!important; }
+          .stat-card  { flex-shrink:0!important; min-width:80px!important; padding:10px 12px!important; border-radius:12px!important; }
+        }
 
         /* Empty-state pulse */
         @keyframes ring-pulse { 0%,100%{transform:scale(1);opacity:.4} 50%{transform:scale(1.15);opacity:.1} }
@@ -180,15 +190,15 @@ export function MyListingsDashboard({ listings }: Props) {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: counts.total > 0 ? 28 : 0 }}>
             <div>
               <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
-                style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: 4 }}>
+                className="hero-eyebrow" style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: 4 }}>
                 {getGreeting()}, seller
               </motion.p>
               <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}
-                style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 900, color: "white", lineHeight: 1.1, letterSpacing: "-0.03em", margin: 0 }}>
+                className="hero-title" style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 900, color: "white", lineHeight: 1.1, letterSpacing: "-0.03em", margin: 0 }}>
                 My Listings
               </motion.h1>
               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-                style={{ marginTop: 5, fontSize: 13, color: "rgba(255,255,255,0.45)" }}>
+                className="hero-sub" style={{ marginTop: 5, fontSize: 13, color: "rgba(255,255,255,0.45)" }}>
                 {counts.total === 0 ? "Post your first listing to get started" : `${counts.total} listing${counts.total !== 1 ? "s" : ""} in your store`}
               </motion.p>
             </div>
@@ -205,7 +215,7 @@ export function MyListingsDashboard({ listings }: Props) {
           {/* ── STAT CARDS ── */}
           {counts.total > 0 && (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}
-              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
+              className="stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
               {STATS.map(({ key, label }, i) => {
                 const { color, bg } = STAT_COLORS[key];
                 const val = counts[key];

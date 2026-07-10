@@ -9,10 +9,10 @@ import { LogoutButton } from "@/components/auth/LogoutButton";
 import { LocationPill } from "@/components/location/LocationPill";
 import { LocationSearchInput } from "@/components/location/LocationSearchInput";
 import { SearchBar } from "@/components/search/SearchBar";
+import { MessagesLink } from "@/components/ui/MessagesLink";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useActiveLocation } from "@/lib/hooks/useActiveLocation";
 import type { StoredLocation } from "@/lib/client/locationStorage";
-import { MessagesLink } from "@/components/ui/MessagesLink";
 
 // ── Shared heart icon ──────────────────────────────────────────────────
 function HeartIcon({ active }: { active: boolean }) {
@@ -64,10 +64,35 @@ export function Header() {
   const [locSheetOpen, setLocSheetOpen] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectError, setDetectError] = useState<string | null>(null);
+  // Mobile hamburger drawer
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  // Desktop My Listings dropdown
+  const [mlDropOpen, setMlDropOpen] = useState(false);
+  const mlDropRef = useRef<HTMLDivElement>(null);
   const locTriggerRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
   const isWishlistActive = pathname === "/wishlist";
   const isMyListingsActive = pathname === "/my-listings";
+
+  // Close drawer and dropdown on navigation
+  useEffect(() => { setDrawerOpen(false); setMlDropOpen(false); }, [pathname]);
+
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (drawerOpen) { document.body.style.overflow = "hidden"; }
+    else { document.body.style.overflow = ""; }
+    return () => { document.body.style.overflow = ""; };
+  }, [drawerOpen]);
+
+  // Close My Listings dropdown when clicking outside
+  useEffect(() => {
+    if (!mlDropOpen) return;
+    function onOut(e: MouseEvent) {
+      if (mlDropRef.current && !mlDropRef.current.contains(e.target as Node)) setMlDropOpen(false);
+    }
+    document.addEventListener("mousedown", onOut);
+    return () => document.removeEventListener("mousedown", onOut);
+  }, [mlDropOpen]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -205,7 +230,7 @@ export function Header() {
       `}</style>
 
       <header
-        className="sticky top-0 z-50 w-full"
+        className="fixed top-0 left-0 right-0 z-50 w-full"
         style={{
           background: scrolled ? "rgba(255,255,255,0.82)" : "rgba(255,255,255,0.95)",
           backdropFilter: "blur(20px) saturate(180%)",
@@ -256,15 +281,51 @@ export function Header() {
             <div className="h-9 w-16 shrink-0 animate-pulse rounded-full bg-neutral-100" />
           ) : user ? (
             <div className="flex shrink-0 items-center" style={{ gap: 4 }}>
-              <Link href="/my-listings" prefetch={true}
-                className={`nav-link rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isMyListingsActive ? "active text-orange-600" : "text-neutral-600 hover:text-neutral-900"
-                }`}
-                style={{ textDecoration: "none" }}
-              >
-                My Listings
-              </Link>
-              {/* Chats button — shows unread count */}
+              {/* My Listings — dropdown button on desktop */}
+              {user && (
+                <div ref={mlDropRef} style={{ position: "relative" }}>
+                  <button type="button"
+                    onClick={() => setMlDropOpen(o => !o)}
+                    className={`nav-link flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isMyListingsActive ? "active text-orange-600" : "text-neutral-600 hover:text-neutral-900"}`}
+                    style={{ background: "none", border: "none", cursor: "pointer" }}>
+                    My Listings
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"
+                      style={{ transform: mlDropOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 200ms ease" }}>
+                      <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                  </button>
+                  {mlDropOpen && (
+                    <div style={{
+                      position: "absolute", top: "calc(100% + 8px)", left: 0,
+                      width: 200, background: "white", borderRadius: 14,
+                      boxShadow: "0 12px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06)",
+                      border: "1px solid rgba(0,0,0,0.06)", overflow: "hidden", zIndex: 60,
+                    }}>
+                      {[
+                        { label: "All Listings", href: "/my-listings" },
+                        { label: "Active", href: "/my-listings?tab=active" },
+                        { label: "Sold", href: "/my-listings?tab=sold" },
+                        { label: "Draft", href: "/my-listings?tab=draft" },
+                      ].map(item => (
+                        <Link key={item.href} href={item.href} prefetch={true}
+                          onClick={() => setMlDropOpen(false)}
+                          style={{ display: "block", padding: "10px 16px", fontSize: 13, fontWeight: 500, color: "#374151", textDecoration: "none", transition: "background 120ms ease" }}
+                          className="hover:bg-orange-50 hover:text-orange-600">
+                          {item.label}
+                        </Link>
+                      ))}
+                      <div style={{ borderTop: "1px solid #f3f4f6", padding: "8px 12px" }}>
+                        <Link href="/sell" prefetch={true} onClick={() => setMlDropOpen(false)}
+                          style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#ea580c", textDecoration: "none" }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 5v14M5 12h14"/></svg>
+                          Post new listing
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Chats link — desktop */}
               <MessagesLink />
               <Link href="/wishlist" prefetch={true} aria-label="Wishlist" onClick={handleWishlistClick}
                 className={`flex items-center justify-center rounded-full transition-colors ${
@@ -381,37 +442,22 @@ export function Header() {
             </Link>
           </div>
 
-          {/* RIGHT — unified avatar + logout */}
+          {/* RIGHT — hamburger (logged in) or Sign in (guest) */}
           {isLoading ? (
             <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#f3f4f6" }} />
           ) : user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              {/* Person icon → /my-listings on mobile (no My Listings nav item on mobile) */}
-              <Link
-                href="/my-listings"
-                className={`header-icon-btn logo-row-item ${isMyListingsActive ? "" : ""}`}
-                title="My Listings"
-                style={{
-                  color: isMyListingsActive ? "#ea580c" : "#ea580c",
-                  background: isMyListingsActive ? "rgba(234,88,12,0.1)" : "transparent",
-                  textDecoration: "none",
-                }}
-              >
-                <UserAvatar profile={profile} iconSize={22} />
-              </Link>
-              {/* LogoutButton icon on mobile */}
-              <div className="logo-row-item">
-                <LogoutButton iconOnly />
-              </div>
-            </div>
+            <button type="button" onClick={() => setDrawerOpen(true)} aria-label="Open menu"
+              className="header-icon-btn logo-row-item"
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#374151" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
           ) : (
             <Link href="/login"
-              style={{
-                textDecoration: "none", fontSize: 13, fontWeight: 600,
-                color: "#374151", padding: "6px 12px", borderRadius: 100,
-                border: "1px solid #e5e7eb", whiteSpace: "nowrap",
-              }}
-            >
+              style={{ textDecoration: "none", fontSize: 13, fontWeight: 600, color: "#374151", padding: "6px 12px", borderRadius: 100, border: "1px solid #e5e7eb", whiteSpace: "nowrap" }}>
               Sign in
             </Link>
           )}
@@ -476,6 +522,75 @@ export function Header() {
           </Link>
         </div>
       </header>
+
+      {/* ── MOBILE SIDE DRAWER — sm:hidden ── */}
+      {drawerOpen && (
+        <>
+          {/* Backdrop */}
+          <div onClick={() => setDrawerOpen(false)} className="sm:hidden"
+            style={{ position: "fixed", inset: 0, zIndex: 9980, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(2px)" }} />
+          {/* Drawer */}
+          <div className="sm:hidden" style={{
+            position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 9981,
+            width: 280, background: "white",
+            boxShadow: "-8px 0 40px rgba(0,0,0,0.18)",
+            display: "flex", flexDirection: "column",
+            animation: "drawer-in 280ms cubic-bezier(0.22,1,0.36,1) both",
+          }}>
+            <style>{`@keyframes drawer-in{from{transform:translateX(100%)}to{transform:translateX(0)}}`}</style>
+
+            {/* Drawer header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid #f3f4f6" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {profile?.profile_photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={profile.profile_photo_url} alt={profile.name ?? ""}
+                    style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }} />
+                ) : (
+                  <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg,#ea580c,#f97316)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 15 }}>
+                    {profile?.name?.[0]?.toUpperCase() ?? "U"}
+                  </div>
+                )}
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: "#111", margin: 0 }}>{profile?.name ?? "My Account"}</p>
+                  <p style={{ fontSize: 11, color: "#9ca3af", margin: 0 }}>Seller</p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setDrawerOpen(false)} aria-label="Close menu"
+                style={{ width: 32, height: 32, borderRadius: "50%", border: "none", background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            {/* Drawer nav links */}
+            <nav style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
+              {[
+                { href: "/my-listings", label: "My Listings", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
+                { href: "/messages",    label: "Chats",       icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> },
+                { href: "/wishlist",    label: "Wishlist",    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
+              ].map(({ href, label, icon }) => (
+                <Link key={href} href={href} prefetch={true} onClick={() => setDrawerOpen(false)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 14, padding: "13px 20px",
+                    textDecoration: "none", color: pathname === href ? "#ea580c" : "#374151",
+                    fontWeight: 500, fontSize: 14,
+                    background: pathname === href ? "rgba(234,88,12,0.06)" : "transparent",
+                    borderLeft: `3px solid ${pathname === href ? "#ea580c" : "transparent"}`,
+                    transition: "background 150ms ease",
+                  }}>
+                  <span style={{ color: pathname === href ? "#ea580c" : "#6b7280" }}>{icon}</span>
+                  {label}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Logout at bottom */}
+            <div style={{ padding: "12px 20px", borderTop: "1px solid #f3f4f6" }}>
+              <LogoutButton />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Location Bottom Sheet — completely unchanged */}
       <AnimatePresence>
