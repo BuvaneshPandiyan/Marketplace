@@ -142,6 +142,8 @@ export function MyListingsDashboard({ listings }: Props) {
         /* Hero gradient animation */
         @keyframes grad-shift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
         .hero-grad { background: linear-gradient(135deg,#1a0a00,#3d1500,#ea580c,#f97316,#3d1500,#1a0a00); background-size:400% 400%; animation: grad-shift 12s ease infinite; }
+        /* Mobile: two-row header is ~108px, override the sticky top */
+        @media(max-width:639px){ .hero-grad{ top: 108px !important; } }
 
         /* Empty-state pulse */
         @keyframes ring-pulse { 0%,100%{transform:scale(1);opacity:.4} 50%{transform:scale(1.15);opacity:.1} }
@@ -156,7 +158,10 @@ export function MyListingsDashboard({ listings }: Props) {
       `}</style>
 
       {/* ── HERO ── */}
-      <div ref={heroRef} className="hero-grad" style={{ padding: "36px 0 32px", position: "relative", overflow: "hidden" }}>
+      <div ref={heroRef} className="hero-grad" style={{
+        padding: "36px 0 32px", position: "sticky", top: 56,
+        zIndex: 30, overflow: "hidden",
+      }}>
 
         {/* Grain texture overlay */}
         <div style={{

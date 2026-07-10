@@ -315,15 +315,16 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
                 className="hover:opacity-90">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                 <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{conversation.listing_title}</span>
+                {/* Sold badge sits beside the listing title — never displaces the report button */}
+                {isSold && (
+                  <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 100, background: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.85)", fontWeight: 700, letterSpacing: "0.05em", flexShrink: 0 }}>
+                    SOLD
+                  </span>
+                )}
               </Link>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-              {isSold && (
-                <span style={{ fontSize: 10, padding: "3px 10px", borderRadius: 100, background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.8)", fontWeight: 600 }}>
-                  SOLD
-                </span>
-              )}
               <ReportButton targetType={reportTarget.targetType} targetId={reportTarget.targetId} isLoggedIn={true} />
             </div>
           </div>
