@@ -3,6 +3,9 @@
 
 // Import React's hooks
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import Link from "next/link";
+import { ReportButton } from "@/components/trust/ReportButton";
 // Import our browser Supabase client creator
 import { createClient } from "@/lib/supabase/client";
 // Import our shared types
@@ -25,16 +28,14 @@ type EnrichedConversation = Conversation & {
 
 // Define the props this component accepts
 type ChatPanelProps = {
-  // The conversation (with the two extra joined fields above)
   conversation: EnrichedConversation;
-  // The currently logged-in user's ID
   currentUserId: string;
-  // The profile of the OTHER participant (the person we're chatting with)
+  otherUserId: string;
   otherUserProfile: Profile | null;
+  reportTarget: { targetType: "user" | "listing" | "message"; targetId: string };
 };
 
-// Define and export the ChatPanel component
-export function ChatPanel({ conversation, currentUserId, otherUserProfile }: ChatPanelProps) {
+export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserProfile, reportTarget }: ChatPanelProps) {
   // Create one browser Supabase client instance for this component's lifetime
   const [supabase] = useState(() => createClient());
   // All messages loaded so far, in chronological order
@@ -64,6 +65,10 @@ export function ChatPanel({ conversation, currentUserId, otherUserProfile }: Cha
   // even if the page was loaded before the seller marked the item as sold.
   const [listingStatus, setListingStatus] = useState(conversation.listing_status);
   const isSold = listingStatus === "sold";
+  // Lightbox — null when closed, image URL string when open
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [lightboxMounted, setLightboxMounted] = useState(false);
+  useEffect(() => { setLightboxMounted(true); }, []);
 
   // Fetch the current listing status via the conversations join — the buyer always has
   // SELECT on their own conversation row, so this bypasses any listings RLS that might
@@ -258,164 +263,223 @@ export function ChatPanel({ conversation, currentUserId, otherUserProfile }: Cha
   }
 
   return (
-    // A full-height flex column, relative so the rating overlay can be positioned inside it
-    <div className="relative flex h-full flex-col">
+    <>
+      {/* LAYOUT: full height flex column — header sticky, messages scroll, input fixed */}
+      <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", background: "#ede9e4", minHeight: 0 }}>
 
-      {/* Rating prompt overlay — covers the whole panel when shown */}
-      {showRatingPrompt && otherUserProfile && (
-        <RatingPrompt
-          listingId={conversation.listing_id}
-          raterId={currentUserId}
-          ratedUserId={otherUserProfile.id}
-          ratedUserName={otherUserProfile.name}
-          onDismiss={() => setShowRatingPrompt(false)}
-        />
-      )}
+        {/* Rating prompt overlay */}
+        {showRatingPrompt && otherUserProfile && (
+          <RatingPrompt
+            listingId={conversation.listing_id}
+            raterId={currentUserId}
+            ratedUserId={otherUserProfile.id}
+            ratedUserName={otherUserProfile.name}
+            onDismiss={() => setShowRatingPrompt(false)}
+          />
+        )}
 
-      {/* ── Header ── */}
-      <div className="shrink-0 border-b border-neutral-200 px-4 py-3">
-        {/* The listing this conversation is about */}
-        <p className="truncate text-sm font-semibold text-neutral-900">{conversation.listing_title}</p>
-        {/* Who we're talking to */}
-        <p className="text-xs text-neutral-500">
-          with {otherUserProfile?.name ?? "the other party"}
-        </p>
-      </div>
+        {/* ── STICKY HEADER ── stays visible during scroll */}
+        <div style={{
+          flexShrink: 0,
+          background: "linear-gradient(135deg, #1a0a00 0%, #3d1500 50%, #ea580c 100%)",
+          padding: "12px 14px",
+          position: "relative", overflow: "hidden",
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+        }}>
+          <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative", zIndex: 1 }}>
+            {/* Avatar */}
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              {otherUserProfile?.profile_photo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={otherUserProfile.profile_photo_url} alt={otherUserProfile.name ?? ""}
+                  style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.3)" }} />
+              ) : (
+                <div style={{ width: 42, height: 42, borderRadius: "50%", background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, color: "white", border: "2px solid rgba(255,255,255,0.2)" }}>
+                  {(otherUserProfile?.name ?? "?")[0]?.toUpperCase()}
+                </div>
+              )}
+              <div style={{ position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: "50%", background: "#22c55e", border: "2px solid white" }} />
+            </div>
 
-      {/* Safety warning banner — shown non-blocking when a message matches a flagged keyword */}
-      {warningKeyword && (
-        <SafetyWarningBanner matchedKeyword={warningKeyword} />
-      )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {/* Clickable username → seller profile */}
+              <Link href={`/seller/${otherUserId}`}
+                style={{ fontSize: 15, fontWeight: 700, color: "white", textDecoration: "none", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", transition: "opacity 150ms ease" }}
+                className="hover:opacity-80">
+                {otherUserProfile?.name ?? "Unknown"}
+              </Link>
+              {/* Clickable listing title → listing page */}
+              <Link href={`/listing/${conversation.listing_id}`}
+                style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4, marginTop: 1, transition: "opacity 150ms ease" }}
+                className="hover:opacity-90">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{conversation.listing_title}</span>
+              </Link>
+            </div>
 
-      {/* ── Sold banner ── */}
-      {isSold && (
-        <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-4 py-2.5">
-          <p className="flex items-center gap-2 text-xs font-medium text-amber-800">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-              <circle cx="12" cy="12" r="10" /><path d="M12 8v4m0 4h.01" />
-            </svg>
-            This item has been sold and is no longer available.
-          </p>
-        </div>
-      )}
-
-      {/* ── Message list ── */}
-      <div className="flex-1 overflow-y-auto space-y-3 px-4 py-3">
-        {messages.map((msg) => {
-          // System messages (e.g. "marked as sold") render as a centered pill, no avatar/bubble
-          const isSystem = (msg as Message & { message_type?: string }).message_type === "system";
-          if (isSystem) {
-            return (
-              <div key={msg.id} className="flex justify-center py-1">
-                <span className="rounded-full bg-neutral-100 px-3 py-1.5 text-xs text-neutral-500">
-                  {msg.text}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+              {isSold && (
+                <span style={{ fontSize: 10, padding: "3px 10px", borderRadius: 100, background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.8)", fontWeight: 600 }}>
+                  SOLD
                 </span>
+              )}
+              <ReportButton targetType={reportTarget.targetType} targetId={reportTarget.targetId} isLoggedIn={true} />
+            </div>
+          </div>
+        </div>
+
+        {/* Safety banner */}
+        {warningKeyword && <SafetyWarningBanner matchedKeyword={warningKeyword} />}
+
+        {/* Sold banner */}
+        {isSold && (
+          <div style={{ flexShrink: 0, background: "linear-gradient(135deg,#fffbeb,#fef3c7)", padding: "8px 16px", display: "flex", alignItems: "center", gap: 8, borderBottom: "1px solid #fde68a" }}>
+            <span style={{ fontSize: 14 }}>🏷️</span>
+            <p style={{ fontSize: 12, fontWeight: 600, color: "#92400e", margin: 0 }}>This item has been sold — messaging is disabled.</p>
+          </div>
+        )}
+
+        {/* ── SCROLLABLE MESSAGE LIST — only this area scrolls ── */}
+        <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10, minHeight: 0 }}>
+          {messages.map((msg) => {
+            const isSystem = (msg as Message & { message_type?: string }).message_type === "system";
+            if (isSystem) {
+              return (
+                <div key={msg.id} style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
+                  <span style={{ borderRadius: 100, background: "rgba(0,0,0,0.08)", padding: "5px 14px", fontSize: 11, color: "#6b7280", fontWeight: 500 }}>
+                    {msg.text}
+                  </span>
+                </div>
+              );
+            }
+            const isOwn = msg.sender_id === currentUserId;
+            return (
+              <div key={msg.id} style={{ display: "flex", justifyContent: isOwn ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 8 }}>
+                {/* Other person avatar */}
+                {!isOwn && (
+                  otherUserProfile?.profile_photo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={otherUserProfile.profile_photo_url} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                  ) : (
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#ea580c,#f97316)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "white", flexShrink: 0 }}>
+                      {(otherUserProfile?.name ?? "?")[0]?.toUpperCase()}
+                    </div>
+                  )
+                )}
+                <div style={{ maxWidth: "68%", display: "flex", flexDirection: "column", alignItems: isOwn ? "flex-end" : "flex-start", gap: 4 }}>
+                  {/* Image — thumbnail, click to enlarge */}
+                  {msg.image_url && (
+                    <div
+                      onClick={() => setLightboxUrl(msg.image_url!)}
+                      style={{ cursor: "pointer", borderRadius: 14, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.15)", maxWidth: 200, transition: "transform 150ms ease" }}
+                      className="hover:scale-[1.02]"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={msg.image_url} alt="Shared image"
+                        style={{ width: "100%", maxHeight: 200, objectFit: "cover", display: "block" }} />
+                      <div style={{ background: "rgba(0,0,0,0.45)", padding: "4px 10px", fontSize: 10, color: "rgba(255,255,255,0.8)", textAlign: "center" }}>
+                        Tap to expand
+                      </div>
+                    </div>
+                  )}
+                  {/* Text bubble */}
+                  {msg.text && (
+                    <div style={{
+                      padding: "10px 14px",
+                      borderRadius: isOwn ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                      background: isOwn ? "linear-gradient(135deg,#ea580c,#f97316)" : "white",
+                      color: isOwn ? "white" : "#111827",
+                      fontSize: 14, lineHeight: 1.45, wordBreak: "break-word",
+                      boxShadow: isOwn ? "0 4px 16px rgba(234,88,12,0.3)" : "0 2px 8px rgba(0,0,0,0.08)",
+                    }}>
+                      {msg.text}
+                    </div>
+                  )}
+                  {/* Timestamp + read receipt */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 4px" }}>
+                    <span style={{ fontSize: 10, color: "#9ca3af" }}>
+                      {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                    {isOwn && (
+                      <span style={{ fontSize: 10, color: msg.read ? "#ea580c" : "#9ca3af", fontWeight: 600 }}>
+                        {msg.read ? "✓✓" : "✓"}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
             );
-          }
-          // Is this message one we sent ourselves?
-          const isOwn = msg.sender_id === currentUserId;
-          return (
-            // Align own messages to the right, incoming to the left
-            <div key={msg.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-              {/* The bubble */}
-              <div
-                className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
-                  isOwn ? "bg-orange-600 text-white" : "bg-neutral-100 text-neutral-900"
-                }`}
-              >
-                {/* Show the attached image if there is one */}
-                {msg.image_url && (
-                  // eslint-disable-next-line @next/next/no-img-element -- user-uploaded chat image, not a Next.js static asset
-                  <img src={msg.image_url} alt="Shared image" className="mb-1 max-w-full rounded-lg" />
-                )}
-                {/* Show the message text if there is any */}
-                {msg.text && <p className="break-words">{msg.text}</p>}
-                {/* Read receipt: only on own messages, ✓✓ once read, ✓ while unread */}
-                {isOwn && (
-                  <p className="mt-0.5 text-right text-[10px] text-white/60">
-                    {msg.read ? "✓✓" : "✓"}
-                  </p>
-                )}
-              </div>
+          })}
+          <div ref={bottomRef} />
+        </div>
+
+        {/* ── FIXED INPUT AREA — never scrolls away ── */}
+        {isSold ? (
+          <div style={{ flexShrink: 0, borderTop: "1px solid #e5e7eb", background: "white", padding: "14px 16px", textAlign: "center" }}>
+            <p style={{ fontSize: 13, color: "#9ca3af", fontWeight: 500, margin: 0 }}>🏷️ Messaging disabled for sold items</p>
+          </div>
+        ) : (
+          <div style={{ flexShrink: 0, borderTop: "1px solid #e5e7eb", background: "white", padding: "8px 12px 10px" }}>
+            <div style={{ display: "flex", gap: 10, marginBottom: 6 }}>
+              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingImage}
+                style={{ fontSize: 12, color: "#9ca3af", background: "none", border: "none", cursor: "pointer", padding: 0, transition: "color 150ms" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#ea580c"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#9ca3af"; }}>
+                {isUploadingImage ? "Uploading…" : "📎 Photo"}
+              </button>
+              <button type="button" onClick={handleShareLocation}
+                style={{ fontSize: 12, color: "#9ca3af", background: "none", border: "none", cursor: "pointer", padding: 0, transition: "color 150ms" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#ea580c"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#9ca3af"; }}>
+                📍 Location
+              </button>
             </div>
-          );
-        })}
-        {/* Invisible anchor element — scrollIntoView() targets this to jump to the bottom */}
-        <div ref={bottomRef} />
+            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }}
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ""; }} />
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendText(); } }}
+                placeholder="Type a message…"
+                style={{ flex: 1, border: "1.5px solid #e5e7eb", borderRadius: 100, padding: "10px 16px", fontSize: 14, outline: "none", background: "#f9fafb", transition: "border-color 200ms ease, background 200ms ease" }}
+                onFocus={(e) => { e.target.style.borderColor = "#ea580c"; e.target.style.background = "white"; }}
+                onBlur={(e) => { e.target.style.borderColor = "#e5e7eb"; e.target.style.background = "#f9fafb"; }}
+              />
+              <button type="button" onClick={handleSendText} disabled={isSending || !inputText.trim()}
+                style={{
+                  width: 44, height: 44, borderRadius: "50%", border: "none", cursor: "pointer", flexShrink: 0,
+                  background: inputText.trim() ? "linear-gradient(135deg,#ea580c,#f97316)" : "#e5e7eb",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: inputText.trim() ? "0 4px 16px rgba(234,88,12,0.35)" : "none",
+                  transition: "background 200ms ease, box-shadow 200ms ease, transform 150ms ease",
+                }}
+                onMouseEnter={(e) => { if (inputText.trim()) (e.currentTarget as HTMLElement).style.transform = "scale(1.1)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={inputText.trim() ? "white" : "#9ca3af"} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ── Input area — replaced by a muted notice when listing is sold ── */}
-      {isSold ? (
-        <div className="shrink-0 border-t border-neutral-200 bg-neutral-50 px-4 py-3 text-center">
-          <p className="text-xs text-neutral-500">Messaging is disabled for sold listings.</p>
-        </div>
-      ) : (
-      <div className="shrink-0 border-t border-neutral-200 px-3 py-2">
-        {/* Quick-action row above the text input */}
-        <div className="mb-2 flex gap-3">
-          {/* Photo attachment button — opens the hidden file input */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploadingImage}
-            className="text-xs text-neutral-500 hover:text-orange-600 disabled:opacity-50"
-          >
-            {isUploadingImage ? "Uploading…" : "📎 Photo"}
+      {/* ── LIGHTBOX — click image to expand ── */}
+      {lightboxMounted && lightboxUrl && createPortal(
+        <div
+          onClick={() => setLightboxUrl(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.92)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, cursor: "zoom-out" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightboxUrl} alt="Full size"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "100%", maxHeight: "90vh", objectFit: "contain", borderRadius: 12, boxShadow: "0 24px 60px rgba(0,0,0,0.5)", cursor: "default" }} />
+          <button onClick={() => setLightboxUrl(null)}
+            style={{ position: "absolute", top: 16, right: 16, width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
-          {/* Share-location button — sends a Google Maps link of the current position */}
-          <button
-            type="button"
-            onClick={handleShareLocation}
-            className="text-xs text-neutral-500 hover:text-orange-600"
-          >
-            📍 Location
-          </button>
-        </div>
-
-        {/* Hidden file input triggered by the "📎 Photo" button above */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          // Accept any image type — this is chat, not listing photos, so any file is fine
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleImageUpload(file);
-            // Reset so the same file can be selected again later
-            e.target.value = "";
-          }}
-        />
-
-        {/* Text input + send button row */}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={(e) => {
-              // Send on Enter — Shift+Enter would insert a newline if this were a textarea
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSendText();
-              }
-            }}
-            placeholder="Type a message…"
-            className="flex-1 rounded-full border border-neutral-300 px-4 py-2 text-sm focus:border-orange-500 focus:outline-none"
-          />
-          {/* Send button — disabled when the input is empty or a send is in flight */}
-          <button
-            type="button"
-            onClick={handleSendText}
-            disabled={isSending || !inputText.trim()}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50"
-          >
-            ↑
-          </button>
-        </div>
-      </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   );
 }

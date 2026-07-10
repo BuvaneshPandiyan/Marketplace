@@ -8,6 +8,7 @@ import type { Metadata, Viewport } from "next";
 // @ts-ignore
 import "./globals.css";
 // Import the provider that tracks the logged-in user/profile across the whole app
+import { NavigationProgress } from "@/components/ui/NavigationProgress";
 import { UserProvider } from "@/components/providers/UserProvider";
 // Import the provider that tracks the active browsing location across the whole app
 import { LocationProvider } from "@/components/providers/LocationProvider";
@@ -52,6 +53,8 @@ export default function RootLayout({
       {/* suppressHydrationWarning prevents a false mismatch warning from browser extensions
           that modify the DOM (e.g., password managers, translation extensions) */}
       <body suppressHydrationWarning className="bg-neutral-50">
+        {/* Top progress bar — appears during client-side navigations */}
+        <NavigationProgress />
         {/* UserProvider tracks the logged-in user/profile in React Context */}
         <UserProvider>
           {/* LocationProvider tracks the active location (default + browsing) in React Context */}

@@ -12,6 +12,7 @@ import { SearchBar } from "@/components/search/SearchBar";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useActiveLocation } from "@/lib/hooks/useActiveLocation";
 import type { StoredLocation } from "@/lib/client/locationStorage";
+import { MessagesLink } from "@/components/ui/MessagesLink";
 
 // ── Shared heart icon ──────────────────────────────────────────────────
 function HeartIcon({ active }: { active: boolean }) {
@@ -255,7 +256,7 @@ export function Header() {
             <div className="h-9 w-16 shrink-0 animate-pulse rounded-full bg-neutral-100" />
           ) : user ? (
             <div className="flex shrink-0 items-center" style={{ gap: 4 }}>
-              <Link href="/my-listings"
+              <Link href="/my-listings" prefetch={true}
                 className={`nav-link rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isMyListingsActive ? "active text-orange-600" : "text-neutral-600 hover:text-neutral-900"
                 }`}
@@ -263,7 +264,9 @@ export function Header() {
               >
                 My Listings
               </Link>
-              <Link href="/wishlist" aria-label="Wishlist" onClick={handleWishlistClick}
+              {/* Chats button — shows unread count */}
+              <MessagesLink />
+              <Link href="/wishlist" prefetch={true} aria-label="Wishlist" onClick={handleWishlistClick}
                 className={`flex items-center justify-center rounded-full transition-colors ${
                   wishlistPop ? "heart-pop" : ""
                 } ${isWishlistActive ? "bg-red-50 text-red-500" : "text-neutral-400 hover:bg-neutral-100 hover:text-red-400"}`}
@@ -282,7 +285,7 @@ export function Header() {
               </div>
               {/* Fix 3: LogoutButton iconOnly everywhere */}
               <LogoutButton iconOnly />
-              <Link href="/sell"
+              <Link href="/sell" prefetch={true}
                 className="sell-btn flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-sm font-bold text-white"
                 style={{
                   background: "linear-gradient(135deg, #ea580c 0%, #f97316 100%)",
@@ -304,7 +307,7 @@ export function Header() {
               >
                 Sign in
               </Link>
-              <Link href="/sell"
+              <Link href="/sell" prefetch={true}
                 className="sell-btn flex items-center gap-2 rounded-full px-5 py-2 text-sm font-bold text-white"
                 style={{
                   background: "linear-gradient(135deg, #ea580c 0%, #f97316 100%)",
@@ -383,15 +386,20 @@ export function Header() {
             <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#f3f4f6" }} />
           ) : user ? (
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              {/* Fix 2: Unified UserAvatar — orange person icon, same .header-icon-btn sizing */}
-              <button type="button" className="header-icon-btn logo-row-item"
-                title={profile?.name ?? "Account"}
-                style={{ color: "#ea580c", cursor: "default" }}
-                // TODO: onPress could open an account sheet/menu in a future iteration
+              {/* Person icon → /my-listings on mobile (no My Listings nav item on mobile) */}
+              <Link
+                href="/my-listings"
+                className={`header-icon-btn logo-row-item ${isMyListingsActive ? "" : ""}`}
+                title="My Listings"
+                style={{
+                  color: isMyListingsActive ? "#ea580c" : "#ea580c",
+                  background: isMyListingsActive ? "rgba(234,88,12,0.1)" : "transparent",
+                  textDecoration: "none",
+                }}
               >
                 <UserAvatar profile={profile} iconSize={22} />
-              </button>
-              {/* Fix 3: LogoutButton iconOnly on mobile too */}
+              </Link>
+              {/* LogoutButton icon on mobile */}
               <div className="logo-row-item">
                 <LogoutButton iconOnly />
               </div>
@@ -436,15 +444,24 @@ export function Header() {
             <SearchBar />
           </div>
 
-          {/* NotificationBell — logged-in only; notifications are account-specific */}
+          {/* NotificationBell + Chats — logged-in only */}
           {user && (
-            <div className="row2-item-3 header-icon-btn" style={{ flexShrink: 0 }}>
-              <NotificationBell />
-            </div>
+            <>
+              <Link href="/messages" prefetch={true} aria-label="Chats"
+                className="header-icon-btn"
+                style={{ textDecoration: "none", color: "#4b5563", display: "flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, flexShrink: 0 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </Link>
+              <div className="header-icon-btn" style={{ flexShrink: 0 }}>
+                <NotificationBell />
+              </div>
+            </>
           )}
 
           {/* Sell — always visible; label mirrors the desktop pattern (Sell vs Start selling) */}
-          <Link href="/sell"
+          <Link href="/sell" prefetch={true}
             className="sell-btn row2-item-4 flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold text-white"
             style={{
               background: "linear-gradient(135deg, #ea580c 0%, #f97316 100%)",

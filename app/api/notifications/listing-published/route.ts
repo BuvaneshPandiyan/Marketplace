@@ -41,10 +41,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Listing not found" }, { status: 404 });
   }
 
-  // Create an in-app "listing published" notification
+  // Create an in-app "listing published" notification with the correct type
   await createNotification({
     userId: user.id,
-    type: "listing_sold", // re-using "listing_sold" type for transactional listing events
+    type: "listing_published",
     title: `"${listing.title}" is now live`,
     body: "Buyers near you can now see your listing.",
     link: `/listing/${listing.id}`,

@@ -286,12 +286,13 @@ export type SavedSearch = {
 
 // The allowed notification type values (mirrors the notification_type enum in migration 0018)
 export type NotificationType =
-  | "new_match"       // A new listing matches a saved search
-  | "price_drop"      // A wishlisted listing dropped in price
-  | "new_message"     // A new chat message arrived
-  | "listing_sold"    // A listing the user is involved with was marked sold
-  | "listing_expiring"// The user's own listing is about to expire
-  | "welcome";        // Account-creation welcome
+  | "new_match"         // A new listing matches a saved search
+  | "price_drop"        // A wishlisted listing dropped in price
+  | "new_message"       // A new chat message arrived
+  | "listing_sold"      // A listing the user is involved with was marked sold
+  | "listing_expiring"  // The user's own listing is about to expire
+  | "listing_published" // The user's newly posted listing is now live
+  | "welcome";          // Account-creation welcome
 
 // The shape of a row in the public.notifications table
 export type AppNotification = {
