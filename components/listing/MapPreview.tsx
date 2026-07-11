@@ -91,7 +91,7 @@ export function MapPreview({ lat, lng, listingId }: MapPreviewProps) {
   }, [lat, lng, listingId]);
 
   return (
-    <div style={{ position: "relative", height: 256, borderRadius: 16, overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+    <div style={{ position: "relative", height: 256, borderRadius: 16, overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", isolation: "isolate", zIndex: 0 }}>
 
       {/* Loading skeleton — absolutely positioned so it overlaps the map container, not stacks with it */}
       {!mapReady && (

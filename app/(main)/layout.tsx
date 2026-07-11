@@ -9,11 +9,16 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-neutral-50">
       <Header />
       {/*
-        padding-top compensates for the fixed header so content doesn't slide under it.
-        Desktop header: ~56px (one row). Mobile header: ~108px (two rows).
+        Desktop: pill header floats 10px from top ~56px tall → padding-top: 72px
+        Mobile:  mini top bar ~52px + bottom pill nav ~80px
       */}
-      <main style={{ paddingTop: 56 }}>
-        <style>{`@media(max-width:639px){ main{ padding-top: 108px !important; } }`}</style>
+      <main>
+        <style>{`
+          main { padding-top: 76px; }
+          @media(max-width:639px){
+            main { padding-top: 0 !important; padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+          }
+        `}</style>
         {children}
       </main>
     </div>

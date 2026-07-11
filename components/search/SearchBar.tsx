@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import type { SearchHit } from "@/lib/client/searchHitAdapter";
 
-export function SearchBar() {
+export function SearchBar({ autoFocus = false, onCollapse }: { autoFocus?: boolean; onCollapse?: () => void }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 300);
@@ -36,6 +36,7 @@ export function SearchBar() {
   function goToResults(searchText: string) {
     setIsOpen(false);
     router.push(`/search?q=${encodeURIComponent(searchText)}`);
+    onCollapse?.();
   }
 
   return (
@@ -46,9 +47,10 @@ export function SearchBar() {
           <input
             type="text"
             value={query}
+            autoFocus={autoFocus}
             onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
             onFocus={() => setIsOpen(true)}
-            placeholder="Search"
+            placeholder="Search for cars, mobiles, furniture and more..."
             className="w-full rounded-full border border-neutral-300 bg-neutral-50 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-orange-500 focus:bg-white focus:outline-none"
             style={{
               paddingTop: 8, paddingBottom: 8,

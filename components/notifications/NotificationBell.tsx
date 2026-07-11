@@ -208,10 +208,22 @@ export function NotificationBell() {
 
               return (
                 <li key={n.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
-                  <Link href={href} prefetch={true} style={{ display: "block", textDecoration: "none", color: "inherit", transition: "background 150ms ease" }}
-                    className="notif-item-link">
-                    {inner}
-                  </Link>
+                  {isMobileSheet ? (
+                    /* Mobile portal: router.push first, then close — avoids Link getting
+                       interrupted by the portal teardown or backdrop click */
+                    <div role="button" tabIndex={0}
+                      onClick={() => { router.push(href); setTimeout(() => setIsOpen(false), 60); }}
+                      onKeyDown={(e) => { if (e.key==="Enter"||e.key===" ") { router.push(href); setTimeout(() => setIsOpen(false), 60); }}}
+                      style={{ cursor:"pointer" }}
+                      className="notif-item-link">
+                      {inner}
+                    </div>
+                  ) : (
+                    <Link href={href} prefetch={true} style={{ display: "block", textDecoration: "none", color: "inherit", transition: "background 150ms ease" }}
+                      className="notif-item-link" onClick={() => setIsOpen(false)}>
+                      {inner}
+                    </Link>
+                  )}
                 </li>
               );
             })}
