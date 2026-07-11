@@ -47,36 +47,59 @@ function IBtn({ onClick, active, label, children, href }: {
   return <button type="button" onClick={onClick} className={cls} aria-label={label}>{children}</button>;
 }
 
+// Tooltip wrapper — dark pill fading in below icon on hover/focus
+function Tip({ label, children }: { label: string; children: React.ReactNode }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div style={{ position: "relative", display: "inline-flex" }}
+      onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}
+      onFocus={() => setShow(true)} onBlur={() => setShow(false)}>
+      {children}
+      {show && (
+        <div aria-hidden="true" style={{
+          position: "absolute", top: "calc(100% + 6px)", left: "50%",
+          transform: "translateX(-50%)",
+          background: "#1a1a1a", color: "white",
+          fontSize: 11, fontWeight: 600, padding: "4px 10px",
+          borderRadius: 100, whiteSpace: "nowrap",
+          pointerEvents: "none", zIndex: 300,
+          animation: "tip-in 120ms ease both",
+        }}>{label}</div>
+      )}
+    </div>
+  );
+}
+
 export function Header() {
   const { user, profile, isLoading } = useUser();
-  const { locality, needsSetup, detectCurrentLocation } = useActiveLocation();
+  const { needsSetup, detectCurrentLocation, locality } = useActiveLocation();
   const router = useRouter();
   const supabase = useRef(createClient());
 
-  const [locSheetOpen, setLocSheetOpen] = useState(false);
-  const [isDetecting, setIsDetecting] = useState(false);
-  const [detectError, setDetectError] = useState<string | null>(null);
+  // ── state ──────────────────────────────────────────────────────────
+  const [locSheetOpen, setLocSheetOpen]       = useState(false);
+  const [isDetecting, setIsDetecting]         = useState(false);
+  const [detectError, setDetectError]         = useState<string | null>(null);
   const [detectedLocality, setDetectedLocality] = useState<string | null>(null);
-  const [scrolled, setScrolled] = useState(false);
-  const [navVisible, setNavVisible] = useState(true);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [logoutConfirm, setLogoutConfirm] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const [mlDropOpen, setMlDropOpen] = useState(false);
-  const mlDropRef = useRef<HTMLDivElement>(null);
-  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [scrolled, setScrolled]               = useState(false);
+  const [drawerOpen, setDrawerOpen]           = useState(false);
+  const [logoutConfirm, setLogoutConfirm]     = useState(false);
+  const [isSigningOut, setIsSigningOut]       = useState(false);
+  const [searchExpanded, setSearchExpanded]   = useState(false);
   const [navMobileVisible, setNavMobileVisible] = useState(true);
-  const [wishlistPop, setWishlistPop] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [wishlistPop, setWishlistPop]         = useState(false);
+  const [mounted, setMounted]                 = useState(false);
+  // ── no navVisible/navCollapsed (collapse removed) ─────────────────
+  // ── no mlDropOpen/mlDropRef (dropdown removed) ────────────────────
 
   const pathname = usePathname();
-  const isWishlistActive = pathname === "/wishlist";
-  const isMyListingsActive = pathname === "/my-listings";
-  const isHomeActive = pathname === "/";
+  const isWishlistActive  = pathname === "/wishlist";
+  const isMyListingsActive= pathname === "/my-listings";
+  const isHomeActive       = pathname === "/";
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
-    setDrawerOpen(false); setMlDropOpen(false); setLocSheetOpen(false);
+    setDrawerOpen(false); setLocSheetOpen(false);
     setSearchExpanded(false); setLogoutConfirm(false); setNavMobileVisible(true);
   }, [pathname]);
   useEffect(() => {
@@ -86,36 +109,23 @@ export function Header() {
   }, []);
   useEffect(() => {
     if (drawerOpen) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "";
+    else            document.body.style.overflow = "";
     return () => { document.body.style.overflow = ""; };
   }, [drawerOpen]);
-  useEffect(() => {
-    if (!mlDropOpen) return;
-    const fn = (e: MouseEvent) => {
-      if (mlDropRef.current && !mlDropRef.current.contains(e.target as Node)) setMlDropOpen(false);
-    };
-    document.addEventListener("mousedown", fn);
-    return () => document.removeEventListener("mousedown", fn);
-  }, [mlDropOpen]);
 
   const handleDetectLocation = useCallback(async () => {
     setIsDetecting(true); setDetectError(null); setDetectedLocality(null);
     const result = await detectCurrentLocation();
-    if (result.success) {
-      setDetectedLocality(locality || "Location detected");
-    } else {
-      setDetectError(result.error ?? "Couldn't detect location.");
-    }
+    if (result.success) setDetectedLocality(locality || "Location detected");
+    else                setDetectError(result.error ?? "Couldn't detect location.");
     setIsDetecting(false);
   }, [detectCurrentLocation, locality]);
 
   async function handleLogout() {
     setIsSigningOut(true);
     await supabase.current.auth.signOut();
-    setLogoutConfirm(false);
-    setDrawerOpen(false);
-    router.push("/");
-    router.refresh();
+    setLogoutConfirm(false); setDrawerOpen(false);
+    router.push("/"); router.refresh();
     setIsSigningOut(false);
   }
 
@@ -128,27 +138,37 @@ export function Header() {
   const prefersReducedMotion = typeof window !== "undefined"
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Nav links for the drawer
-  // Drawer links — Chat and Bell are in the bottom pill, so not duplicated here
+  // ── Mobile drawer links ────────────────────────────────────────────
   const drawerLinks = [
-    { href: "/",           label: "Home",        icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
-    { href: "/my-listings",label: "My Listings", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
-    { href: "/wishlist",   label: "Wishlist",    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
-    { href: "/contact",    label: "Contact Us",  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.5 2 2 0 0 1 3.6 1.32h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> },
+    { href: "/",            label: "Home",       icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
+    { href: "/my-listings", label: "My Listings",icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
+    { href: "/wishlist",    label: "Wishlist",   icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
+    { href: "/contact",     label: "Contact Us", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.5 2 2 0 0 1 3.6 1.32h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> },
   ];
 
   return (
     <>
       <style>{`
-        @keyframes heart-pop { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 70%{transform:scale(0.9)} 100%{transform:scale(1)} }
-        @keyframes drawer-up { from{transform:translateY(100%)} to{transform:translateY(0)} }
-        @keyframes fade-in   { from{opacity:0} to{opacity:1} }
+        @keyframes heart-pop  { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 70%{transform:scale(0.9)} 100%{transform:scale(1)} }
+        @keyframes drawer-up  { from{transform:translateY(100%)} to{transform:translateY(0)} }
+        @keyframes fade-in    { from{opacity:0} to{opacity:1} }
+        @keyframes tip-in     { from{opacity:0;transform:translateX(-50%) translateY(-4px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+        @keyframes nav-restore-pulse {
+          0%,100% { box-shadow:0 0 0 0 rgba(234,88,12,0.5),0 4px 18px rgba(234,88,12,0.4); }
+          50%     { box-shadow:0 0 0 10px rgba(234,88,12,0),0 4px 18px rgba(234,88,12,0.4); }
+        }
 
         .hdr-icon { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:none; background:transparent; cursor:pointer; color:#6b7280; transition:background 150ms ease,color 150ms ease,transform 180ms cubic-bezier(0.34,1.56,0.64,1); flex-shrink:0; }
         .hdr-icon:hover  { background:rgba(234,88,12,0.09); color:#ea580c; transform:scale(1.08); }
         .hdr-icon:active { transform:scale(0.88); }
         .hdr-icon.active { color:#ea580c; background:rgba(234,88,12,0.1); }
 
+        /* Desktop sell = 44px gradient circle */
+        .sell-circle { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#ea580c,#f97316); box-shadow:0 3px 12px rgba(234,88,12,0.4); border:none; cursor:pointer; text-decoration:none; flex-shrink:0; transition:transform 260ms cubic-bezier(0.34,1.56,0.64,1),box-shadow 260ms ease; }
+        .sell-circle:hover  { transform:scale(1.12); box-shadow:0 5px 20px rgba(234,88,12,0.55); }
+        .sell-circle:active { transform:scale(0.9); }
+
+        /* Mobile sell FAB stays bigger */
         .sell-fab { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#ea580c,#f97316); box-shadow:0 4px 18px rgba(234,88,12,0.45); border:none; cursor:pointer; text-decoration:none; flex-shrink:0; transition:transform 280ms cubic-bezier(0.34,1.56,0.64,1),box-shadow 280ms ease; }
         .sell-fab:hover  { transform:scale(1.1); box-shadow:0 6px 28px rgba(234,88,12,0.55); }
         .sell-fab:active { transform:scale(0.9); }
@@ -159,135 +179,163 @@ export function Header() {
 
         .heart-pop { animation:heart-pop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
 
-        .nav-link { position:relative; }
-        .nav-link::after { content:''; position:absolute; bottom:-2px; left:50%; right:50%; height:2px; background:#ea580c; border-radius:2px; transition:left 200ms ease,right 200ms ease; }
-        .nav-link:hover::after,.nav-link.active::after { left:0; right:0; }
-
-        .ml-dropdown { position:absolute; top:calc(100% + 10px); left:0; min-width:200px; background:white; border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,0.14); border:1px solid rgba(0,0,0,0.06); overflow:hidden; z-index:200; }
-        .ml-item { display:block; padding:10px 16px; font-size:13px; font-weight:500; color:#374151; text-decoration:none; transition:background 120ms ease; }
-        .ml-item:hover { background:#fff7ed; color:#ea580c; }
-
-        @keyframes nav-restore-pulse {
-          0%,100% { box-shadow: 0 0 0 0 rgba(234,88,12,0.5), 0 4px 18px rgba(234,88,12,0.4); }
-          50%      { box-shadow: 0 0 0 10px rgba(234,88,12,0), 0 4px 18px rgba(234,88,12,0.4); }
-        }
         @media(prefers-reduced-motion:reduce){
-          .hdr-icon,.sell-fab,.sell-btn,.heart-pop { animation:none!important; transition-duration:0ms!important; }
-          .hdr-icon:hover { transform:none!important; }
+          .hdr-icon,.sell-fab,.sell-btn,.sell-circle,.heart-pop { animation:none!important; transition-duration:0ms!important; }
+          .hdr-icon:hover,.sell-circle:hover { transform:none!important; }
+          .tip-in { animation:none!important; }
         }
       `}</style>
 
-      {/* ══════════════════════════════
-          DESKTOP FLOATING TOP PILL
-          ══════════════════════════════ */}
-      <AnimatePresence>
-        {navVisible && (
-          /* Outer div owns centering — Framer Motion y/opacity animate INSIDE without clobbering translateX(-50%) */
-          <div className="hidden sm:block" style={{
-            position:"fixed", top: scrolled ? 8 : 20,
-            left:"50%", transform:"translateX(-50%)",
-            zIndex:50, width:"min(94vw, 1400px)",
-            transition:"top 300ms ease",
-          }}>
-            <motion.div
-              initial={{ y:-40, opacity:0 }} animate={{ y:0, opacity:1 }} exit={{ y:-40, opacity:0 }}
-              transition={prefersReducedMotion ? { duration:0 } : { type:"spring", damping:28, stiffness:280 }}
-              style={{
-                ...PILL,
-                display:"flex", alignItems:"center", justifyContent:"space-between",
-                gap:20, padding:"10px 24px",
-                boxShadow: scrolled
-                  ? "0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)"
-                  : "0 4px 20px rgba(0,0,0,0.07)",
-              }}
-            >
-              {/* LEFT: logo + home */}
-              <div style={{ display:"flex", alignItems:"center", gap:14, flexShrink:0 }}>
-                <Link href="/" style={{ textDecoration:"none", fontWeight:900, fontSize:18, letterSpacing:"-0.03em", color:"#1a1a1a" }}>
-                  bazar<span style={{ color:"#ea580c" }}>.</span><span style={{ color:"#9ca3af", fontWeight:400, fontSize:16 }}>in</span>
-                </Link>
-                <IBtn href="/" label="Home" active={isHomeActive}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill={isHomeActive?"currentColor":"none"} stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                </IBtn>
-              </div>
+      {/* ══════════════════════════════════════════════════════════════
+          DESKTOP PILL — always visible, no collapse
+          Three groups: LEFT (logo+home) | CENTER (location+search) | RIGHT (all icon actions)
+          Outer div owns centering; inner div owns layout — Framer Motion NOT used here
+          so translateX(-50%) is never clobbered by animation transforms.
+          ══════════════════════════════════════════════════════════════ */}
+      <div
+        className="hidden sm:block"
+        style={{
+          position: "fixed",
+          top: 12,
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 100,
+          width: "min(94vw, 1400px)",
+          /* top is fixed, no transition */
+        }}
+      >
+        <div style={{
+          background: scrolled ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.94)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          border: "1px solid rgba(0,0,0,0.07)",
+          borderRadius: 100,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          padding: "8px 20px",
+          boxShadow: scrolled
+            ? "0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)"
+            : "0 4px 20px rgba(0,0,0,0.07)",
+          
+        }}>
 
-              {/* CENTER: location + search bar */}
-              <div style={{ display:"flex", alignItems:"center", gap:12, flex:1, minWidth:0, justifyContent:"center" }}>
-                <div style={{ flexShrink:0 }}><LocationPill /></div>
-                <div style={{ minWidth:200, maxWidth:420, flex:1 }}><SearchBar /></div>
-              </div>
+          {/* LEFT: logo + home */}
+          <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
+            <Link href="/" style={{ textDecoration:"none", fontWeight:900, fontSize:18, letterSpacing:"-0.03em", color:"#1a1a1a" }}>
+              bazar<span style={{ color:"#ea580c" }}>.</span><span style={{ color:"#9ca3af", fontWeight:400, fontSize:16 }}>in</span>
+            </Link>
+            <Tip label="Home">
+              <Link href="/" className={`hdr-icon${isHomeActive?" active":""}`} aria-label="Home" style={{ textDecoration:"none" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={isHomeActive?"currentColor":"none"} stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </Link>
+            </Tip>
+          </div>
 
-              {/* RIGHT: nav links + actions */}
-              <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-                {user && (
-                  <div ref={mlDropRef} style={{ position:"relative" }}>
-                    <button type="button" onClick={() => setMlDropOpen(o => !o)}
-                      className={`nav-link rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isMyListingsActive?"active text-orange-600":"text-neutral-600 hover:text-neutral-900"}`}
-                      style={{ background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:4 }}>
-                      My Listings
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"
-                        style={{ transform:mlDropOpen?"rotate(180deg)":"rotate(0)", transition:"transform 200ms ease" }}>
-                        <path d="M6 9l6 6 6-6"/>
-                      </svg>
-                    </button>
-                    {mlDropOpen && (
-                      <div className="ml-dropdown">
-                        {[["All","/my-listings"],["Active","/my-listings?tab=active"],["Sold","/my-listings?tab=sold"],["Draft","/my-listings?tab=draft"]].map(([l,h])=>(
-                          <Link key={h} href={h} className="ml-item" onClick={()=>setMlDropOpen(false)}>{l}</Link>
-                        ))}
-                        <div style={{ borderTop:"1px solid #f3f4f6", padding:"8px 12px" }}>
-                          <Link href="/sell" onClick={()=>setMlDropOpen(false)}
-                            style={{ fontSize:12, fontWeight:700, color:"#ea580c", textDecoration:"none", display:"flex", alignItems:"center", gap:5 }}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 5v14M5 12h14"/></svg>
-                            Post new listing
-                          </Link>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-                {user && <MessagesLink />}
-                {user && (
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"center", width:44, height:44, flexShrink:0 }}>
-                    <NotificationBell />
-                  </div>
-                )}
-                <Link href="/sell" prefetch className="sell-btn"
-                  style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 18px", borderRadius:100, background:"linear-gradient(135deg,#ea580c,#f97316)", color:"white", fontWeight:700, fontSize:13, textDecoration:"none", flexShrink:0, whiteSpace:"nowrap" }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 5v14M5 12h14"/></svg>
-                  + Sell
+          {/* CENTER: location + search */}
+          <div style={{ display:"flex", alignItems:"center", gap:12, flex:1, minWidth:0, justifyContent:"center" }}>
+            <div style={{ flexShrink:0 }}><LocationPill /></div>
+            <div style={{ minWidth:180, maxWidth:380, flex:1 }}><SearchBar /></div>
+          </div>
+
+          {/* RIGHT: all icon actions */}
+          <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+
+            {/* My Listings — plain icon link, no dropdown */}
+            <Tip label="My Listings">
+              <Link href="/my-listings" className={`hdr-icon${isMyListingsActive?" active":""}`} aria-label="My Listings" style={{ textDecoration:"none" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              </Link>
+            </Tip>
+
+            {/* Wishlist */}
+            {user && (
+              <Tip label="Wishlist">
+                <Link href="/wishlist" className={`hdr-icon${wishlistPop?" heart-pop":""}${isWishlistActive?" active":""}`}
+                  aria-label="Wishlist" style={{ textDecoration:"none" }} onClick={handleWishlistClick}>
+                  <HeartIcon active={isWishlistActive} />
                 </Link>
-                {!isLoading && !user && (
-                  <Link href="/login" style={{ textDecoration:"none", fontSize:13, fontWeight:600, color:"#374151", padding:"7px 14px", borderRadius:100, border:"1px solid #e5e7eb", flexShrink:0, whiteSpace:"nowrap" }}>Sign in</Link>
-                )}
-                <div style={{ width:1, height:22, background:"rgba(0,0,0,0.1)", flexShrink:0, margin:"0 4px" }} />
-                <button type="button" onClick={() => setNavVisible(false)} title="Hide navbar"
-                  className="hdr-icon" style={{ width:34, height:34, flexShrink:0 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
-                    <path d="M15 18l-6-6 6-6"/>
+              </Tip>
+            )}
+
+            {/* Chats */}
+            {user && (
+              <Tip label="Chats"><MessagesLink /></Tip>
+            )}
+
+            {/* Notifications */}
+            {user && (
+              <Tip label="Notifications">
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"center", width:44, height:44, flexShrink:0 }}>
+                  <NotificationBell />
+                </div>
+              </Tip>
+            )}
+
+            {/* Contact Us — NOTE: /contact route needs to be created if it doesn't exist */}
+            <Tip label="Contact Us">
+              <Link href="/contact" className="hdr-icon" aria-label="Contact Us" style={{ textDecoration:"none" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.5 2 2 0 0 1 3.6 1.32h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+              </Link>
+            </Tip>
+
+            {/* Avatar / account */}
+            {user && (
+              <Tip label={profile?.name ?? "Account"}>
+                <div className="hdr-icon" style={{ cursor:"default", color:"#ea580c" }}>
+                  {profile?.profile_photo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={profile.profile_photo_url} alt={profile.name ?? ""}
+                      style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover" }} />
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                  )}
+                </div>
+              </Tip>
+            )}
+
+            {/* Logout — opens confirm modal, NOT instant */}
+            {user && (
+              <Tip label="Logout">
+                <button type="button" onClick={() => setLogoutConfirm(true)} className="hdr-icon" aria-label="Logout">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
                   </svg>
                 </button>
-              </div>
-            </motion.div>
+              </Tip>
+            )}
+
+            {/* Sign in (guest) */}
+            {!isLoading && !user && (
+              <Tip label="Sign in">
+                <Link href="/login" className="hdr-icon" aria-label="Sign in" style={{ textDecoration:"none" }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                    <polyline points="10 17 15 12 10 7"/>
+                    <line x1="15" y1="12" x2="3" y2="12"/>
+                  </svg>
+                </Link>
+              </Tip>
+            )}
+
+            {/* Sell — gradient circle, primary CTA */}
+            <Tip label="Sell">
+              <Link href="/sell" prefetch className="sell-circle" aria-label="Sell">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+              </Link>
+            </Tip>
           </div>
-        )}
-      </AnimatePresence>
-
-      {/* Restore pill button when collapsed */}
-      <AnimatePresence>
-        {!navVisible && (
-          <motion.button
-            className="hidden sm:flex"
-            initial={{ opacity:0, scale:0.8 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0, scale:0.8 }}
-            onClick={() => setNavVisible(true)} title="Show navbar"
-            style={{ ...PILL, position:"fixed", top:12, right:16, zIndex:50, width:44, height:44, border:"none", cursor:"pointer", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 16px rgba(0,0,0,0.12)", flexShrink:0, padding:0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth={2.5} strokeLinecap="round">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-          </motion.button>
-        )}
-      </AnimatePresence>
-
+        </div>
+      </div>
       {/* ══════════════════════════════
           MOBILE BOTTOM FLOATING PILL
           ══════════════════════════════ */}
@@ -297,7 +345,7 @@ export function Header() {
         className="sm:hidden"
         style={{
           ...PILL,
-          position:"fixed", bottom:16, left:16, right:16, zIndex:60,
+          position:"fixed", bottom:16, left:16, right:16, zIndex:100,
           boxShadow:"0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)",
           overflow:"hidden",
           paddingBottom:"env(safe-area-inset-bottom)",
