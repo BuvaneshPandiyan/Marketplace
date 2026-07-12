@@ -29,26 +29,3 @@ body {
 
 /* NOTE: Dark mode support is intentionally left out at this scaffolding stage. */
 /* It's listed as an "advanced feature" to add later once the core app is built. */
-
-/* ── Mobile URL-bar stability fix ──────────────────────────────────────────
-   svh = "small viewport height" — locked to the viewport size when the
-   browser URL bar is fully visible. Unlike dvh/vh, it NEVER recalculates
-   when the URL bar hides on scroll, so no content reflow or layout jumps.
-   overscroll-behavior-y: none kills iOS rubber-band / Android elastic scroll
-   bounce that can shift position:fixed elements (pill nav, chat input, etc).
-   interactiveWidget: "resizes-visual" in the viewport export handles this
-   natively in Chrome 108+ / Safari 15.4+; this CSS is the fallback. */
-html {
-  min-height: 100%;
-}
-
-body {
-  min-height: 100svh;
-  overscroll-behavior-y: none;
-  overflow-x: hidden;
-}
-
-/* Fallback for browsers without svh support */
-@supports not (min-height: 100svh) {
-  body { min-height: 100vh; }
-}

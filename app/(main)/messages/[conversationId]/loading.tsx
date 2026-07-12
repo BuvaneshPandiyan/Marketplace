@@ -2,7 +2,7 @@
 // so there's zero layout shift when the real content arrives
 export default function ChatLoading() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100svh - 60px)", background: "white" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 60px)", background: "white" }}>
       <style>{`
         @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
         .sk { background: linear-gradient(90deg,#e5e7eb 25%,#f3f4f6 37%,#e5e7eb 63%); background-size:200% 100%; animation:shimmer 1.5s ease-in-out infinite; border-radius:8px; }

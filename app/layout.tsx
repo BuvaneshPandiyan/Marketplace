@@ -18,15 +18,6 @@ export const viewport: Viewport = {
   // Fill the device's full CSS pixel width at 100% scale
   width: "device-width",
   initialScale: 1,
-  // viewportFit=cover: extend layout under the notch/home-indicator on notched iPhones.
-  // Required for env(safe-area-inset-*) to work correctly.
-  viewportFit: "cover",
-  // interactiveWidget=resizes-visual: when the virtual keyboard or browser chrome
-  // (URL bar) appears/disappears, only the VISUAL viewport changes — the layout
-  // viewport stays fixed. This prevents position:fixed elements and svh-based heights
-  // from recalculating, eliminating the "jump" on all pages when the URL bar hides.
-  // Supported in Chrome 108+, Safari 15.4+, Firefox 101+.
-  interactiveWidget: "resizes-visual",
   // Color the browser chrome on Android Chrome / iOS Safari to match the app's orange brand
   themeColor: "#ea580c",
 };

@@ -6,18 +6,18 @@ import { Header } from "@/components/ui/Header";
 // Define the layout component that wraps every page inside the (main) route group
 export default function MainLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="bg-neutral-50" style={{ minHeight: "100svh" }}>
+    <div className="min-h-screen bg-neutral-50">
       <Header />
+      {/*
+        Desktop: pill header floats 10px from top ~56px tall → padding-top: 72px
+        Mobile:  mini top bar ~52px + bottom pill nav ~80px
+      */}
       <main>
         <style>{`
           main { padding-top: 76px; }
           @media(max-width:639px){
-            main {
-              padding-top: 0 !important;
-              padding-bottom: calc(88px + env(safe-area-inset-bottom));
-              overflow-x: hidden;
-              overscroll-behavior-y: none;
-            }
+            main { padding-top: 0 !important; padding-bottom: calc(88px + env(safe-area-inset-bottom)); overflow-x: hidden; }
+            body { overflow-x: hidden; }
           }
         `}</style>
         {children}

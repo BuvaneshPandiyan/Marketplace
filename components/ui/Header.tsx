@@ -387,7 +387,7 @@ export function Header() {
         className="sm:hidden mob-pill"
         style={{
           ...PILL,
-          position:"fixed", bottom:16, left:16, right:16, zIndex:100,
+          position:"fixed", bottom:12, left:16, right:16, zIndex:100,
           boxShadow:"0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)",
           overflow:"hidden",
           paddingBottom:"env(safe-area-inset-bottom)",
@@ -403,7 +403,7 @@ export function Header() {
             <motion.div key="collapsed"
               initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
               transition={prefersReducedMotion ? { duration:0 } : { duration:0.14 }}
-              style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:4, padding:"8px 10px" }}>
+              style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:4, padding:"6px 10px" }}>
 
               {/* Location */}
               <div className="nav-item" style={{ position:"relative" }}>

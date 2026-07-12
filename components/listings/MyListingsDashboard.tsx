@@ -157,13 +157,22 @@ export function MyListingsDashboard({ listings }: Props) {
       <div className="mx-auto max-w-[1400px] px-3 sm:px-6"
            style={{ paddingTop: 20, paddingBottom: 24 }}>
 
-        {/* ── TOOLBAR — static flow, directly above the grid ── */}
+        {/* ── TOOLBAR — sticky, pinned directly below the floating pill navbar.
+            top:76px = layout's padding-top, which is where the pill's bottom edge sits.
+            z-index:30 = strictly below navbar (z-index:100), so navbar always paints on top.
+            Grid is normal-flow below this; no competing z-index on cards. ── */}
         <div style={{
+          position: "sticky",
+          top: 76,           /* navbar ends ~72px from top; 76 = exact layout content start */
+          zIndex: 30,        /* below pill navbar (100) — toolbar hides behind navbar, never above */
+          background: "white",
           display: "flex", alignItems: "center",
           justifyContent: "space-between",
-          gap: 12, marginBottom: 20,
-          paddingBottom: 16,
+          gap: 12, marginBottom: 12,
+          padding: "10px 0 10px",
           borderBottom: "1px solid #ebebeb",
+          marginLeft: "-12px", marginRight: "-12px",
+          paddingLeft: "12px", paddingRight: "12px",
         }}>
           {/* Left: title + count / active filter */}
           <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
