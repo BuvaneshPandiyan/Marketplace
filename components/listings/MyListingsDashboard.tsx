@@ -89,51 +89,52 @@ export function MyListingsDashboard({ listings }: Props) {
   }
 
   return (
-    <div style={{ background: "#f9f8f6" }}>
+    <div style={{ background: "#f5f4f2" }}>
       <style>{`
         .ml-fbtn {
-          display:inline-flex; align-items:center; gap:5px;
-          padding:6px 14px; border-radius:8px;
+          display:inline-flex; align-items:center; gap:6px;
+          padding:7px 16px; border-radius:10px;
           border:1.5px solid #e5e7eb; background:white;
           font-size:13px; font-weight:600; color:#374151;
-          cursor:pointer; transition:border-color 140ms, color 140ms;
-          white-space:nowrap;
+          cursor:pointer; transition:all 150ms ease;
+          white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.05);
         }
-        .ml-fbtn:hover,.ml-fbtn.on { border-color:#ea580c; color:#ea580c; }
-        .ml-fbtn.on { background:rgba(234,88,12,.04); }
+        .ml-fbtn:hover { border-color:#ea580c; color:#ea580c; box-shadow:0 2px 8px rgba(234,88,12,0.15); }
+        .ml-fbtn.on    { border-color:#ea580c; color:#ea580c; background:rgba(234,88,12,.04); box-shadow:0 2px 8px rgba(234,88,12,0.12); }
 
         .ml-vbtn {
-          width:30px; height:30px; border-radius:6px;
+          width:32px; height:32px; border-radius:8px;
           border:1.5px solid #e5e7eb; display:flex; align-items:center;
           justify-content:center; cursor:pointer; background:white;
-          transition:all 120ms ease;
+          transition:all 150ms ease; box-shadow:0 1px 3px rgba(0,0,0,0.05);
         }
-        .ml-vbtn.on { background:#ea580c; border-color:#ea580c; }
+        .ml-vbtn:hover { border-color:#d1d5db; }
+        .ml-vbtn.on { background:#ea580c; border-color:#ea580c; box-shadow:0 2px 8px rgba(234,88,12,0.3); }
 
         .ml-drop {
           position:fixed; min-width:240px; background:white;
-          border-radius:14px;
-          box-shadow:0 10px 40px rgba(0,0,0,.14),0 2px 8px rgba(0,0,0,.06);
-          border:1px solid rgba(0,0,0,.07); overflow:hidden; z-index:9999;
-          animation:drop-in 150ms cubic-bezier(.22,1,.36,1) both;
+          border-radius:16px;
+          box-shadow:0 16px 48px rgba(0,0,0,0.12),0 4px 12px rgba(0,0,0,0.06);
+          border:1px solid rgba(0,0,0,.06); overflow:hidden; z-index:9999;
+          animation:drop-in 160ms cubic-bezier(.22,1,.36,1) both;
           transform-origin:top right;
         }
         @keyframes drop-in {
-          from{opacity:0;transform:scale(.95) translateY(-4px)}
+          from{opacity:0;transform:scale(.95) translateY(-6px)}
           to{opacity:1;transform:scale(1) translateY(0)}
         }
         .ml-drow {
           display:flex; align-items:center; justify-content:space-between;
-          gap:8px; width:100%; padding:9px 16px;
+          gap:8px; width:100%; padding:10px 16px;
           font-size:13px; font-weight:500; color:#374151;
           background:transparent; border:none; cursor:pointer; text-align:left;
           transition:background 100ms;
         }
-        .ml-drow:hover { background:#f9f8f6; }
-        .ml-drow.sel   { color:#ea580c; font-weight:600; background:rgba(234,88,12,.04); }
+        .ml-drow:hover { background:#f5f4f2; }
+        .ml-drow.sel   { color:#ea580c; font-weight:700; background:rgba(234,88,12,.04); }
         .ml-dlabel {
-          padding:8px 16px 4px;
-          font-size:10px; font-weight:700; letter-spacing:.08em;
+          padding:10px 16px 5px;
+          font-size:10px; font-weight:700; letter-spacing:.1em;
           text-transform:uppercase; color:#9ca3af;
         }
 
@@ -142,6 +143,15 @@ export function MyListingsDashboard({ listings }: Props) {
           50%{transform:scale(1.15);opacity:.1}
         }
         .ring-pulse { animation:ring-pulse 2.4s ease infinite; }
+
+        /* Grid items must be h-full so MyListingCard stretches to fill row height */
+        .ml-grid > * { height: 100%; }
+
+        /* Mobile: pill is at bottom, nothing at top — sticky bar goes to very top */
+        @media(max-width:639px){
+          .ml-sticky-bar { top: 0 !important; padding-top: 10px !important; }
+        }
+
         @media(prefers-reduced-motion:reduce){
           .ml-fbtn,.ml-vbtn,.ml-drop,.ring-pulse{animation:none!important;transition-duration:0ms!important;}
         }
@@ -155,28 +165,34 @@ export function MyListingsDashboard({ listings }: Props) {
         ════════════════════════════════════════════════════════════════════
       */}
       <div className="mx-auto max-w-[1400px] px-3 sm:px-6"
-           style={{ paddingTop: 20, paddingBottom: 24 }}>
+           style={{ paddingTop: 0, paddingBottom: 32 }}>
 
-        {/* ── TOOLBAR — static flow, directly above the grid ── */}
+        {/* ── TOOLBAR — clean sticky bar, no box ── */}
+        <div className="ml-sticky-bar" style={{
+          position: "sticky", top: 76, zIndex: 30,
+          background: "#f5f4f2",
+          paddingTop: 14, paddingBottom: 10,
+        }}>
         <div style={{
           display: "flex", alignItems: "center",
           justifyContent: "space-between",
-          gap: 12, marginBottom: 20,
-          paddingBottom: 16,
-          borderBottom: "1px solid #ebebeb",
+          gap: 12,
+          paddingBottom: 12,
+          borderBottom: "2px solid #ebebeb",
         }}>
-          {/* Left: title + count / active filter */}
-          <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
-            <h1 style={{ fontSize:18, fontWeight:800, color:"#111", margin:0, letterSpacing:"-0.02em" }}>
+          {/* Left: accent bar + title + count pill */}
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <div style={{ width:3, height:20, borderRadius:100, background:"linear-gradient(180deg,#ea580c,#f97316)", flexShrink:0 }} />
+            <h1 style={{ fontSize:16, fontWeight:800, color:"#111", margin:0, letterSpacing:"-0.02em" }}>
               My Listings
             </h1>
             {tab ? (
-              <span style={{ fontSize:12, color:"#ea580c", fontWeight:600 }}>
+              <span style={{ fontSize:11, color:"white", fontWeight:700, background:"#ea580c", padding:"2px 9px", borderRadius:100 }}>
                 {activeLabel} · {count(tab)}
               </span>
             ) : counts.total > 0 ? (
-              <span style={{ fontSize:12, color:"#9ca3af" }}>
-                {counts.total} listing{counts.total !== 1 ? "s" : ""}
+              <span style={{ fontSize:11, color:"#9ca3af", background:"#f3f4f6", padding:"2px 9px", borderRadius:100, fontWeight:600 }}>
+                {counts.total} total
               </span>
             ) : null}
           </div>
@@ -228,8 +244,10 @@ export function MyListingsDashboard({ listings }: Props) {
             </button>
           </div>
         </div>
+        </div>
 
-        {/* ── CONTENT ── */}
+        {/* ── CONTENT — 16px gap below toolbar ── */}
+        <div style={{ height: 16 }} />
         {counts.total === 0 ? (
           <div style={{ textAlign:"center", paddingTop:64 }}>
             <div style={{ position:"relative", width:88, height:88, margin:"0 auto 20px" }}>
@@ -266,9 +284,9 @@ export function MyListingsDashboard({ listings }: Props) {
 
         ) : (
           <motion.div layout
-            className={view === "grid"
+            className={`ml-grid ${view === "grid"
               ? "grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 lg:gap-4"
-              : "flex flex-col gap-2"}>
+              : "flex flex-col gap-2"}`}>
             <AnimatePresence mode="popLayout">
               {sorted.map((listing, i) => (
                 <motion.div key={listing.id} layout

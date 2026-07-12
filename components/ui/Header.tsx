@@ -81,6 +81,7 @@ export function Header() {
   const [isDetecting, setIsDetecting]         = useState(false);
   const [detectError, setDetectError]         = useState<string | null>(null);
   const [detectedLocality, setDetectedLocality] = useState<string | null>(null);
+  const [justCaptured,     setJustCaptured]     = useState(false);
   const [scrolled, setScrolled]               = useState(false);
   const [drawerOpen, setDrawerOpen]           = useState(false);
   const [logoutConfirm, setLogoutConfirm]     = useState(false);
@@ -101,6 +102,7 @@ export function Header() {
   useEffect(() => {
     setDrawerOpen(false); setLocSheetOpen(false);
     setSearchExpanded(false); setLogoutConfirm(false); setNavMobileVisible(true);
+    setDetectedLocality(null); setJustCaptured(false); setDetectError(null);
   }, [pathname]);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 6);
@@ -116,7 +118,11 @@ export function Header() {
   const handleDetectLocation = useCallback(async () => {
     setIsDetecting(true); setDetectError(null); setDetectedLocality(null);
     const result = await detectCurrentLocation();
-    if (result.success) setDetectedLocality(locality || "Location detected");
+    if (result.success) {
+      setDetectedLocality(locality || "Location detected");
+      setJustCaptured(true);
+      setTimeout(() => setJustCaptured(false), 3000);
+    }
     else                setDetectError(result.error ?? "Couldn't detect location.");
     setIsDetecting(false);
   }, [detectCurrentLocation, locality]);
@@ -156,6 +162,15 @@ export function Header() {
         @keyframes nav-restore-pulse {
           0%,100% { box-shadow:0 0 0 0 rgba(234,88,12,0.5),0 4px 18px rgba(234,88,12,0.4); }
           50%     { box-shadow:0 0 0 10px rgba(234,88,12,0),0 4px 18px rgba(234,88,12,0.4); }
+        }
+        @keyframes loc-success-in {
+          0%   { opacity:0; transform:scale(0.92) translateY(-4px); }
+          60%  { opacity:1; transform:scale(1.02) translateY(1px); }
+          100% { opacity:1; transform:scale(1) translateY(0); }
+        }
+        @keyframes loc-dot-pulse {
+          0%,100% { transform:scale(1); opacity:1; }
+          50%     { transform:scale(1.6); opacity:0.5; }
         }
 
         .hdr-icon { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:none; background:transparent; cursor:pointer; color:#6b7280; transition:background 150ms ease,color 150ms ease,transform 180ms cubic-bezier(0.34,1.56,0.64,1); flex-shrink:0; }
@@ -410,6 +425,15 @@ export function Header() {
                 <button type="button" onClick={() => setLocSheetOpen(true)} className={`hdr-icon ${!needsSetup?"active":""}`} aria-label="Set location" style={{ flexShrink:0 }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
                 </button>
+                {/* Status dot — green if location set, pulsing orange if not */}
+                <span style={{
+                  position:"absolute", bottom:4, right:4,
+                  width:7, height:7, borderRadius:"50%",
+                  background: needsSetup ? "#f97316" : "#22c55e",
+                  border:"1.5px solid white",
+                  animation: needsSetup ? "loc-dot-pulse 2s ease infinite" : "none",
+                  display:"block",
+                }} />
               </div>
 
               {/* Search */}
@@ -628,39 +652,84 @@ export function Header() {
               {/* Inner content: scrolls only when list overflows the maxHeight cap */}
               <div style={{ overflowY:"auto", flex:1 }}>
               <div style={{ maxWidth:560, margin:"0 auto", padding:"20px 20px 32px" }}>
+                {/* Header */}
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
                   <p style={{ fontWeight:700, fontSize:16, color:"#111", margin:0 }}>Set location</p>
-                  <button type="button" onClick={() => { setLocSheetOpen(false); setDetectedLocality(null); setDetectError(null); }}
+                  <button type="button" onClick={() => { setLocSheetOpen(false); setDetectedLocality(null); setDetectError(null); setJustCaptured(false); }}
                     style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"#f3f4f6", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
                   </button>
                 </div>
 
-                {/* Current location button — changes to detected location name */}
-                <div style={{ position:"relative", marginBottom:12 }}>
-                  {detectedLocality ? (
-                    /* Shows detected location + Change button */
+                {/* ── SUCCESS BANNER — pops up right after GPS capture ── */}
+                {justCaptured && (
+                  <div style={{
+                    display:"flex", alignItems:"center", gap:10,
+                    padding:"12px 14px", borderRadius:12, marginBottom:14,
+                    background:"rgba(34,197,94,0.08)", border:"1.5px solid rgba(34,197,94,0.3)",
+                    animation:"loc-success-in 350ms cubic-bezier(0.22,1,0.36,1) both",
+                  }}>
+                    <div style={{ width:30, height:30, borderRadius:"50%", background:"#22c55e", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                    <div>
+                      <p style={{ fontSize:13, fontWeight:700, color:"#15803d", margin:0 }}>Location captured!</p>
+                      <p style={{ fontSize:11, color:"#6b7280", margin:"1px 0 0" }}>{detectedLocality}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── CURRENT SAVED LOCATION — shown on open when already set ── */}
+                {!justCaptured && locality && !needsSetup && !detectedLocality && (
+                  <div style={{
+                    display:"flex", alignItems:"center", gap:10,
+                    padding:"11px 14px", borderRadius:12, marginBottom:14,
+                    background:"rgba(234,88,12,0.05)", border:"1.5px solid rgba(234,88,12,0.2)",
+                  }}>
+                    <span style={{ fontSize:18, flexShrink:0 }}>📍</span>
+                    <div style={{ minWidth:0, flex:1 }}>
+                      <p style={{ fontSize:10, fontWeight:700, color:"#9ca3af", margin:0, textTransform:"uppercase", letterSpacing:"0.06em" }}>Current location</p>
+                      <p style={{ fontSize:13, fontWeight:700, color:"#ea580c", margin:"1px 0 0", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{locality}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── GPS / CHANGE BUTTON ── */}
+                <div style={{ marginBottom:12 }}>
+                  {detectedLocality && !justCaptured ? (
                     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"11px 16px", borderRadius:100, border:"1.5px solid #ea580c", background:"rgba(234,88,12,0.04)" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth={2} strokeLinecap="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
                         <span style={{ fontSize:14, fontWeight:600, color:"#ea580c" }}>{detectedLocality}</span>
                       </div>
-                      <button type="button" onClick={() => { setDetectedLocality(null); }}
+                      <button type="button" onClick={() => setDetectedLocality(null)}
                         style={{ fontSize:12, fontWeight:700, color:"#ea580c", border:"none", cursor:"pointer", padding:"4px 10px", borderRadius:100, background:"rgba(234,88,12,0.1)" }}>
                         Change
                       </button>
                     </div>
+                  ) : justCaptured ? (
+                    <button type="button" onClick={() => { setJustCaptured(false); setDetectedLocality(null); }}
+                      style={{ width:"100%", padding:"10px 0", borderRadius:100, border:"1px solid #e5e7eb", background:"white", fontSize:13, fontWeight:500, color:"#6b7280", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      Use a different location
+                    </button>
                   ) : (
                     <button type="button" onClick={handleDetectLocation} disabled={isDetecting}
                       style={{ width:"100%", padding:"11px 0", borderRadius:100, border:"1px solid #e5e7eb", background:"white", fontSize:14, fontWeight:500, color:"#374151", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth={2} strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-                      {isDetecting ? "Detecting your location…" : "Use current location"}
+                      {isDetecting ? "Detecting your location…" : needsSetup ? "Use current location" : "Use current location again"}
                     </button>
                   )}
                 </div>
 
                 {detectError && <p style={{ fontSize:12, color:"#dc2626", textAlign:"center", marginBottom:10 }}>{detectError}</p>}
-                <LocationSearchInput onSelect={() => { setLocSheetOpen(false); setDetectedLocality(null); }} />
+
+                {!justCaptured && (
+                  <>
+                    <p style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#9ca3af", marginBottom:8 }}>Or search manually</p>
+                    <LocationSearchInput onSelect={() => { setLocSheetOpen(false); setDetectedLocality(null); setJustCaptured(false); }} />
+                  </>
+                )}
               </div>
               </div>
             </motion.div>

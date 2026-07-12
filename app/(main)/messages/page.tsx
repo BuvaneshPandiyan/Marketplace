@@ -62,45 +62,36 @@ export default async function MessagesPage() {
   return (
     <div style={{ background: "#f5f4f2" }}>
       <style>{`
-        /*
-          msgs-head: sticky header
-          Desktop: sticks at top:76px (just below the floating pill navbar that ends ~72px from top).
-          Mobile:  sticks at top:0 — pill is at the BOTTOM on mobile, nothing is at the top,
-                   so the header should pin flush to the viewport top with minimal breathing room.
-        */
         .msgs-head {
           position: sticky;
-          top: 76px;   /* desktop */
+          top: 76px;
           z-index: 30;
           background: #f5f4f2;
-          padding: 12px 0 10px;
+          padding: 14px 0 10px;
           border-bottom: 1px solid #ebebeb;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
         }
         @media(max-width:639px){
           .msgs-head { top: 0 !important; padding-top: 14px; }
         }
 
-        /* Row entrance stagger */
         @keyframes row-in {
-          from { opacity:0; transform:translateY(10px); }
+          from { opacity:0; transform:translateY(8px); }
           to   { opacity:1; transform:translateY(0); }
         }
-        .conv-row { animation: row-in 280ms cubic-bezier(0.22,1,0.36,1) both; }
+        .conv-row { animation: row-in 260ms cubic-bezier(0.22,1,0.36,1) both; }
 
-        /* Row hover / press */
         .conv-link {
           display:flex; align-items:center; gap:14px;
           padding:14px 16px; text-decoration:none; color:inherit;
           border-radius:14px;
-          transition: background 150ms ease, transform 150ms ease;
+          transition: background 150ms ease, transform 140ms ease, box-shadow 150ms ease;
         }
         @media(hover:hover){
-          .conv-link:hover { background: rgba(234,88,12,0.04); }
+          .conv-link:hover { background: white !important; box-shadow: 0 4px 18px rgba(0,0,0,0.09) !important; transform: translateY(-1px); }
         }
-        .conv-link:active { transform: scale(0.99); background: rgba(234,88,12,0.06); }
+        .conv-link:active { transform: scale(0.99); }
 
-        /* Unread badge glow */
         @keyframes badge-glow {
           0%,100%{ box-shadow:0 0 0 0 rgba(234,88,12,0.35); }
           50%    { box-shadow:0 0 0 5px rgba(234,88,12,0); }
@@ -108,37 +99,30 @@ export default async function MessagesPage() {
         .unread-badge { animation: badge-glow 2.2s ease infinite; }
 
         @media(prefers-reduced-motion:reduce){
-          .conv-row,.conv-link,.unread-badge {
-            animation:none !important; transition:none !important;
-          }
+          .conv-row,.conv-link,.unread-badge { animation:none!important; transition:none!important; }
+          .conv-link:hover { transform:none!important; }
         }
       `}</style>
 
-      {/*
-        Outer wrapper: zero extra top padding — the layout's main padding-top:76px
-        on desktop already provides the gap below the floating pill. On mobile,
-        layout sets padding-top:0 and the sticky header's top:0 means it pins to
-        the very top of the viewport with only the 14px header padding as breathing room.
-      */}
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 12px 24px" }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 12px 80px" }}>
 
-        {/* ── STICKY CHATS HEADER ─────────────────────────────────────────── */}
+        {/* ── STICKY HEADER ── */}
         <div className="msgs-head">
           <h1 style={{
-            margin: 0, display: "flex", alignItems: "center", gap: 10,
-            fontSize: "clamp(18px,3vw,24px)", fontWeight: 800,
-            color: "#111", letterSpacing: "-0.02em",
+            margin: 0, display:"flex", alignItems:"center", gap:10,
+            fontSize:"clamp(18px,3vw,22px)", fontWeight:800, color:"#111", letterSpacing:"-0.02em",
           }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+              style={{ opacity:0.7 }}>
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
             Chats
             {totalUnread > 0 && (
               <span style={{
-                fontSize: 11, padding: "2px 10px", borderRadius: 100,
-                background: "linear-gradient(135deg,#ea580c,#f97316)",
-                color: "white", fontWeight: 700,
+                fontSize:11, padding:"3px 10px", borderRadius:100,
+                background:"linear-gradient(135deg,#ea580c,#f97316)",
+                color:"white", fontWeight:700,
               }}>
                 {totalUnread} new
               </span>
@@ -146,16 +130,15 @@ export default async function MessagesPage() {
           </h1>
         </div>
 
-        {/* ── EMPTY STATE ─────────────────────────────────────────────────── */}
+        {/* ── EMPTY STATE ── */}
         {enriched.length === 0 ? (
           <div style={{
-            border: "2px dashed #e5e7eb", borderRadius: 16,
-            padding: "60px 24px", textAlign: "center",
-            background: "rgba(255,255,255,0.6)", maxWidth: 400, margin: "32px auto",
+            border:"2px dashed #e5e7eb", borderRadius:16,
+            padding:"56px 24px", textAlign:"center",
+            background:"rgba(255,255,255,0.5)", maxWidth:380, margin:"32px auto",
           }}>
-            <div style={{ width:56, height:56, borderRadius:"50%", border:"2px solid #e5e7eb", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
-                stroke="#9ca3af" strokeWidth={1.5} strokeLinecap="round">
+            <div style={{ width:56, height:56, borderRadius:"50%", border:"2px solid #e5e7eb", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth={1.5} strokeLinecap="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
             </div>
@@ -164,82 +147,84 @@ export default async function MessagesPage() {
               Tap &ldquo;Chat with Seller&rdquo; on any listing to start a conversation.
             </p>
           </div>
-        ) : (
 
-          /* ── CONVERSATION LIST ────────────────────────────────────────────── */
-          <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+        ) : (
+          /* ── CONVERSATION LIST ── */
+          <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
             {enriched.map((conv, i) => (
               <div key={conv.id} className="conv-row"
-                style={{ animationDelay: `${Math.min(i * 40, 320)}ms` }}>
+                style={{ animationDelay:`${Math.min(i*40,300)}ms` }}>
                 <Link href={`/messages/${conv.id}`} prefetch={true} className="conv-link"
                   style={{
-                    background: conv.unreadCount > 0 ? "white" : "rgba(255,255,255,0.75)",
+                    background: conv.unreadCount > 0 ? "white" : "rgba(255,255,255,0.7)",
                     boxShadow: conv.unreadCount > 0
-                      ? "0 2px 12px rgba(0,0,0,0.07), 0 0 0 1px rgba(234,88,12,0.08)"
-                      : "0 1px 4px rgba(0,0,0,0.05)",
+                      ? "0 2px 10px rgba(0,0,0,0.06), 0 0 0 1px rgba(234,88,12,0.07)"
+                      : "0 1px 3px rgba(0,0,0,0.04)",
                   }}>
 
-                  {/* ── Avatar ── */}
+                  {/* Avatar */}
                   <div style={{ position:"relative", flexShrink:0 }}>
                     {conv.otherUserPhotoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={conv.otherUserPhotoUrl} alt={conv.otherUserName}
-                        style={{ width:50, height:50, borderRadius:"50%", objectFit:"cover", border:"2px solid #f3f4f6" }} />
+                        style={{ width:50, height:50, borderRadius:"50%", objectFit:"cover", border:"2px solid rgba(0,0,0,0.06)" }} />
                     ) : (
                       <div style={{ width:50, height:50, borderRadius:"50%", background:"linear-gradient(135deg,#ea580c,#f97316)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:19, fontWeight:700, color:"white" }}>
                         {conv.otherUserName[0]?.toUpperCase() ?? "?"}
                       </div>
                     )}
-                    {/* Online dot — visual only, not related to unread count */}
                     <div style={{ position:"absolute", bottom:1, right:1, width:10, height:10, borderRadius:"50%", background:"#22c55e", border:"2px solid white" }} />
                   </div>
 
-                  {/* ── Text ── */}
-                  <div style={{ flex:1, minWidth:0 }}>
-                    {/* Row 1: name + timestamp */}
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:3 }}>
-                      <p style={{ fontSize:14, fontWeight: conv.unreadCount>0?700:600, color:"#111", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  {/* Text content */}
+                  <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:3 }}>
+                    {/* Row 1: name + time */}
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
+                      <p style={{ fontSize:14, fontWeight: conv.unreadCount>0 ? 800 : 600, color:"#0f0f0f", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                         {conv.otherUserName}
                       </p>
-                      <p style={{ fontSize:11, color:"#9ca3af", flexShrink:0, margin:0 }}>
+                      <p style={{ fontSize:11, color:"#b0b0b0", flexShrink:0, margin:0 }}>
                         {formatRelativeDate(conv.lastMessageAt)}
                       </p>
                     </div>
 
-                    {/* Row 2: listing title + SOLD badge */}
-                    <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:3 }}>
-                      <p style={{ fontSize:11, fontWeight:600, color: conv.isSold?"#6b7280":"#ea580c", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                        {conv.isSold ? "🏷️" : "🛍️"} {conv.listingTitle}
-                      </p>
-                      {conv.isSold && (
-                        <span style={{
-                          fontSize:9, padding:"1px 7px", borderRadius:100,
-                          /* Matches Sold badge color established in MyListingCard */
-                          background:"rgba(107,114,128,0.12)", color:"#6b7280",
-                          fontWeight:700, textTransform:"uppercase", letterSpacing:"0.04em", flexShrink:0
-                        }}>
-                          SOLD
-                        </span>
-                      )}
+                    {/* Row 2: listing chip */}
+                    <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+                      <span style={{
+                        display:"inline-flex", alignItems:"center", gap:4,
+                        fontSize:10, fontWeight:600, padding:"2px 8px", borderRadius:100,
+                        background: conv.isSold ? "rgba(107,114,128,0.1)" : "rgba(234,88,12,0.08)",
+                        color: conv.isSold ? "#6b7280" : "#ea580c",
+                        maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                      }}>
+                        {conv.isSold ? "🏷️ " : "🛍️ "}
+                        {conv.listingTitle}
+                        {conv.isSold && " · SOLD"}
+                      </span>
                     </div>
 
-                    {/* Row 3: last message preview — single line, always truncated */}
-                    <p style={{ fontSize:13, color: conv.unreadCount>0?"#374151":"#9ca3af", fontWeight: conv.unreadCount>0?500:400, margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {conv.lastMessageIsOwn && <span style={{ color:"#9ca3af" }}>You: </span>}
+                    {/* Row 3: last message */}
+                    <p style={{
+                      fontSize:13, margin:0,
+                      color: conv.unreadCount>0 ? "#374151" : "#9ca3af",
+                      fontWeight: conv.unreadCount>0 ? 500 : 400,
+                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                    }}>
+                      {conv.lastMessageIsOwn && <span style={{ color:"#b0b0b0" }}>You: </span>}
                       {conv.lastMessageText}
                     </p>
                   </div>
 
-                  {/* ── Right: thumbnail + unread badge ── */}
+                  {/* Right: photo + unread */}
                   <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6, flexShrink:0 }}>
                     {conv.coverPhoto && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={conv.coverPhoto} alt={conv.listingTitle}
-                        style={{ width:46, height:46, borderRadius:10, objectFit:"cover", border:"1px solid #e5e7eb", boxShadow:"0 1px 4px rgba(0,0,0,0.08)", opacity: conv.isSold?0.5:1 }} />
+                        style={{ width:46, height:46, borderRadius:10, objectFit:"cover", border:"1px solid rgba(0,0,0,0.06)", opacity: conv.isSold ? 0.45 : 1 }} />
                     )}
                     {conv.unreadCount > 0 && (
                       <span className="unread-badge" style={{
-                        minWidth:20, height:20, borderRadius:100, padding:"0 5px",
+                        minWidth:20, height:20, borderRadius:100, padding:"0 6px",
                         background:"linear-gradient(135deg,#ea580c,#f97316)",
                         color:"white", fontSize:10, fontWeight:800,
                         display:"flex", alignItems:"center", justifyContent:"center",

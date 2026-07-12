@@ -92,6 +92,8 @@ export function MyListingCard({ listing, layout = "grid" }: Props) {
           border: 1px solid #ebebeb;
           transition: transform 260ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 260ms ease;
           cursor: pointer;
+          /* Flex column so text area stretches to fill — ensures identical card heights */
+          display: flex; flex-direction: column; height: 100%;
         }
         @media (hover: hover) {
           .mlc-wrap:hover {
@@ -295,9 +297,10 @@ export function MyListingCard({ listing, layout = "grid" }: Props) {
           )}
         </div>
 
-        {/* Text content */}
-        <Link href={`/listing/${listing.id}`} style={{ display: "block", padding: "10px 12px 12px", textDecoration: "none" }}>
-          <p style={{ fontSize: 12, fontWeight: 600, color: "#111", lineHeight: 1.35, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>
+        {/* Text content — flex-1 pushes price/meta to bottom consistently */}
+        <Link href={`/listing/${listing.id}`} style={{ display: "flex", flexDirection: "column", flex: 1, padding: "10px 12px 12px", textDecoration: "none" }}>
+          {/* Title: always reserves 2-line height so short titles don't shrink the card */}
+          <p style={{ fontSize: 12, fontWeight: 600, color: "#111", lineHeight: 1.35, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, minHeight: "2.7em", margin: 0 }}>
             {listing.title}
           </p>
           <p className="mlc-price" style={{ marginTop: 4, fontSize: 13, fontWeight: 800, color: "#111", letterSpacing: "-0.02em" }}>
@@ -309,7 +312,8 @@ export function MyListingCard({ listing, layout = "grid" }: Props) {
               {listing.product_types.name}
             </p>
           )}
-          <p style={{ marginTop: 3, fontSize: 10, color: "#c4c4c4" }}>
+          {/* Date pushed to bottom */}
+          <p style={{ marginTop: "auto", paddingTop: 4, fontSize: 10, color: "#c4c4c4" }}>
             {formatRelativeDate(listing.created_at)}
           </p>
         </Link>
