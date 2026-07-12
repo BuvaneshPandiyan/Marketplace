@@ -163,13 +163,13 @@ export function Header() {
         .hdr-icon:active { transform:scale(0.88); }
         .hdr-icon.active { color:#ea580c; background:rgba(234,88,12,0.1); }
 
-        /* ── Mobile icon overrides — smaller so all 7 items fit the pill ── */
+          /* ── Mobile icon overrides — smaller so all items fit comfortably ── */
         @media(max-width:639px){
-          .mob-pill .hdr-icon { width:36px; height:36px; }
-          .mob-pill .hdr-icon svg { width:17px; height:17px; }
-          .mob-pill .sell-fab  { width:42px; height:42px; }
-          .mob-pill .sell-fab svg { width:19px; height:19px; }
-          .mob-pill .collapse-btn { width:28px; height:28px; }
+          .mob-pill .hdr-icon { width:32px; height:32px; }
+          .mob-pill .hdr-icon svg { width:15px; height:15px; }
+          .mob-pill .sell-fab  { width:38px; height:38px; }
+          .mob-pill .sell-fab svg { width:16px; height:16px; }
+          .mob-pill .collapse-btn { width:24px; height:24px; }
         }
 
         /* ── Nav-icon entrance: each icon bounces in with a stagger ── */
@@ -391,6 +391,10 @@ export function Header() {
           boxShadow:"0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)",
           overflow:"hidden",
           paddingBottom:"env(safe-area-inset-bottom)",
+          /* Compositor layer — prevents URL bar show/hide from triggering a repaint/reposition */
+          willChange: "transform",
+          WebkitTransform: "translateZ(0)",
+          transform: "translateZ(0)",
         }}
         transition={prefersReducedMotion ? { duration:0 } : { type:"spring", damping:28, stiffness:300 }}
       >
@@ -399,7 +403,7 @@ export function Header() {
             <motion.div key="collapsed"
               initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
               transition={prefersReducedMotion ? { duration:0 } : { duration:0.14 }}
-              style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 12px" }}>
+              style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:4, padding:"8px 10px" }}>
 
               {/* Location */}
               <div className="nav-item" style={{ position:"relative" }}>
@@ -441,7 +445,7 @@ export function Header() {
                     <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
                   </svg>
                 </button>
-                <div style={{ width:1, height:16, background:"rgba(0,0,0,0.14)", margin:"0 2px", flexShrink:0 }} />
+                <div style={{ width:1, height:14, background:"rgba(0,0,0,0.14)", margin:"0 2px", flexShrink:0 }} />
                 <button type="button" onClick={() => setNavMobileVisible(false)} aria-label="Hide navigation"
                   className="hdr-icon collapse-btn" style={{ width:28, height:28 }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth={2.5} strokeLinecap="round">

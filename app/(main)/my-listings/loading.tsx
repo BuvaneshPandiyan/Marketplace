@@ -1,7 +1,7 @@
 // My Listings loading — matches the fixed gradient hero + horizontal stat row + grid
 export default function MyListingsLoading() {
   return (
-    <div style={{ minHeight: "100vh", background: "#f8f7f5" }}>
+    <div style={{ minHeight: "100svh", background: "#f8f7f5" }}>
       <style>{`
         @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
         .sk  { background:linear-gradient(90deg,#ffffff18 25%,#ffffff35 37%,#ffffff18 63%); background-size:200% 100%; animation:shimmer 1.8s ease-in-out infinite; border-radius:8px; }
