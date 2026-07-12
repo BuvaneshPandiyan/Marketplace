@@ -16,7 +16,8 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         <style>{`
           main { padding-top: 76px; }
           @media(max-width:639px){
-            main { padding-top: 0 !important; padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+            main { padding-top: 0 !important; padding-bottom: calc(88px + env(safe-area-inset-bottom)); overflow-x: hidden; }
+            body { overflow-x: hidden; }
           }
         `}</style>
         {children}

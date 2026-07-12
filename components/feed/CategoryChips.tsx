@@ -198,10 +198,20 @@ export function CategoryChips() {
       `}</style>
 
       {/* ════════════════════════════════════════════════════
-          DESKTOP — horizontal scroll row (unchanged)
+          DESKTOP — horizontal scroll row, sticky under pill navbar
           Hidden below md, shown at md+
       ════════════════════════════════════════════════════ */}
-      <div className="relative hidden md:block">
+      <div className="relative hidden md:block"
+        style={{
+          position: "sticky",
+          top: 92,          /* matches layout padding-top for the floating pill */
+          zIndex: 40,
+          background: "#f8f7f5",   /* matches page bg so chips don't show stacked items behind */
+          paddingTop: 8,
+          paddingBottom: 8,
+          marginTop: -8,    /* cancel the 8px so content below doesn't jump */
+        }}
+      >
         {canScrollLeft && (
           <div style={{
             position: "absolute", left: 0, top: 0, bottom: 0, width: 48, zIndex: 2,

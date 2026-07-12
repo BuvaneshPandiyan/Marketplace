@@ -51,20 +51,55 @@ export default async function ConversationPage({
       <style>{`
         .chat-page-container {
           position: fixed;
-          /* Desktop: matches the layout's padding-top for the floating pill */
           top: 76px;
           left: 0; right: 0; bottom: 0;
           z-index: 10;
           display: flex;
           flex-direction: column;
           overflow: hidden;
+          /* Compositor layer — prevents fixed-element jitter during scroll */
+          will-change: transform;
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
         }
-        /* Mobile: pill is at BOTTOM not top — content starts at top-0 */
+
+        /* Mobile: keyboard-stable layout.
+           Problem 1: bottom: calc(80px + ...) recalculates when the virtual keyboard
+           opens/closes because iOS/Android shrink the visual viewport → input bar jumps.
+           Problem 2: 100dvh updates when the browser URL bar hides/shows as you scroll
+           → dvh recalculates → container resizes → input bar jumps again.
+
+           Fix: Use 100svh (small viewport height).
+           svh = viewport height when the URL bar is FULLY VISIBLE (the minimum/smallest).
+           It NEVER changes — not when the keyboard opens, not when the URL bar hides.
+           The container stays exactly the same height regardless of browser chrome state.
+           When the URL bar hides and extra space appears, the messages scroll area just
+           shows more content naturally — no container resize, no input bar movement.
+
+           svh is supported in Chrome 108+, Safari 15.4+, Firefox 101+.
+           Fall back to 100vh for older browsers (will still jump on URL bar hide,
+           but that's better than breaking the layout entirely). */
         @media (max-width: 639px) {
           .chat-page-container {
             top: 0 !important;
-            bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+            bottom: auto !important;
+            /* svh: stable, never changes with URL bar or keyboard */
+            height: calc(100svh - 80px - env(safe-area-inset-bottom)) !important;
           }
+
+          /* Fallback for browsers without svh */
+          @supports not (height: 100svh) {
+            .chat-page-container {
+              height: calc(100vh - 80px - env(safe-area-inset-bottom)) !important;
+            }
+          }
+        }
+
+        /* Prevent rubber-band / elastic overscroll from moving fixed children */
+        .chat-messages-area {
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
         }
       `}</style>
 

@@ -342,7 +342,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
         )}
 
         {/* ── SCROLLABLE MESSAGE LIST — only this area scrolls ── */}
-        <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10, minHeight: 0 }}>
+        <div className="chat-messages-area" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10, minHeight: 0, overscrollBehavior: "contain" }}>
           {messages.map((msg) => {
             const isSystem = (msg as Message & { message_type?: string }).message_type === "system";
             if (isSystem) {
@@ -421,7 +421,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
             <p style={{ fontSize: 13, color: "#9ca3af", fontWeight: 500, margin: 0 }}>🏷️ Messaging disabled for sold items</p>
           </div>
         ) : (
-          <div style={{ flexShrink: 0, borderTop: "1px solid #e5e7eb", background: "white", padding: "8px 12px 10px" }}>
+          <div style={{ flexShrink: 0, borderTop: "1px solid #e5e7eb", background: "white", padding: "8px 12px", paddingBottom: "calc(10px + env(safe-area-inset-bottom))" }}>
             <div style={{ display: "flex", gap: 10, marginBottom: 6 }}>
               <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingImage}
                 style={{ fontSize: 12, color: "#9ca3af", background: "none", border: "none", cursor: "pointer", padding: 0, transition: "color 150ms" }}
