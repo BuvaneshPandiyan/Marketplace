@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useAuthGate } from "@/components/auth/AuthGateContext";
 import { useWishlist } from "@/lib/client/useWishlist";
 
 type WishlistButtonProps = {
@@ -11,6 +12,7 @@ type WishlistButtonProps = {
 
 export function WishlistButton({ listingId, currentPrice, isLoggedIn, size = "default" }: WishlistButtonProps) {
   const { isWishlisted, isLoading, toggle } = useWishlist({ listingId, currentPrice });
+  const { requireAuth } = useAuthGate();
   const [popping, setPopping] = useState(false);
 
   const isCompact = size === "compact";
@@ -19,15 +21,13 @@ export function WishlistButton({ listingId, currentPrice, isLoggedIn, size = "de
     if (isCompact) {
       return (
         <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center text-xs text-neutral-600">
-          <a href="/login" className="font-semibold text-orange-600 hover:text-orange-700">Log in</a>
-          {" "}to save
-        </div>
+        <button type="button" onClick={() => requireAuth("save this listing")} style={{background:"none",border:"none",color:"#ea580c",fontWeight:700,cursor:"pointer",fontSize:"inherit",padding:0}}>Sign in</button>{" "}to save listings
+      </div>
       );
     }
     return (
       <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-600">
-        <a href="/login" className="font-semibold text-orange-600 hover:text-orange-700">Log in</a>
-        {" "}to save this listing.
+        <button type="button" onClick={() => requireAuth("save this listing")} style={{background:"none",border:"none",color:"#ea580c",fontWeight:700,cursor:"pointer",fontSize:"inherit",padding:0}}>Sign in</button>{" "}to save listings
       </div>
     );
   }

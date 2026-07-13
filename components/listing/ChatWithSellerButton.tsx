@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useAuthGate } from "@/components/auth/AuthGateContext";
 
 type ChatWithSellerButtonProps = {
   listingId: string;
@@ -16,17 +17,17 @@ export function ChatWithSellerButton({ listingId, isLoggedIn, isOwnListing, size
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { requireAuth } = useAuthGate();
 
   if (isOwnListing) return null;
 
   if (!isLoggedIn) {
-    // Compact: shorter nudge text that fits in a narrow column
     if (size === "compact") {
       return (
-        <div className="rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-center text-xs text-neutral-600">
-          <a href="/login" className="font-semibold text-orange-600 hover:text-orange-700">Log in</a>
-          {" "}to chat
-        </div>
+        <button type="button" onClick={() => requireAuth("chat with the seller")}
+          className="rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-center text-xs text-neutral-600 w-full cursor-pointer">
+          <span className="font-semibold text-orange-600">Sign in</span> to chat
+        </button>
       );
     }
     return (
@@ -38,6 +39,7 @@ export function ChatWithSellerButton({ listingId, isLoggedIn, isOwnListing, size
   }
 
   async function handleChat() {
+    if (!requireAuth("chat with the seller")) return;
     setError(null);
     setIsLoading(true);
     const { data, error: rpcError } = await supabase.rpc("get_or_create_conversation", {
