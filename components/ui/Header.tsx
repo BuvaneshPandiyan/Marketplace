@@ -405,7 +405,6 @@ export function Header() {
           position:"fixed", bottom:12, left:16, right:16, zIndex:100,
           boxShadow:"0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)",
           overflow:"hidden",
-          paddingBottom:"env(safe-area-inset-bottom)",
           /* Compositor layer — prevents URL bar show/hide from triggering a repaint/reposition */
           willChange: "transform",
           WebkitTransform: "translateZ(0)",
@@ -418,7 +417,7 @@ export function Header() {
             <motion.div key="collapsed"
               initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
               transition={prefersReducedMotion ? { duration:0 } : { duration:0.14 }}
-              style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:4, padding:"6px 10px" }}>
+              style={{ display:"flex", alignItems:"center", justifyContent:"space-evenly", padding:"6px 4px" }}>
 
               {/* Location */}
               <div className="nav-item" style={{ position:"relative" }}>
@@ -443,13 +442,6 @@ export function Header() {
                 </button>
               </div>
 
-              {/* Sell FAB — center */}
-              <div className="nav-item" style={{ position:"relative" }}>
-                <Link href="/sell" prefetch className="sell-fab" aria-label="Post an ad" style={{ width:42, height:42 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                </Link>
-              </div>
-
               {/* Chats */}
               <div className="nav-item" style={{ position:"relative" }}>
                 <IBtn href="/messages" label="Chats" active={pathname?.startsWith("/messages")}>
@@ -457,19 +449,26 @@ export function Header() {
                 </IBtn>
               </div>
 
+              {/* Sell FAB — center */}
+              <div className="nav-item" style={{ position:"relative" }}>
+                <Link href="/sell" prefetch className="sell-fab" aria-label="Post an ad" style={{ width:42, height:42 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                </Link>
+              </div>
+
               {/* Notification Bell */}
               <div className="nav-item" style={{ position:"relative", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                 <NotificationBell />
               </div>
 
-              {/* Menu ☰ + divider + ‹ collapse — compact group */}
-              <div className="nav-item" style={{ position:"relative", display:"flex", alignItems:"center", gap:0, flexShrink:0 }}>
+              {/* ☰ Menu + divider + ‹ collapse */}
+              <div className="nav-item" style={{ position:"relative", display:"flex", alignItems:"center", flexShrink:0 }}>
                 <button type="button" onClick={() => setDrawerOpen(true)} className="hdr-icon" aria-label="Menu">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
                     <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
                   </svg>
                 </button>
-                <div style={{ width:1, height:14, background:"rgba(0,0,0,0.14)", margin:"0 2px", flexShrink:0 }} />
+                <div style={{ width:1, height:14, background:"rgba(0,0,0,0.12)", margin:"0 2px", flexShrink:0 }} />
                 <button type="button" onClick={() => setNavMobileVisible(false)} aria-label="Hide navigation"
                   className="hdr-icon collapse-btn" style={{ width:28, height:28 }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth={2.5} strokeLinecap="round">
@@ -554,7 +553,9 @@ export function Header() {
                 </div>
                 <div>
                   <p style={{ fontSize:15, fontWeight:700, color:"#111", margin:0 }}>{profile?.name ?? "My Account"}</p>
-                  <p style={{ fontSize:12, color:"#9ca3af", margin:0 }}>Seller account</p>
+                  <p style={{ fontSize:12, color:"#9ca3af", margin:0 }}>
+                    bazar.in member
+                  </p>
                 </div>
               </div>
             )}
