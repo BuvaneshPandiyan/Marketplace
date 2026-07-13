@@ -23,10 +23,6 @@ const nextConfig: NextConfig = {
     removeConsole: process.env.NODE_ENV === "production",
   },
 
-  // ── External Packages ───────────────────────────────────────────────────
-  // Moved out of 'experimental' for Next.js 15+
-  serverExternalPackages: ["meilisearch"],
-
   // ── Headers — aggressive caching for static assets ──────────────────────
   async headers() {
     return [
@@ -51,6 +47,8 @@ const nextConfig: NextConfig = {
   experimental: {
     // Optimise CSS — removes unused styles
     optimizeCss: true,
+    // Faster server-side rendering
+    serverComponentsExternalPackages: ["meilisearch"],
   },
 };
 
