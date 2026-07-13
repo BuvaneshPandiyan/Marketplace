@@ -47,9 +47,10 @@ const nextConfig: NextConfig = {
   experimental: {
     // Optimise CSS — removes unused styles
     optimizeCss: true,
-    // Faster server-side rendering
-    serverComponentsExternalPackages: ["meilisearch"],
   },
+
+  // Meilisearch is server-only — keep it out of the client bundle
+  serverExternalPackages: ["meilisearch"],
 };
 
 export default nextConfig;

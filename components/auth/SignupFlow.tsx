@@ -151,7 +151,7 @@ export function SignupFlow() {
       }
 
       // 4. Upsert profile (handles race with trigger — upsert is safe either way)
-      const { error: profileErr } = await supabase.from("profiles").upsert({
+      await supabase.from("profiles").upsert({
         id:                data.user.id,
         name:              name.trim(),
         username:          username.toLowerCase().trim(),

@@ -1,4 +1,4 @@
-// Import Next.js's Metadata and Viewport types for type-safe head configuration
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 // Import the global stylesheet (includes Tailwind base/components/utilities)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -59,8 +59,10 @@ export default function RootLayout({
       {/* suppressHydrationWarning prevents a false mismatch warning from browser extensions
           that modify the DOM (e.g., password managers, translation extensions) */}
       <body suppressHydrationWarning className="bg-neutral-50">
-        {/* Top progress bar — appears during client-side navigations */}
-        <NavigationProgress />
+        {/* NavigationProgress uses useSearchParams — must be in Suspense */}
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         {/* UserProvider tracks the logged-in user/profile in React Context */}
         <UserProvider>
           {/* LocationProvider tracks the active location (default + browsing) in React Context */}
