@@ -128,27 +128,35 @@ export function NotificationBell() {
 
   const popupContent = (isMobileSheet: boolean) => (
     <>
-      {/* Header */}
+      {/* Header — same gradient style as drawer and location sheet */}
       <div style={{
-        background: "linear-gradient(135deg, #1a0a00 0%, #ea580c 100%)",
-        padding: "16px 20px 14px",
+        background: "linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%)",
+        padding: isMobileSheet ? "14px 20px 18px" : "16px 20px 14px",
         flexShrink: 0,
         borderRadius: isMobileSheet ? 0 : "16px 16px 0 0",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
+        position: "relative",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 20 }}>🔔</span>
-          <div>
-            <p style={{ fontWeight: 700, fontSize: 15, color: "white", margin: 0 }}>Notifications</p>
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", margin: 0 }}>
-              {unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up ✓"}
-            </p>
+        {/* Grid overlay */}
+        <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize:"28px 28px", borderRadius: isMobileSheet ? 0 : "16px 16px 0 0", pointerEvents:"none" }} />
+        {/* Drag handle — only on mobile sheet */}
+        {isMobileSheet && (
+          <div style={{ width:36, height:4, borderRadius:100, background:"rgba(255,255,255,0.25)", margin:"0 auto 14px", position:"relative" }} />
+        )}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>🔔</span>
+            <div>
+              <p style={{ fontWeight: 700, fontSize: 15, color: "white", margin: 0 }}>Notifications</p>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", margin: 0 }}>
+                {unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up ✓"}
+              </p>
+            </div>
           </div>
+          <button type="button" onClick={() => setIsOpen(false)} aria-label="Close"
+            style={{ width: 30, height: 30, borderRadius: "50%", border: "none", background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "white" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
         </div>
-        <button type="button" onClick={() => setIsOpen(false)} aria-label="Close"
-          style={{ width: 30, height: 30, borderRadius: "50%", border: "none", background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "white" }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
       </div>
 
       {/* Notification list */}
@@ -328,9 +336,9 @@ export function NotificationBell() {
           />
           <div className="notif-sheet" style={{
             position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9991,
-            background: "white", borderRadius: "28px 28px 0 0",
-            maxHeight: "78vh", display: "flex", flexDirection: "column",
-            boxShadow: "0 -16px 60px rgba(0,0,0,0.2)",
+            background: "white", borderRadius: "24px 24px 0 0",
+            height: "65vh", display: "flex", flexDirection: "column",
+            boxShadow: "0 -16px 56px rgba(0,0,0,0.25)",
             overflow: "hidden",
           }}>
             {popupContent(true)}

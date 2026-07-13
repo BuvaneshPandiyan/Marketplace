@@ -1,6 +1,3 @@
-// Force dynamic rendering for every page — auth state requires request-time cookies
-export const dynamic = "force-dynamic";
-
 // Import Next.js's Metadata and Viewport types for type-safe head configuration
 import type { Metadata, Viewport } from "next";
 // Import the global stylesheet (includes Tailwind base/components/utilities)

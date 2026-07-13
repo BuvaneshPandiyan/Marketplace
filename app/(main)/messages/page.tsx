@@ -8,7 +8,7 @@ export default async function MessagesPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // ── DATA FETCHING — unchanged ──────────────────────────────────────────────
+  // ── DATA FETCHING — single query per resource, no N+1 loops ──────────────
   const { data: conversations } = await supabase
     .from("conversations")
     .select(`
@@ -19,41 +19,52 @@ export default async function MessagesPage() {
     `)
     .order("created_at", { ascending: false });
 
-  const enriched = await Promise.all(
-    (conversations ?? []).map(async (conv) => {
-      const { data: lastMessages } = await supabase
-        .from("messages").select("text, image_url, created_at, read, sender_id")
-        .eq("conversation_id", conv.id).order("created_at", { ascending: false }).limit(1);
-      const { count: unreadCount } = await supabase
-        .from("messages").select("id", { count: "exact", head: true })
-        .eq("conversation_id", conv.id).eq("read", false).neq("sender_id", user.id);
+  const convIds = (conversations ?? []).map(c => c.id);
 
-      type ProfileShape = { id: string; name: string | null; profile_photo_url: string | null } | null;
-      type ListingShape = { title: string; status: string; listing_photos: { url: string; sort_order: number }[] } | null;
+  // Bulk fetch last message per conversation (one query instead of N)
+  const { data: lastMsgs } = convIds.length ? await supabase
+    .from("messages")
+    .select("conversation_id, text, image_url, created_at, read, sender_id")
+    .in("conversation_id", convIds)
+    .order("created_at", { ascending: false }) : { data: [] };
 
-      const otherUser = conv.buyer_id === user.id
-        ? (conv.seller as unknown as ProfileShape)
-        : (conv.buyer  as unknown as ProfileShape);
-      const listing    = conv.listings as unknown as ListingShape;
-      const coverPhoto = (listing?.listing_photos ?? [])
-        .sort((a, b) => a.sort_order - b.sort_order)[0]?.url ?? null;
-      const lastMessage = lastMessages?.[0] ?? null;
-      const isSold      = listing?.status === "sold";
+  type MsgRow = { conversation_id: string; text: string | null; image_url: string | null; created_at: string; read: boolean; sender_id: string; };
 
-      return {
-        id:               conv.id,
-        listingTitle:     listing?.title ?? "Listing",
-        isSold,
-        coverPhoto,
-        otherUserName:    otherUser?.name ?? "Unknown",
-        otherUserPhotoUrl:otherUser?.profile_photo_url ?? null,
-        lastMessageText:  lastMessage?.text ?? (lastMessage?.image_url ? "📷 Photo" : "No messages yet"),
-        lastMessageAt:    lastMessage?.created_at ?? conv.created_at,
-        lastMessageIsOwn: lastMessage?.sender_id === user.id,
-        unreadCount:      unreadCount ?? 0,
-      };
-    })
-  );
+  // Build a map: conversationId → last message
+  const lastMsgMap: Record<string, MsgRow> = {};
+  const unreadMap:  Record<string, number> = {};
+  for (const msg of lastMsgs ?? []) {
+    if (!lastMsgMap[msg.conversation_id]) lastMsgMap[msg.conversation_id] = msg;
+    if (!msg.read && msg.sender_id !== user.id) {
+      unreadMap[msg.conversation_id] = (unreadMap[msg.conversation_id] ?? 0) + 1;
+    }
+  }
+
+  type ProfileShape = { id: string; name: string | null; profile_photo_url: string | null } | null;
+  type ListingShape = { title: string; status: string; listing_photos: { url: string; sort_order: number }[] } | null;
+
+  const enriched = (conversations ?? []).map(conv => {
+    const otherUser  = conv.buyer_id === user.id
+      ? (conv.seller as unknown as ProfileShape)
+      : (conv.buyer  as unknown as ProfileShape);
+    const listing    = conv.listings as unknown as ListingShape;
+    const coverPhoto = (listing?.listing_photos ?? [])
+      .sort((a, b) => a.sort_order - b.sort_order)[0]?.url ?? null;
+    const lastMessage = lastMsgMap[conv.id] ?? null;
+
+    return {
+      id:               conv.id,
+      listingTitle:     listing?.title ?? "Listing",
+      isSold:           listing?.status === "sold",
+      coverPhoto,
+      otherUserName:    otherUser?.name ?? "Unknown",
+      otherUserPhotoUrl:otherUser?.profile_photo_url ?? null,
+      lastMessageText:  lastMessage?.text ?? (lastMessage?.image_url ? "📷 Photo" : "No messages yet"),
+      lastMessageAt:    lastMessage?.created_at ?? conv.created_at,
+      lastMessageIsOwn: lastMessage?.sender_id === user.id,
+      unreadCount:      unreadMap[conv.id] ?? 0,
+    };
+  });
 
   enriched.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
   const totalUnread = enriched.reduce((s, c) => s + c.unreadCount, 0);

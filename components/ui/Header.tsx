@@ -521,44 +521,68 @@ export function Header() {
         <>
           {/* Backdrop */}
           <div onClick={() => setDrawerOpen(false)}
-            style={{ position:"fixed", inset:0, zIndex:9980, background:"rgba(0,0,0,0.45)", backdropFilter:"blur(3px)", WebkitBackdropFilter:"blur(3px)", animation:"fade-in 200ms ease both" }} />
+            style={{ position:"fixed", inset:0, zIndex:9980, background:"rgba(0,0,0,0.55)", backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)", animation:"fade-in 200ms ease both" }} />
 
           {/* Sheet slides up */}
           <div style={{
             position:"fixed", bottom:0, left:0, right:0, zIndex:9981,
             background:"white", borderRadius:"24px 24px 0 0",
-            maxHeight:"88vh", display:"flex", flexDirection:"column",
-            boxShadow:"0 -12px 48px rgba(0,0,0,0.18)",
+            height:"65vh", display:"flex", flexDirection:"column",
+            boxShadow:"0 -16px 56px rgba(0,0,0,0.25)",
             animation:"drawer-up 300ms cubic-bezier(0.22,1,0.36,1) both",
             overflow:"hidden",
           }}>
-            {/* Handle + close button */}
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 20px 10px", flexShrink:0 }}>
-              {/* Drag handle */}
-              <div style={{ flex:1 }} />
-              <div style={{ width:40, height:4, borderRadius:100, background:"#e5e7eb", margin:"0 auto" }} />
-              <div style={{ flex:1, display:"flex", justifyContent:"flex-end" }}>
-                <button type="button" onClick={() => setDrawerOpen(false)}
-                  style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"#f3f4f6", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
-                </button>
-              </div>
-            </div>
 
-            {/* User info */}
-            {user && (
-              <div style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 20px 14px", borderBottom:"1px solid #f3f4f6", flexShrink:0 }}>
-                <div style={{ width:44, height:44, borderRadius:"50%", background:"linear-gradient(135deg,#ea580c,#f97316)", display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontWeight:700, fontSize:18, flexShrink:0 }}>
-                  {profile?.name?.[0]?.toUpperCase() ?? "U"}
+            {/* ── GRADIENT HEADER — matches notification bell style ── */}
+            <div style={{
+              background:"linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%)",
+              padding:"14px 20px 16px", flexShrink:0,
+              position:"relative",
+            }}>
+              {/* Subtle grid overlay */}
+              <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize:"28px 28px", borderRadius:"24px 24px 0 0" }} />
+
+              {/* Drag handle */}
+              <div style={{ width:36, height:4, borderRadius:100, background:"rgba(255,255,255,0.25)", margin:"0 auto 14px" }} />
+
+              {/* User info row */}
+              {user ? (
+                <div style={{ display:"flex", alignItems:"center", gap:12, position:"relative" }}>
+                  {/* Avatar */}
+                  <div style={{ width:46, height:46, borderRadius:"50%", overflow:"hidden", flexShrink:0, background:"rgba(255,255,255,0.15)", border:"2px solid rgba(255,255,255,0.3)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    {profile?.profile_photo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={profile.profile_photo_url} alt={profile.name ?? "Profile"} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+                    ) : (
+                      <span style={{ color:"white", fontWeight:800, fontSize:20 }}>
+                        {profile?.name?.[0]?.toUpperCase() ?? "U"}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontSize:15, fontWeight:800, color:"white", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {profile?.name ?? "My Account"}
+                    </p>
+                    <p style={{ fontSize:11, color:"rgba(255,255,255,0.6)", margin:0 }}>
+                      bazar.in member
+                    </p>
+                  </div>
+                  {/* Close button */}
+                  <button type="button" onClick={() => setDrawerOpen(false)} aria-label="Close menu"
+                    style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </button>
                 </div>
-                <div>
-                  <p style={{ fontSize:15, fontWeight:700, color:"#111", margin:0 }}>{profile?.name ?? "My Account"}</p>
-                  <p style={{ fontSize:12, color:"#9ca3af", margin:0 }}>
-                    bazar.in member
-                  </p>
+              ) : (
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                  <p style={{ fontSize:15, fontWeight:700, color:"white", margin:0 }}>Menu</p>
+                  <button type="button" onClick={() => setDrawerOpen(false)} aria-label="Close menu"
+                    style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </button>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Nav links */}
             <nav style={{ overflowY:"auto", flex:1, padding:"8px 0" }}>
@@ -643,24 +667,42 @@ export function Header() {
               style={{
                 position:"fixed", bottom:0, left:0, right:0, zIndex:9986, background:"white",
                 borderRadius:"24px 24px 0 0",
-                boxShadow:"0 -8px 40px rgba(0,0,0,0.15)",
-                /* maxHeight not height — sheet only grows as tall as its content needs,
-                   capped at 85vh. The outer never scrolls; only the inner div does. */
-                maxHeight:"85vh",
+                boxShadow:"0 -16px 56px rgba(0,0,0,0.25)",
+                height:"65vh",
                 display:"flex", flexDirection:"column",
                 overflow:"hidden",
               }}>
+
+              {/* ── GRADIENT HEADER — matches notification bell + drawer style ── */}
+              <div style={{
+                background:"linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%)",
+                padding:"14px 20px 18px", flexShrink:0, position:"relative",
+              }}>
+                {/* Grid overlay */}
+                <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize:"28px 28px", borderRadius:"24px 24px 0 0", pointerEvents:"none" }} />
+                {/* Drag handle */}
+                <div style={{ width:36, height:4, borderRadius:100, background:"rgba(255,255,255,0.25)", margin:"0 auto 14px", position:"relative" }} />
+                {/* Title row */}
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", position:"relative" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                    <span style={{ fontSize:20 }}>📍</span>
+                    <div>
+                      <p style={{ fontWeight:700, fontSize:15, color:"white", margin:0 }}>Set location</p>
+                      <p style={{ fontSize:11, color:"rgba(255,255,255,0.6)", margin:0 }}>
+                        {locality && !needsSetup ? locality : "Choose your area"}
+                      </p>
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => { setLocSheetOpen(false); setDetectedLocality(null); setDetectError(null); setJustCaptured(false); }}
+                    style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </button>
+                </div>
+              </div>
+
               {/* Inner content: scrolls only when list overflows the maxHeight cap */}
               <div style={{ overflowY:"auto", flex:1 }}>
               <div style={{ maxWidth:560, margin:"0 auto", padding:"20px 20px 32px" }}>
-                {/* Header */}
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-                  <p style={{ fontWeight:700, fontSize:16, color:"#111", margin:0 }}>Set location</p>
-                  <button type="button" onClick={() => { setLocSheetOpen(false); setDetectedLocality(null); setDetectError(null); setJustCaptured(false); }}
-                    style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"#f3f4f6", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
-                  </button>
-                </div>
 
                 {/* ── SUCCESS BANNER — pops up right after GPS capture ── */}
                 {justCaptured && (
