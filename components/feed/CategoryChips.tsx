@@ -316,40 +316,56 @@ export function CategoryChips() {
         <AnimatePresence>
           {sheetOpen && (
             <>
-              <motion.div key="backdrop" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} transition={{ duration:0.2 }}
+              <motion.div key="backdrop" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+                transition={{ duration:0.15 }}
                 onClick={closeSheet}
-                style={{ position:"fixed", inset:0, zIndex:100, background:"rgba(0,0,0,0.4)", backdropFilter:"blur(2px)", WebkitBackdropFilter:"blur(2px)" }}
+                style={{ position:"fixed", inset:0, zIndex:100, background:"rgba(0,0,0,0.45)", backdropFilter:"blur(3px)", WebkitBackdropFilter:"blur(3px)" }}
                 aria-hidden="true" />
+
               <motion.div key="sheet" role="dialog" aria-modal="true" aria-label="Select a category"
                 initial={{ y:"100%" }} animate={{ y:0 }} exit={{ y:"100%" }}
-                transition={{ type:"spring", damping:28, stiffness:280, mass:0.8 }}
-                style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:101, height:"68vh", background:"white", borderRadius:"20px 20px 0 0", display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 -8px 40px rgba(0,0,0,0.15)" }}>
-                <div style={{ display:"flex", justifyContent:"center", paddingTop:12, paddingBottom:4, flexShrink:0 }}>
-                  <div style={{ width:36, height:4, borderRadius:100, background:"#e5e7eb" }} />
+                transition={{ type:"spring", damping:32, stiffness:380 }}
+                style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:101, height:"65vh", background:"white", borderRadius:"24px 24px 0 0", display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 -16px 56px rgba(0,0,0,0.25)" }}>
+
+                {/* ── Gradient header — same as notification bell, location, drawer ── */}
+                <div style={{ background:"linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%)", padding:"14px 20px 18px", flexShrink:0, position:"relative" }}>
+                  {/* Grid overlay */}
+                  <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize:"28px 28px", borderRadius:"24px 24px 0 0", pointerEvents:"none" }} />
+                  {/* Drag handle */}
+                  <div style={{ width:36, height:4, borderRadius:100, background:"rgba(255,255,255,0.25)", margin:"0 auto 14px", position:"relative" }} />
+                  {/* Title row */}
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", position:"relative" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      <span style={{ fontSize:20 }}>🗂️</span>
+                      <div>
+                        <p style={{ fontWeight:700, fontSize:15, color:"white", margin:0 }}>Categories</p>
+                        <p style={{ fontSize:11, color:"rgba(255,255,255,0.6)", margin:0 }}>
+                          {activeCategory ? activeCategory.name : "Browse all categories"}
+                        </p>
+                      </div>
+                    </div>
+                    <button type="button" onClick={closeSheet} aria-label="Close categories"
+                      style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                  </div>
                 </div>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 20px 12px", flexShrink:0, borderBottom:"1px solid #f3f4f6" }}>
-                  <p style={{ fontSize:16, fontWeight:700, color:"#111827", margin:0 }}>Categories</p>
-                  <button type="button" onClick={closeSheet} aria-label="Close categories"
-                    style={{ width:32, height:32, borderRadius:"50%", border:"none", background:"#f3f4f6", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
-                  </button>
-                </div>
-                <div style={{ overflowY:"auto", flex:1, padding:"8px 0" }}>
+
+                {/* Category list — no per-row motion.div (that was causing the lag) */}
+                <div style={{ overflowY:"auto", flex:1, padding:"6px 0" }}>
                   {loading && [1,2,3,4,5].map(i => (
                     <div key={i} className="chip-skeleton" style={{ margin:"6px 16px", height:52, borderRadius:12, background:"#f3f4f6", animationDelay:`${i*60}ms` }} />
                   ))}
-                  {!loading && categories.map((cat, i) => {
+                  {!loading && categories.map((cat) => {
                     const isActive = pathname === `/category/${cat.slug}`;
                     const acc = CATEGORY_ACCENT[cat.slug] ?? DEFAULT_ACCENT;
                     return (
-                      <motion.div key={cat.id} initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*30/1000, duration:0.22 }}>
-                        <Link href={`/category/${cat.slug}`} onClick={closeSheet} className="sheet-row"
-                          style={{ display:"flex", alignItems:"center", gap:14, padding:"0 20px", minHeight:52, textDecoration:"none", background: isActive ? acc.bg : "transparent", borderLeft: isActive ? `3px solid ${acc.color}` : "3px solid transparent" }}>
-                          <span style={{ width:36, height:36, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, background:acc.bg, flexShrink:0 }} aria-hidden="true">{cat.icon}</span>
-                          <span style={{ flex:1, fontSize:15, fontWeight:isActive?700:500, color:isActive?acc.color:"#374151" }}>{cat.name}</span>
-                          {isActive && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={acc.color} strokeWidth={2.5}><path d="M20 6L9 17l-5-5"/></svg>}
-                        </Link>
-                      </motion.div>
+                      <Link key={cat.id} href={`/category/${cat.slug}`} onClick={closeSheet} className="sheet-row"
+                        style={{ display:"flex", alignItems:"center", gap:14, padding:"0 20px", minHeight:52, textDecoration:"none", background: isActive ? acc.bg : "transparent", borderLeft: isActive ? `3px solid ${acc.color}` : "3px solid transparent" }}>
+                        <span style={{ width:36, height:36, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, background:acc.bg, flexShrink:0 }} aria-hidden="true">{cat.icon}</span>
+                        <span style={{ flex:1, fontSize:15, fontWeight:isActive?700:500, color:isActive?acc.color:"#374151" }}>{cat.name}</span>
+                        {isActive && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={acc.color} strokeWidth={2.5}><path d="M20 6L9 17l-5-5"/></svg>}
+                      </Link>
                     );
                   })}
                 </div>

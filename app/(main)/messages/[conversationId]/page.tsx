@@ -84,15 +84,26 @@ export default async function ConversationPage({
             top: 0 !important;
             bottom: auto !important;
             /* svh: stable, never changes with URL bar or keyboard */
-            height: calc(100svh - 80px - env(safe-area-inset-bottom)) !important;
+            height: calc(100svh - 68px) !important;
           }
 
           /* Fallback for browsers without svh */
           @supports not (height: 100svh) {
             .chat-page-container {
-              height: calc(100vh - 80px - env(safe-area-inset-bottom)) !important;
+              height: calc(100vh - 68px) !important;
             }
           }
+        }
+
+        /* Report button stays inside header on all screen sizes */
+        .chat-report-btn button,
+        .chat-report-btn a {
+          font-size: 11px !important;
+          padding: 4px 10px !important;
+          white-space: nowrap;
+          max-width: 70px;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         /* Prevent rubber-band / elastic overscroll from moving fixed children */

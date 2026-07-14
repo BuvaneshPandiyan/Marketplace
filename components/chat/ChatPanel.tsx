@@ -248,18 +248,26 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
   }
 
   // ── Share a meet-up point via the browser Geolocation API ─────────────────────────────────
+  const [isSharingLocation, setIsSharingLocation] = useState(false);
   function handleShareLocation() {
-    navigator.geolocation.getCurrentPosition((pos) => {
-      // Build a Google Maps link from the current coordinates
-      const link = `https://maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-      // Send it as a regular text message so it renders as a clickable link in the thread
-      supabase.from("messages").insert({
-        conversation_id: conversation.id,
-        sender_id: currentUserId,
-        // Include an emoji so it's visually distinctive in the message list
-        text: `📍 Meet-up point: ${link}`,
-      });
-    });
+    if (!navigator.geolocation) { alert("Location not supported on this device."); return; }
+    setIsSharingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const link = `https://maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+        supabase.from("messages").insert({
+          conversation_id: conversation.id,
+          sender_id: currentUserId,
+          text: `📍 My location: ${link}`,
+        }).then(() => setIsSharingLocation(false));
+      },
+      (err) => {
+        setIsSharingLocation(false);
+        if (err.code === 1) alert("Location permission denied. Please allow location access in your browser settings.");
+        else alert("Could not get your location. Please try again.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   }
 
   return (
@@ -324,8 +332,10 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
               </Link>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-              <ReportButton targetType={reportTarget.targetType} targetId={reportTarget.targetId} isLoggedIn={true} />
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+              <div className="chat-report-btn">
+                <ReportButton targetType={reportTarget.targetType} targetId={reportTarget.targetId} isLoggedIn={true} />
+              </div>
             </div>
           </div>
         </div>
@@ -421,7 +431,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
             <p style={{ fontSize: 13, color: "#9ca3af", fontWeight: 500, margin: 0 }}>🏷️ Messaging disabled for sold items</p>
           </div>
         ) : (
-          <div style={{ flexShrink: 0, borderTop: "1px solid #e5e7eb", background: "white", padding: "8px 12px", paddingBottom: "calc(10px + env(safe-area-inset-bottom))" }}>
+          <div style={{ flexShrink: 0, borderTop: "1px solid #e5e7eb", background: "white", padding: "8px 12px 10px" }}>
             <div style={{ display: "flex", gap: 10, marginBottom: 6 }}>
               <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingImage}
                 style={{ fontSize: 12, color: "#9ca3af", background: "none", border: "none", cursor: "pointer", padding: 0, transition: "color 150ms" }}
@@ -429,11 +439,9 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#9ca3af"; }}>
                 {isUploadingImage ? "Uploading…" : "📎 Photo"}
               </button>
-              <button type="button" onClick={handleShareLocation}
-                style={{ fontSize: 12, color: "#9ca3af", background: "none", border: "none", cursor: "pointer", padding: 0, transition: "color 150ms" }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#ea580c"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#9ca3af"; }}>
-                📍 Location
+              <button type="button" onClick={handleShareLocation} disabled={isSharingLocation}
+                style={{ fontSize: 12, color: isSharingLocation ? "#ea580c" : "#9ca3af", background: "none", border: "none", cursor: "pointer", padding: 0, transition: "color 150ms", opacity: isSharingLocation ? 0.7 : 1 }}>
+                {isSharingLocation ? "📍 Getting location…" : "📍 Location"}
               </button>
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }}
