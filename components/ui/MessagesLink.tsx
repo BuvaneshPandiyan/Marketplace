@@ -1,9 +1,9 @@
 "use client";
 // Header Chats button — shows unread count badge and active state
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { GatedLink } from "@/components/auth/GatedLink";
 
 export function MessagesLink() {
   const [supabase] = useState(() => createClient());
@@ -58,7 +58,7 @@ export function MessagesLink() {
           .chats-badge { animation: none !important; }
         }
       `}</style>
-      <Link href="/messages" prefetch={true} className="chats-btn">
+      <GatedLink href="/messages" action="chat with sellers" prefetch={true} className="chats-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -74,7 +74,7 @@ export function MessagesLink() {
             {unread > 99 ? "99+" : unread}
           </span>
         )}
-      </Link>
+      </GatedLink>
     </>
   );
 }

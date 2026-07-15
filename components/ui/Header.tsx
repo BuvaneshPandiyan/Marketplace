@@ -11,6 +11,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useUser } from "@/lib/hooks/useUser";
+import { GatedLink } from "@/components/auth/GatedLink";
 import { LocationPill } from "@/components/location/LocationPill";
 import { LocationSearchInput } from "@/components/location/LocationSearchInput";
 import { SearchBar } from "@/components/search/SearchBar";
@@ -38,11 +39,14 @@ const PILL: React.CSSProperties = {
 };
 
 // Simple icon button
-function IBtn({ onClick, active, label, children, href }: {
+function IBtn({ onClick, active, label, children, href, action }: {
   onClick?: () => void; active?: boolean; label: string;
   children: React.ReactNode; href?: string;
+  /** When set, a logged-out tap opens the sign-in popup instead of navigating */
+  action?: string;
 }) {
   const cls = `hdr-icon${active ? " active" : ""}`;
+  if (href && action) return <GatedLink href={href} action={action} className={cls} aria-label={label} style={{ textDecoration: "none" }}>{children}</GatedLink>;
   if (href) return <Link href={href} className={cls} aria-label={label} style={{ textDecoration: "none" }}>{children}</Link>;
   return <button type="button" onClick={onClick} className={cls} aria-label={label}>{children}</button>;
 }
@@ -135,8 +139,9 @@ export function Header() {
     setIsSigningOut(false);
   }
 
+  // Only ever fires when logged in — GatedLink intercepts logged-out clicks and
+  // opens the sign-in popup instead of silently redirecting to /login.
   function handleWishlistClick() {
-    if (!user) { router.push("/login"); return; }
     setWishlistPop(true);
     setTimeout(() => setWishlistPop(false), 400);
   }
@@ -145,10 +150,10 @@ export function Header() {
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // ── Mobile drawer links ────────────────────────────────────────────
-  const drawerLinks = [
+  const drawerLinks: { href: string; label: string; action?: string; icon: React.ReactNode }[] = [
     { href: "/",            label: "Home",       icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
-    { href: "/my-listings", label: "My Listings",icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
-    { href: "/wishlist",    label: "Wishlist",   icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
+    { href: "/my-listings", label: "My Listings", action: "manage your listings", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
+    { href: "/wishlist",    label: "Wishlist",   action: "save items to your wishlist", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
     { href: "/contact",     label: "Contact Us", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.5 2 2 0 0 1 3.6 1.32h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> },
   ];
 
@@ -301,34 +306,29 @@ export function Header() {
 
             {/* My Listings — plain icon link, no dropdown */}
             <Tip label="My Listings">
-              <Link href="/my-listings" className={`hdr-icon${isMyListingsActive?" active":""}`} aria-label="My Listings" style={{ textDecoration:"none" }}>
+              <GatedLink href="/my-listings" action="manage your listings" className={`hdr-icon${isMyListingsActive?" active":""}`} aria-label="My Listings" style={{ textDecoration:"none" }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-              </Link>
+              </GatedLink>
             </Tip>
 
-            {/* Wishlist */}
-            {user && (
-              <Tip label="Wishlist">
-                <Link href="/wishlist" className={`hdr-icon${wishlistPop?" heart-pop":""}${isWishlistActive?" active":""}`}
-                  aria-label="Wishlist" style={{ textDecoration:"none" }} onClick={handleWishlistClick}>
-                  <HeartIcon active={isWishlistActive} />
-                </Link>
-              </Tip>
-            )}
+            {/* Wishlist — always visible; logged-out taps open the sign-in popup */}
+            <Tip label="Wishlist">
+              <GatedLink href="/wishlist" action="save items to your wishlist"
+                className={`hdr-icon${wishlistPop?" heart-pop":""}${isWishlistActive?" active":""}`}
+                aria-label="Wishlist" style={{ textDecoration:"none" }} onClick={handleWishlistClick}>
+                <HeartIcon active={isWishlistActive} />
+              </GatedLink>
+            </Tip>
 
-            {/* Chats */}
-            {user && (
-              <Tip label="Chats"><MessagesLink /></Tip>
-            )}
+            {/* Chats — always visible; MessagesLink gates the click itself */}
+            <Tip label="Chats"><MessagesLink /></Tip>
 
-            {/* Notifications */}
-            {user && (
-              <Tip label="Notifications">
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"center", width:44, height:44, flexShrink:0 }}>
-                  <NotificationBell />
-                </div>
-              </Tip>
-            )}
+            {/* Notifications — always visible; NotificationBell gates the click itself */}
+            <Tip label="Notifications">
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", width:44, height:44, flexShrink:0 }}>
+                <NotificationBell />
+              </div>
+            </Tip>
 
             {/* Contact Us — NOTE: /contact route needs to be created if it doesn't exist */}
             <Tip label="Contact Us">
@@ -384,11 +384,11 @@ export function Header() {
 
             {/* Sell — gradient circle, primary CTA */}
             <Tip label="Sell">
-              <Link href="/sell" prefetch className="sell-circle" aria-label="Sell">
+              <GatedLink href="/sell" action="post an ad" prefetch className="sell-circle" aria-label="Sell">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round">
                   <path d="M12 5v14M5 12h14"/>
                 </svg>
-              </Link>
+              </GatedLink>
             </Tip>
           </div>
         </div>
@@ -444,16 +444,16 @@ export function Header() {
 
               {/* Chats */}
               <div className="nav-item" style={{ position:"relative" }}>
-                <IBtn href="/messages" label="Chats" active={pathname?.startsWith("/messages")}>
+                <IBtn href="/messages" action="chat with sellers" label="Chats" active={pathname?.startsWith("/messages")}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill={pathname?.startsWith("/messages")?"currentColor":"none"} stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 </IBtn>
               </div>
 
               {/* Sell FAB — center */}
               <div className="nav-item" style={{ position:"relative" }}>
-                <Link href="/sell" prefetch className="sell-fab" aria-label="Post an ad" style={{ width:42, height:42 }}>
+                <GatedLink href="/sell" action="post an ad" prefetch className="sell-fab" aria-label="Post an ad" style={{ width:42, height:42 }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                </Link>
+                </GatedLink>
               </div>
 
               {/* Notification Bell */}
@@ -586,13 +586,28 @@ export function Header() {
 
             {/* Nav links */}
             <nav style={{ overflowY:"auto", flex:1, padding:"8px 0" }}>
-              {drawerLinks.map(({ href, label, icon }) => (
-                <Link key={href} href={href} prefetch onClick={() => setDrawerOpen(false)}
-                  style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 20px", textDecoration:"none", fontSize:14, fontWeight:500, color:pathname===href?"#ea580c":"#374151", background:pathname===href?"rgba(234,88,12,0.06)":"transparent", borderLeft:`3px solid ${pathname===href?"#ea580c":"transparent"}` }}>
-                  <span style={{ color:pathname===href?"#ea580c":"#6b7280" }}>{icon}</span>
-                  {label}
-                </Link>
-              ))}
+              {drawerLinks.map(({ href, label, icon, action }) => {
+                const linkStyle = { display:"flex", alignItems:"center", gap:14, padding:"14px 20px", textDecoration:"none", fontSize:14, fontWeight:500, color:pathname===href?"#ea580c":"#374151", background:pathname===href?"rgba(234,88,12,0.06)":"transparent", borderLeft:`3px solid ${pathname===href?"#ea580c":"transparent"}` } as const;
+                const inner = (
+                  <>
+                    <span style={{ color:pathname===href?"#ea580c":"#6b7280" }}>{icon}</span>
+                    {label}
+                  </>
+                );
+                // Gated entries close the drawer first so the popup isn't hidden behind it
+                return action ? (
+                  <GatedLink key={href} href={href} action={action} prefetch
+                    onClick={() => setDrawerOpen(false)}
+                    onBlocked={() => setDrawerOpen(false)}
+                    style={linkStyle}>
+                    {inner}
+                  </GatedLink>
+                ) : (
+                  <Link key={href} href={href} prefetch onClick={() => setDrawerOpen(false)} style={linkStyle}>
+                    {inner}
+                  </Link>
+                );
+              })}
 
 
             </nav>

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
+import { useAuthGate } from "@/components/auth/AuthGateContext";
+import { useUser } from "@/lib/hooks/useUser";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { formatRelativeDate } from "@/lib/client/formatRelativeDate";
@@ -35,6 +37,8 @@ function resolveLink(n: AppNotification): string {
 
 export function NotificationBell() {
   const [supabase] = useState(() => createClient());
+  const { requireAuth } = useAuthGate();
+  const { user } = useUser();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isLoadingNotifs, setIsLoadingNotifs] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -45,7 +49,7 @@ export function NotificationBell() {
   const pathname = usePathname();
   const prevPathname = useRef(pathname);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = user ? notifications.filter((n) => !n.read).length : 0;
 
   // Prefetch all notification destinations the moment the bell opens —
   // this kicks off background fetches so tapping a notification is near-instant
@@ -72,7 +76,13 @@ export function NotificationBell() {
     let channel: ReturnType<typeof supabase.channel> | null = null;
     async function init() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        // Logged out: there is nothing to fetch, but we MUST clear the loading
+        // flag. Returning with isLoadingNotifs still true (its initial value) is
+        // what left the panel spinning forever for guests.
+        setIsLoadingNotifs(false);
+        return;
+      }
       // User confirmed — load notifications and subscribe to new ones
       const { data } = await supabase.from("notifications").select("*")
         .eq("user_id", user.id).order("created_at", { ascending: false }).limit(20);
@@ -115,6 +125,8 @@ export function NotificationBell() {
   }, [isMobile, isOpen]);
 
   async function handleOpen() {
+    // Logged out: show the sign-in popup instead of opening an empty panel
+    if (!requireAuth("see your notifications")) return;
     setIsOpen((prev) => !prev);
     if (isOpen) return;
     const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);

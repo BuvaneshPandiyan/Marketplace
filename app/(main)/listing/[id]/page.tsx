@@ -15,6 +15,7 @@ import { ChatWithSellerButton } from "@/components/listing/ChatWithSellerButton"
 import { WishlistButton } from "@/components/listing/WishlistButton";
 import { ListingDescription } from "@/components/listing/ListingDescription";
 import { ReportButton } from "@/components/trust/ReportButton";
+import { WhatsAppSellerButton } from "@/components/listing/WhatsAppSellerButton";
 import { ListingCard } from "@/components/feed/ListingCard";
 import type { QuestionSchema, FeedListingItem } from "@/types";
 
@@ -405,6 +406,16 @@ export default async function ListingDetailPage({
           </div>
         </section>
       )}
+
+      {/* Floating "WhatsApp seller" — fetches the number through reveal_seller_phone
+          on click, so it's never present in this page's HTML. Logged-out visitors
+          still see it; tapping it opens the auth gate, same as the phone button. */}
+      <WhatsAppSellerButton
+        listingId={listing.id}
+        title={listing.title}
+        priceFormatted={priceFormatted}
+        isOwnListing={!isBuyer}
+      />
 
     </div>
   );
