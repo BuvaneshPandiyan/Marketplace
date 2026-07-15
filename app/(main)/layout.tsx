@@ -9,8 +9,16 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   return (
     <AuthGateProvider isLoggedIn={!!user}>
     <div className="min-h-screen bg-neutral-50">
+      {/* Ambient background — CSS-only drifting blooms + faint grid. Defined in
+          globals.css, rendered once here so it sits behind every (main) page.
+          Fixed + pointer-events:none, so it never intercepts a tap. */}
+      <div className="bz-ambient" aria-hidden="true">
+        <span className="bz-blob bz-blob-1" />
+        <span className="bz-blob bz-blob-2" />
+        <span className="bz-blob bz-blob-3" />
+      </div>
       <Header />
-      <main>
+      <main className="bz-above">
         <style>{`
           main { padding-top: 76px; }
           @media(max-width:639px){

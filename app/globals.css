@@ -1,31 +1,192 @@
-/* Import Tailwind CSS's base styles, components, and utility classes */
 @import "tailwindcss";
 
-/* Define a couple of reusable color variables for light mode */
+/* ═══════════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+   Single source of truth. Every orange in this app used to be a
+   hardcoded #ea580c copy-pasted across ~90 files; change it here now.
+   ═══════════════════════════════════════════════════════════════════ */
 :root {
-  /* The default page background color */
   --background: #ffffff;
-  /* The default page text color */
   --foreground: #171717;
+
+  /* Brand */
+  --brand:        #ea580c;
+  --brand-light:  #f97316;
+  --brand-dark:   #9a3412;
+  --brand-tint:   #fff7ed;
+  --brand-border: #fed7aa;
+  --brand-grad:   linear-gradient(135deg, #ea580c, #f97316);
+  /* The dark→orange sweep used by every sheet, drawer and hero */
+  --brand-hero:   linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%);
+
+  /* Ink */
+  --ink:        #1a1a1a;
+  --ink-soft:   #374151;
+  --ink-muted:  #6b7280;
+  --ink-faint:  #9ca3af;
+  --line:       #f0f0f0;
+  --line-strong:#e5e7eb;
+
+  /* Surfaces */
+  --surface:      #ffffff;
+  --surface-sunk: #f5f4f2;
+
+  /* Radii — Zomato/Zepto sit high; small is still generous */
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --r-xl: 26px;
+  --r-pill: 100px;
+
+  /* Elevation */
+  --sh-sm: 0 2px 8px rgba(0,0,0,0.05);
+  --sh-md: 0 4px 20px rgba(0,0,0,0.07);
+  --sh-lg: 0 14px 38px rgba(0,0,0,0.11);
+  --sh-brand: 0 6px 22px rgba(234,88,12,0.42);
+
+  /* Motion — one spring, used everywhere, so the app feels like one thing */
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease:   cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Page gutter + max width. Pages were a mix of 1080/1400/1600 — this
+     is the shared value so they stop disagreeing with each other. */
+  --page-max: 1400px;
 }
 
-/* Tell Tailwind to expose these CSS variables as theme tokens it can use in utility classes */
 @theme inline {
-  /* Map Tailwind's "background" color token to our --background variable */
   --color-background: var(--background);
-  /* Map Tailwind's "foreground" color token to our --foreground variable */
   --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
+  --color-brand-light: var(--brand-light);
+  --color-brand-tint: var(--brand-tint);
 }
 
-/* Apply our background/foreground variables and a system font stack to the whole page body */
 body {
-  /* Use the background color variable defined above */
   background: var(--background);
-  /* Use the foreground (text) color variable defined above */
   color: var(--foreground);
-  /* Use a fast-loading system font stack instead of fetching a custom web font */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  /* Zomato/Zepto set type tight and heavy; this is the base everything inherits */
+  letter-spacing: -0.011em;
 }
 
-/* NOTE: Dark mode support is intentionally left out at this scaffolding stage. */
-/* It's listed as an "advanced feature" to add later once the core app is built. */
+/* ═══════════════════════════════════════════════════════════════════
+   AMBIENT BACKGROUND
+   Sits behind every page. Deliberately CSS-only — no images, no JS, no
+   network cost, so it can't slow the first paint. Three slow-drifting
+   radial blooms plus a faint marketplace grid. Opacity is kept low
+   enough to read as texture rather than decoration; nothing here should
+   ever compete with a product photo.
+   ═══════════════════════════════════════════════════════════════════ */
+.bz-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* The grid — a nod to shelves/listings, barely there */
+.bz-ambient::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background-image:
+    linear-gradient(rgba(234,88,12,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(234,88,12,0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  /* Fades out toward the middle so content sits on clean white */
+  -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 40%, transparent 30%, #000 100%);
+  mask-image: radial-gradient(ellipse 60% 50% at 50% 40%, transparent 30%, #000 100%);
+  animation: bz-grid-drift 90s linear infinite;
+}
+
+.bz-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.5;
+  will-change: transform;
+}
+.bz-blob-1 {
+  width: 46vw; height: 46vw; max-width: 620px; max-height: 620px;
+  top: -14%; left: -10%;
+  background: radial-gradient(circle, rgba(249,115,22,0.28), transparent 70%);
+  animation: bz-float-1 34s ease-in-out infinite;
+}
+.bz-blob-2 {
+  width: 40vw; height: 40vw; max-width: 540px; max-height: 540px;
+  top: 34%; right: -12%;
+  background: radial-gradient(circle, rgba(234,88,12,0.2), transparent 70%);
+  animation: bz-float-2 42s ease-in-out infinite;
+}
+.bz-blob-3 {
+  width: 36vw; height: 36vw; max-width: 480px; max-height: 480px;
+  bottom: -12%; left: 22%;
+  background: radial-gradient(circle, rgba(253,186,116,0.26), transparent 70%);
+  animation: bz-float-3 38s ease-in-out infinite;
+}
+
+@keyframes bz-grid-drift { to { transform: translate(44px, 44px); } }
+@keyframes bz-float-1 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%     { transform: translate(6vw, 5vh) scale(1.1); }
+  66%     { transform: translate(-3vw, 9vh) scale(0.95); }
+}
+@keyframes bz-float-2 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%     { transform: translate(-7vw, -6vh) scale(1.08); }
+  66%     { transform: translate(-2vw, 5vh) scale(0.94); }
+}
+@keyframes bz-float-3 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50%     { transform: translate(5vw, -7vh) scale(1.12); }
+}
+
+/* Phones: fewer, cheaper layers — blur() is expensive to composite and
+   these devices have the least headroom. */
+@media (max-width: 639px) {
+  .bz-blob { filter: blur(50px); opacity: 0.4; }
+  .bz-blob-3 { display: none; }
+  .bz-ambient::before { background-size: 34px 34px; }
+}
+
+/* Anything above the ambient layer needs to actually be above it */
+.bz-above { position: relative; z-index: 1; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   SHARED ANIMATIONS
+   Named once here so pages stop redeclaring the same keyframes.
+   ═══════════════════════════════════════════════════════════════════ */
+@keyframes bz-rise  { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform:none; } }
+@keyframes bz-fade  { from { opacity:0; } to { opacity:1; } }
+@keyframes bz-pop   {
+  0%   { opacity:0; transform: scale(0.6); }
+  60%  { opacity:1; transform: scale(1.08); }
+  100% { opacity:1; transform: scale(1); }
+}
+@keyframes bz-shine { to { transform: translateX(220%) skewX(-18deg); } }
+
+/* Stagger helper: children rise in sequence. Add .bz-stagger to a parent. */
+.bz-stagger > * { animation: bz-rise 460ms var(--ease) both; }
+.bz-stagger > *:nth-child(1) { animation-delay:  40ms; }
+.bz-stagger > *:nth-child(2) { animation-delay:  90ms; }
+.bz-stagger > *:nth-child(3) { animation-delay: 140ms; }
+.bz-stagger > *:nth-child(4) { animation-delay: 190ms; }
+.bz-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.bz-stagger > *:nth-child(6) { animation-delay: 290ms; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   REDUCED MOTION
+   The ambient layer freezes rather than disappearing — the colour is
+   part of the design, only the movement is the accessibility problem.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .bz-blob, .bz-ambient::before { animation: none !important; }
+  .bz-stagger > * { animation: none !important; opacity: 1 !important; transform: none !important; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

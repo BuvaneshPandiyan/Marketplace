@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { SoldStamp } from "@/components/ui/SoldStamp";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -29,6 +30,9 @@ type Props = { listing: MyListingRow; layout?: "grid" | "list" };
 export function MyListingCard({ listing, layout = "grid" }: Props) {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
+  // True only for the moment right after the user marks this sold — drives the
+  // one-off gavel animation. Already-sold listings render the static stamp.
+  const [justSold, setJustSold] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -57,6 +61,7 @@ export function MyListingCard({ listing, layout = "grid" }: Props) {
     setIsUpdating(true);
     setMenuOpen(false);
     const { error } = await supabase.rpc("mark_listing_sold", { p_listing_id: listing.id });
+    if (!error) setJustSold(true);
     setIsUpdating(false);
     if (error) { alert(error.message ?? "Failed to mark as sold."); return; }
     syncListingToSearch(listing.id);
@@ -205,6 +210,12 @@ export function MyListingCard({ listing, layout = "grid" }: Props) {
                 {statusCfg.label}
               </span>
             </div>
+
+            {/* SOLD stamp — slams down once on the actual sold action, then
+                renders in its landed pose on every subsequent load. */}
+            {listing.status === "sold" && layout !== "list" && (
+              <SoldStamp variant={justSold ? "slam" : "static"} size={104} />
+            )}
 
             {/* Gradient bottom fade */}
             {layout !== "list" && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { useAuthGate } from "@/components/auth/AuthGateContext";
@@ -48,6 +48,14 @@ export function NotificationBell() {
   const router = useRouter();
   const pathname = usePathname();
   const prevPathname = useRef(pathname);
+  /**
+   * Header mounts this bell TWICE — desktop pill and mobile pill — hiding one
+   * with CSS rather than unmounting it. Both run their effects simultaneously,
+   * so a shared realtime channel name means the second instance is handed the
+   * first one's already-subscribed channel and .on() throws. useId keeps them
+   * apart. (Same fix as ChatsPopover.)
+   */
+  const instanceId = useId().replace(/[^a-zA-Z0-9]/g, "");
 
   const unreadCount = user ? notifications.filter((n) => !n.read).length : 0;
 
@@ -88,7 +96,7 @@ export function NotificationBell() {
         .eq("user_id", user.id).order("created_at", { ascending: false }).limit(20);
       setNotifications((data as AppNotification[]) ?? []);
       setIsLoadingNotifs(false);
-      const channelName = `notifications-bell-${user.id}`;
+      const channelName = `notifications-bell-${user.id}-${instanceId}`;
       const existing = supabase.channel(channelName);
       await supabase.removeChannel(existing);
       channel = supabase.channel(channelName);
@@ -98,7 +106,7 @@ export function NotificationBell() {
     }
     init();
     return () => { if (channel) supabase.removeChannel(channel); };
-  }, [supabase]);
+  }, [supabase, instanceId]);
 
   // Desktop outside-click — skipped on mobile (portal is outside containerRef)
   useEffect(() => {

@@ -15,7 +15,7 @@ import { GatedLink } from "@/components/auth/GatedLink";
 import { LocationPill } from "@/components/location/LocationPill";
 import { LocationSearchInput } from "@/components/location/LocationSearchInput";
 import { SearchBar } from "@/components/search/SearchBar";
-import { MessagesLink } from "@/components/ui/MessagesLink";
+import { ChatsPopover } from "@/components/chat/ChatsPopover";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useActiveLocation } from "@/lib/hooks/useActiveLocation";
 import { createClient } from "@/lib/supabase/client";
@@ -39,17 +39,6 @@ const PILL: React.CSSProperties = {
 };
 
 // Simple icon button
-function IBtn({ onClick, active, label, children, href, action }: {
-  onClick?: () => void; active?: boolean; label: string;
-  children: React.ReactNode; href?: string;
-  /** When set, a logged-out tap opens the sign-in popup instead of navigating */
-  action?: string;
-}) {
-  const cls = `hdr-icon${active ? " active" : ""}`;
-  if (href && action) return <GatedLink href={href} action={action} className={cls} aria-label={label} style={{ textDecoration: "none" }}>{children}</GatedLink>;
-  if (href) return <Link href={href} className={cls} aria-label={label} style={{ textDecoration: "none" }}>{children}</Link>;
-  return <button type="button" onClick={onClick} className={cls} aria-label={label}>{children}</button>;
-}
 
 // Tooltip wrapper — dark pill fading in below icon on hover/focus
 function Tip({ label, children }: { label: string; children: React.ReactNode }) {
@@ -246,6 +235,169 @@ export function Header() {
           .hdr-icon:hover,.sell-circle:hover { transform:none!important; }
           .tip-in { animation:none!important; }
         }
+
+        /* ══════════════════════════════════════════════════════════
+           NAV MOTION LAYER
+           Additive — everything above still applies. Kept to transform,
+           opacity and box-shadow only, so the pill composites on the GPU
+           and scrolling never jitters.
+           ══════════════════════════════════════════════════════════ */
+
+        /* ── Sell button: a slow ambient shine, faster on hover ──── */
+        .sell-circle, .sell-fab { position: relative; overflow: hidden; }
+        .sell-circle::after, .sell-fab::after {
+          content: ''; position: absolute; top: -50%; bottom: -50%; left: -70%;
+          width: 55%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+          transform: translateX(-140%) skewX(-20deg);
+          animation: sell-shine 4.5s ease-in-out 1.5s infinite;
+          pointer-events: none;
+        }
+        @keyframes sell-shine {
+          0%      { transform: translateX(-140%) skewX(-20deg); }
+          22%,100%{ transform: translateX(320%)  skewX(-20deg); }
+        }
+        /* A soft halo that breathes — makes Sell the obvious primary action */
+        @keyframes sell-halo {
+          0%,100% { box-shadow: 0 3px 12px rgba(234,88,12,0.4), 0 0 0 0 rgba(234,88,12,0.35); }
+          50%     { box-shadow: 0 3px 12px rgba(234,88,12,0.4), 0 0 0 9px rgba(234,88,12,0); }
+        }
+        .sell-circle { animation: sell-halo 3.4s ease-out 2s infinite; }
+        .sell-fab    { animation: sell-halo 3.4s ease-out 2s infinite; }
+        .sell-circle:hover, .sell-fab:hover { animation-play-state: paused; }
+        /* The + rotates a quarter turn on hover */
+        .sell-circle svg, .sell-fab svg { transition: transform 320ms cubic-bezier(0.34,1.56,0.64,1); }
+        .sell-circle:hover svg, .sell-fab:hover svg { transform: rotate(90deg); }
+
+        /* ── Icons: springier hover, ripple on press ──────────────── */
+        .hdr-icon { position: relative; overflow: hidden; }
+        .hdr-icon::before {
+          content: ''; position: absolute; inset: 0; border-radius: 50%;
+          background: radial-gradient(circle, rgba(234,88,12,0.28) 0%, transparent 60%);
+          transform: scale(0); opacity: 0;
+          pointer-events: none;
+        }
+        .hdr-icon:active::before { animation: icon-ripple 480ms ease-out; }
+        @keyframes icon-ripple {
+          0%   { transform: scale(0);   opacity: 0.9; }
+          100% { transform: scale(2.4); opacity: 0; }
+        }
+        @media (hover: hover) {
+          .hdr-icon:hover svg { transform: scale(1.12); }
+        }
+        .hdr-icon svg { transition: transform 280ms cubic-bezier(0.34,1.56,0.64,1); }
+
+        /* ── Active tab: a dot that pops in underneath ────────────── */
+        .hdr-icon.active::after {
+          content: ''; position: absolute; bottom: 5px; left: 50%;
+          width: 4px; height: 4px; border-radius: 50%;
+          background: #ea580c;
+          transform: translateX(-50%);
+          animation: nav-dot-in 380ms cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes nav-dot-in {
+          from { transform: translateX(-50%) scale(0) translateY(6px); }
+          to   { transform: translateX(-50%) scale(1) translateY(0); }
+        }
+
+        /* ── The pill itself reacts to scroll ─────────────────────── */
+        .hdr-pill {
+          transition: transform 380ms cubic-bezier(0.22,1,0.36,1),
+                      background 300ms ease, box-shadow 300ms ease,
+                      border-color 300ms ease;
+        }
+        /* Tightens very slightly once you leave the top — reads as "docked" */
+        .hdr-pill[data-scrolled="true"] { transform: scale(0.975); }
+
+        /* ── Mobile pill: active item lifts and glows ─────────────── */
+        .mob-pill .hdr-icon.active {
+          transform: translateY(-3px);
+        }
+        .mob-pill .hdr-icon { transition: transform 320ms cubic-bezier(0.34,1.56,0.64,1); }
+        .mob-pill .hdr-icon.active::after { bottom: 1px; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .sell-circle::after, .sell-fab::after,
+          .sell-circle, .sell-fab { animation: none !important; }
+          .sell-circle:hover svg, .sell-fab:hover svg { transform: none !important; }
+          .hdr-icon::before, .hdr-icon.active::after { animation: none !important; }
+          .hdr-icon svg, .hdr-pill, .mob-pill .hdr-icon { transition: none !important; }
+          .hdr-pill[data-scrolled="true"], .mob-pill .hdr-icon.active { transform: none !important; }
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           NAV STYLING LAYER 2
+           ══════════════════════════════════════════════════════════ */
+
+        /* A faint warm gradient hairline around the pill — catches the eye
+           without adding a hard border. Uses a mask so only the 1px edge paints. */
+        .hdr-pill::before, .mob-pill::before {
+          content: '';
+          position: absolute; inset: 0;
+          border-radius: inherit;
+          padding: 1px;
+          background: linear-gradient(120deg,
+            rgba(234,88,12,0.5) 0%,
+            rgba(249,115,22,0.12) 30%,
+            rgba(234,88,12,0.06) 50%,
+            rgba(249,115,22,0.12) 70%,
+            rgba(234,88,12,0.5) 100%);
+          background-size: 220% 100%;
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+          pointer-events: none;
+          animation: pill-edge 9s linear infinite;
+        }
+        @keyframes pill-edge {
+          to { background-position: 220% 0; }
+        }
+
+        /* Icons get a soft tinted bed on hover rather than a flat grey */
+        @media (hover: hover) {
+          .hdr-icon:hover {
+            background: radial-gradient(circle at 50% 55%, rgba(234,88,12,0.14), rgba(234,88,12,0.05)) !important;
+          }
+        }
+
+        /* The active icon sits on a permanent warm bed */
+        .hdr-icon.active {
+          background: radial-gradient(circle at 50% 55%, rgba(234,88,12,0.16), rgba(234,88,12,0.06)) !important;
+        }
+
+        /* Logo: the full stop gets a slow heartbeat. It's a text node, so this
+           animates scale only — box-shadow on a glyph looks wrong. */
+        .hdr-logo-dot {
+          display: inline-block;
+          transform-origin: center 78%;
+          animation: logo-beat 3.4s ease-in-out infinite;
+        }
+        @keyframes logo-beat {
+          0%,100% { transform: scale(1);   }
+          50%     { transform: scale(1.55); }
+        }
+
+        /* ── Mobile pill: floats a touch, and lifts as you scroll ── */
+        .mob-pill {
+          position: relative;
+          transition: transform 380ms cubic-bezier(0.22,1,0.36,1), box-shadow 300ms ease;
+        }
+        /* Warm underglow so the pill reads as floating. Done with box-shadow
+           rather than a z-index:-1 pseudo — the pill's backdrop-filter creates a
+           stacking context, so a negative-z child would hide behind its own
+           background. */
+        .mob-pill { animation: mob-underglow 4.2s ease-in-out infinite; }
+        @keyframes mob-underglow {
+          0%,100% { box-shadow: 0 8px 30px rgba(0,0,0,0.13), 0 4px 18px rgba(234,88,12,0.16); }
+          50%     { box-shadow: 0 8px 30px rgba(0,0,0,0.13), 0 7px 26px rgba(234,88,12,0.34); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hdr-pill::before, .mob-pill::before,
+          .hdr-logo-dot, .mob-pill { animation: none !important; }
+          .mob-pill { transition: none !important; }
+        }
       `}</style>
 
       {/* ══════════════════════════════════════════════════════════════
@@ -266,7 +418,7 @@ export function Header() {
           /* top is fixed, no transition */
         }}
       >
-        <div style={{
+        <div className="hdr-pill" data-scrolled={scrolled} style={{
           background: scrolled ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.94)",
           backdropFilter: "blur(24px) saturate(180%)",
           WebkitBackdropFilter: "blur(24px) saturate(180%)",
@@ -286,7 +438,7 @@ export function Header() {
           {/* LEFT: logo + home */}
           <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
             <Link href="/" style={{ textDecoration:"none", fontWeight:900, fontSize:18, letterSpacing:"-0.03em", color:"#1a1a1a" }}>
-              bazar<span style={{ color:"#ea580c" }}>.</span><span style={{ color:"#9ca3af", fontWeight:400, fontSize:16 }}>in</span>
+              bazar<span className="hdr-logo-dot" style={{ color:"#ea580c" }}>.</span><span style={{ color:"#9ca3af", fontWeight:400, fontSize:16 }}>in</span>
             </Link>
             <Tip label="Home">
               <Link href="/" className={`hdr-icon${isHomeActive?" active":""}`} aria-label="Home" style={{ textDecoration:"none" }}>
@@ -320,8 +472,12 @@ export function Header() {
               </GatedLink>
             </Tip>
 
-            {/* Chats — always visible; MessagesLink gates the click itself */}
-            <Tip label="Chats"><MessagesLink /></Tip>
+            {/* Chats — opens a dropdown panel; ChatsPopover gates the click itself */}
+            <Tip label="Chats">
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", width:44, height:44, flexShrink:0 }}>
+                <ChatsPopover />
+              </div>
+            </Tip>
 
             {/* Notifications — always visible; NotificationBell gates the click itself */}
             <Tip label="Notifications">
@@ -442,11 +598,9 @@ export function Header() {
                 </button>
               </div>
 
-              {/* Chats */}
-              <div className="nav-item" style={{ position:"relative" }}>
-                <IBtn href="/messages" action="chat with sellers" label="Chats" active={pathname?.startsWith("/messages")}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill={pathname?.startsWith("/messages")?"currentColor":"none"} stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                </IBtn>
+              {/* Chats — opens the same 65vh sheet as the bell */}
+              <div className="nav-item" style={{ position:"relative", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                <ChatsPopover />
               </div>
 
               {/* Sell FAB — center */}

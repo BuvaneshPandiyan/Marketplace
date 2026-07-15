@@ -96,7 +96,7 @@ export default function ContactPage() {
           padding-bottom: 40px;
         }
 
-        .ct-wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+        .ct-wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 16px; }
         @media (min-width: 640px) { .ct-wrap { padding: 0 24px; } }
 
         /* ── HERO ───────────────────────────────────────────────────── */
@@ -155,7 +155,7 @@ export default function ContactPage() {
           font-size: 15px; font-weight: 500; line-height: 1.5;
           margin: 0; max-width: 30ch;
         }
-        @media (min-width: 640px) { .ct-sub { font-size: 17px; max-width: 46ch; } }
+        @media (min-width: 640px) { .ct-sub { font-size: 17px; max-width: 52ch; } }
 
         /* ── METHOD CARDS ───────────────────────────────────────────── */
         .ct-methods {
@@ -164,6 +164,23 @@ export default function ContactPage() {
         }
         @media (min-width: 768px) {
           .ct-methods { grid-template-columns: 1fr 1fr; gap: 18px; margin-top: -40px; }
+        }
+
+        /* ── WIDE LAYOUT ──────────────────────────────────────────────
+           Below 1100px the page reads as one column. Above it, topics and
+           FAQ sit side by side — the FAQ is the taller of the two, so it
+           takes the wider track and the columns finish at roughly the same
+           height instead of leaving a ragged gap. */
+        .ct-cols { display: block; }
+        @media (min-width: 1100px) {
+          .ct-cols {
+            display: grid;
+            grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+            gap: 56px;
+            align-items: start;
+          }
+          .ct-cols > .ct-section { margin-top: 60px; }
+          .ct-methods { grid-template-columns: 1fr 1fr; }
         }
 
         .ct-card {
@@ -370,6 +387,7 @@ export default function ContactPage() {
             </a>
           </section>
 
+          <div className="ct-cols">
           {/* ══ TOPIC CHIPS ═════════════════════════════════════════ */}
           <section className="ct-section">
             <h2 className="ct-h2">What do you need help with?</h2>
@@ -417,6 +435,7 @@ export default function ContactPage() {
               ))}
             </div>
           </section>
+          </div>
 
           {/* ══ SAFETY NOTE ═════════════════════════════════════════ */}
           <aside className="ct-safety">

@@ -1,8 +1,24 @@
-// Import the tiered feed component — this page just renders it with no category filter
+import { HomeHero } from "@/components/home/Homehero";
+import { PromoBanner } from "@/components/home/Promobanner";
 import { TieredFeed } from "@/components/feed/TieredFeed";
 
-// Define the Home page component — this renders at the root URL "/"
+/**
+ * Home.
+ *
+ * Reads top to bottom the way Zomato's does: a hero that says what this place
+ * is, a promo slot that can be sold, then the actual goods. Previously this
+ * file rendered <TieredFeed /> and nothing else, which is why the homepage had
+ * no identity — it opened straight into a grid with no framing.
+ *
+ * Hero and banner are edge-aware (they manage their own max-width), so they sit
+ * outside TieredFeed's container rather than being squeezed by it.
+ */
 export default function HomePage() {
-  // Render the full tiered, location-ranked feed with no category restriction
-  return <TieredFeed />;
+  return (
+    <>
+      <HomeHero />
+      <PromoBanner />
+      <TieredFeed />
+    </>
+  );
 }
