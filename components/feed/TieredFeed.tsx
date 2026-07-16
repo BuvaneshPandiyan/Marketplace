@@ -272,8 +272,8 @@ function FeedSection({ title, tier, onPrev, onNext }: FeedSectionProps) {
           lg      (1024px+) : 7 cols  ← matches DESKTOP_FEED_PAGE_SIZE = 42 (7×6)
       */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 lg:gap-4">
-        {tier.items.map((listing) => (
-          <ListingCard key={listing.id} listing={listing} />
+        {tier.items.map((listing, i) => (
+          <ListingCard key={listing.id} listing={listing} index={i} />
         ))}
 
         {/* Skeleton placeholders while loading */}

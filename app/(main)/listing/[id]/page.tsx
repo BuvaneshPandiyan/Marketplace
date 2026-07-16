@@ -400,8 +400,8 @@ export default async function ListingDetailPage({
         <section className="mb-8 mt-10">
           <h2 className="mb-3 text-lg font-bold text-neutral-900">You may also like</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7 lg:gap-6">
-            {relatedListings.map((item) => (
-              <ListingCard key={item.id} listing={item} />
+            {relatedListings.map((item, i) => (
+              <ListingCard key={item.id} listing={item} index={i} />
             ))}
           </div>
         </section>

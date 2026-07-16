@@ -38,14 +38,11 @@ export function SellerListingsGrid({ listings }: SellerListingsGridProps) {
 
       {/* Responsive grid — pixel-identical to home feed and search results */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7 lg:gap-6">
+        {/* ListingCard now owns its own entrance stagger via `index`, so the
+            wrapper's card-in animation was doubling up on it. Passing the index
+            straight through keeps one stagger system instead of two. */}
         {pageItems.map((listing, i) => (
-          <div
-            key={listing.id}
-            className="seller-card-anim"
-            style={{ animationDelay: `${i * 40}ms` }}
-          >
-            <ListingCard listing={listing} />
-          </div>
+          <ListingCard key={listing.id} listing={listing} index={i} />
         ))}
       </div>
 

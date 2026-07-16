@@ -518,8 +518,8 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
         <>
           {/* Fix A — same grid classes as home feed */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7 lg:gap-6">
-            {flatItems.map((hit) => (
-              <ListingCard key={hit.id} listing={searchHitToFeedListingItem(hit)} />
+            {flatItems.map((hit, i) => (
+              <ListingCard key={hit.id} listing={searchHitToFeedListingItem(hit)} index={i} />
             ))}
           </div>
           {flatHasLoadedOnce && flatItems.length === 0 && (
@@ -554,8 +554,8 @@ function SearchResultSection({
       <h2 className="mb-2 text-sm font-semibold text-neutral-700">{title}</h2>
       {/* Fix A — same grid as home feed's FeedSection */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7 lg:gap-6">
-        {tier.items.map((hit) => (
-          <ListingCard key={hit.id} listing={searchHitToFeedListingItem(hit)} />
+        {tier.items.map((hit, i) => (
+          <ListingCard key={hit.id} listing={searchHitToFeedListingItem(hit)} index={i} />
         ))}
       </div>
       {tier.hasMore && (
