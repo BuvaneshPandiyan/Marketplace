@@ -108,10 +108,24 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
             box-shadow: var(--sh-lg);
             border-color: var(--brand-border);
           }
-          .lc:hover .lc-img   { transform: scale(1.08); }
-          .lc:hover .lc-title { color: var(--brand); }
-          .lc:hover .lc-sheen { animation: bz-shine 780ms ease both; }
-          .lc:hover .lc-scrim { opacity: 1; }
+          .lc:hover .lc-img    { transform: scale(1.08); }
+          .lc:hover .lc-title  { color: var(--brand); }
+          .lc:hover .lc-sheen  { animation: bz-shine 780ms ease both; }
+          .lc:hover .lc-scrim  { opacity: 1; }
+          /* Price swells a touch — the eye's first stop stays the eye's first stop */
+          .lc:hover .lc-price  { transform: scale(1.05); }
+          /* Rule fills left-to-right */
+          .lc:hover .lc-rule::after { transform: scaleX(1); }
+          /* Condition pill pops */
+          .lc:hover .lc-cond--new  { transform: scale(1.06); box-shadow: 0 3px 10px rgba(234,88,12,0.3); }
+          .lc:hover .lc-cond--used { transform: scale(1.06); }
+          /* The location pin does a single hop */
+          .lc:hover .lc-pin { animation: lc-pin-hop 620ms var(--spring); }
+        }
+        @keyframes lc-pin-hop {
+          0%,100% { transform: translateY(0); }
+          35%     { transform: translateY(-3px) scale(1.15); }
+          60%     { transform: translateY(0) scale(0.95); }
         }
         .lc:active { transform: scale(0.975); }
 
@@ -204,43 +218,66 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
           gap: 6px; margin-bottom: 3px;
         }
         .lc-price {
-          font-size: 15px; font-weight: 900; letter-spacing: -0.045em;
+          font-size: 16px; font-weight: 900; letter-spacing: -0.055em;
           color: var(--ink); white-space: nowrap;
+          /* Tabular figures so prices line up down a column instead of
+             jittering — ₹1,111 and ₹9,999 occupy the same width */
+          font-variant-numeric: tabular-nums;
+          transform-origin: left center;
+          transition: transform 280ms var(--spring);
         }
-        .lc-price em { font-style: normal; font-size: 0.62em; font-weight: 600; color: var(--ink-faint); letter-spacing: 0; }
+        .lc-price em { font-style: normal; font-size: 0.6em; font-weight: 700; color: var(--ink-faint); letter-spacing: -0.02em; }
 
         /* Condition pill — 'New' earns brand orange, 'Used' stays quiet */
         .lc-cond {
           flex-shrink: 0;
-          font-size: 8.5px; font-weight: 800;
-          letter-spacing: 0.04em; text-transform: uppercase;
-          padding: 2px 6px; border-radius: var(--r-pill);
+          font-size: 8.5px; font-weight: 900;
+          letter-spacing: 0.07em; text-transform: uppercase;
+          padding: 3px 7px; border-radius: 6px;
+          transition: transform 280ms var(--spring), box-shadow 280ms ease;
         }
         .lc-cond--new  { background: var(--brand-tint); color: var(--brand); border: 1px solid var(--brand-border); }
         .lc-cond--used { background: #f3f4f6; color: var(--ink-muted); border: 1px solid #e5e7eb; }
 
         .lc-title {
-          font-size: 11.5px; font-weight: 600; line-height: 1.35;
-          color: var(--ink-soft); margin: 0 0 8px;
+          /* 700, not 600, and full ink rather than the soft grey. On Zomato the
+             name is the second-loudest thing on the card after the rating —
+             here it's second after the price. 600/grey read as a caption. */
+          font-size: 12px; font-weight: 700; line-height: 1.32;
+          letter-spacing: -0.025em;
+          color: var(--ink); margin: 0 0 8px;
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
           overflow: hidden;
           transition: color 200ms ease;
           min-height: 2.7em;
         }
 
-        .lc-rule { height: 1px; background: var(--line); margin: 0 0 7px; }
+        /* The rule doubles as a hover indicator: a grey hairline that fills
+           with brand gradient from the left. Cheap, and it makes the whole
+           lower half of the card feel responsive rather than inert. */
+        .lc-rule {
+          position: relative; height: 1px; background: var(--line);
+          margin: 0 0 7px; overflow: hidden;
+        }
+        .lc-rule::after {
+          content: ''; position: absolute; inset: 0;
+          background: var(--brand-grad);
+          transform: scaleX(0); transform-origin: left;
+          transition: transform 420ms var(--ease);
+        }
 
         .lc-foot { display: flex; flex-direction: column; gap: 3px; margin-top: auto; }
         .lc-row {
           display: flex; align-items: center; gap: 4px;
-          font-size: 10px; font-weight: 600; color: var(--ink-muted);
+          font-size: 10.5px; font-weight: 700; letter-spacing: -0.015em;
+          color: var(--ink-muted);
           min-width: 0;
         }
         .lc-row svg { flex-shrink: 0; opacity: 0.65; }
         .lc-loc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .lc-sep { opacity: 0.4; flex-shrink: 0; }
-        .lc-time { color: var(--ink-faint); font-weight: 500; flex-shrink: 0; }
-        .lc-views { color: var(--ink-faint); font-weight: 500; display: flex; align-items: center; gap: 3px; }
+        .lc-time { color: var(--ink-faint); font-weight: 600; flex-shrink: 0; letter-spacing: -0.01em; }
+        .lc-views { color: var(--ink-faint); font-weight: 700; display: flex; align-items: center; gap: 3px; font-variant-numeric: tabular-nums; }
 
         /* ── CONTAINER QUERIES — the card reacts to its own width ──── */
         /* Roomy (4-col tablet, 3-col wide phone): let it breathe */
@@ -248,22 +285,25 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
           /* With width to spare, go nearly square — the photo is the product */
           .lc-photo { aspect-ratio: 9 / 8; }
           .lc-body  { padding: 12px 13px 13px; }
-          .lc-price { font-size: 18px; }
-          .lc-title { font-size: 13px; }
-          .lc-row   { font-size: 11px; }
+          .lc-price { font-size: 20px; }
+          .lc-title { font-size: 13.5px; }
+          .lc-row   { font-size: 11.5px; }
           .lc-cond  { font-size: 9.5px; padding: 3px 8px; }
         }
         /* Tight (7-col desktop, cramped phones): drop what's least useful
            rather than shrinking everything into illegibility */
         @container (max-width: 168px) {
           .lc-views { display: none; }
-          .lc-title { font-size: 11px; }
-          .lc-price { font-size: 14px; }
+          .lc-title { font-size: 11.5px; }
+          .lc-price { font-size: 15px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
           .lc, .lc-img, .lc-heart, .lc-sheen, .lc-scrim, .lc-title { animation: none !important; transition: none !important; }
-          .lc:hover, .lc:active, .lc:hover .lc-img { transform: none !important; }
+          .lc:hover, .lc:active, .lc:hover .lc-img,
+          .lc:hover .lc-price, .lc:hover .lc-cond--new, .lc:hover .lc-cond--used { transform: none !important; }
+          .lc-price, .lc-cond, .lc-rule::after { transition: none !important; }
+          .lc:hover .lc-pin { animation: none !important; }
           .lc-badge--fresh::before { animation: none !important; }
         }
       `}</style>
@@ -323,7 +363,7 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
 
           <span className="lc-foot">
             <span className="lc-row">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <svg className="lc-pin" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
               </svg>
               <span className="lc-loc">{listing.locality ?? "Nearby"}</span>

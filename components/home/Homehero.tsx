@@ -5,19 +5,20 @@
  *
  * Same visual language as the Contact page banner — the dark→orange sweep, the
  * faint grid, the corner bloom, heavy tight type — so the two read as one brand
- * rather than two designers. Where Contact is a flat statement, this one earns
- * its height with drifting category cards on the right and a live locality chip.
+ * rather than two designers.
  *
- * The locality comes from the existing location cookie/hook, so the headline is
- * personalised the moment the user has set a location, and degrades to a generic
- * line when they haven't. No layout shift either way — the chip reserves space.
+ * Deliberately short, especially on phones: headline, two buttons, three trust
+ * points. It used to also carry a locality chip and a paragraph of body copy.
+ * Both were cut — the locality already appears in the header pill and again in
+ * the feed's own "Listings near X" heading, and the paragraph said what the
+ * buttons say. On a marketplace the hero's job is to get out of the way of the
+ * listings, and every pixel it takes is a pixel of stock the user can't see.
  */
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { GatedLink } from "@/components/auth/GatedLink";
-import { useActiveLocation } from "@/lib/hooks/useActiveLocation";
 
 /**
  * The category pool the hero cycles through. Add or remove freely — the slots
@@ -70,7 +71,6 @@ const SWAP_MS = 2100;
 
 
 export function HomeHero() {
-  const { locality } = useActiveLocation();
   /**
    * The artwork is optional. If /public/images/hero-marketplace.png isn't there
    * yet, onError flips this and we fall back to the plain gradient — no broken
@@ -113,10 +113,15 @@ export function HomeHero() {
           position: relative;
           overflow: hidden;
           background: var(--brand-hero);
-          padding: 38px 0 44px;
+          /* Mobile is deliberately tight: headline + buttons and nothing else.
+             The eyebrow used to repeat the locality that's already in the header
+             pill AND the feed's own h1, and the subtitle said what the buttons
+             already say. Both were height with no job. */
+          padding: 22px 0 24px;
+          border-radius: 0 0 24px 24px;
         }
-        @media (min-width: 640px)  { .hh { padding: 60px 0 66px; border-radius: 0 0 32px 32px; } }
-        @media (min-width: 1024px) { .hh { padding: 76px 0 84px; } }
+        @media (min-width: 640px)  { .hh { padding: 48px 0 52px; border-radius: 0 0 32px 32px; } }
+        @media (min-width: 1024px) { .hh { padding: 68px 0 74px; } }
 
         .hh-grid {
           position: absolute; inset: 0; pointer-events: none;
@@ -184,27 +189,14 @@ export function HomeHero() {
         }
 
         /* ── Copy ─────────────────────────────────────────────────── */
-        .hh-eyebrow {
-          display: inline-flex; align-items: center; gap: 7px;
-          background: rgba(255,255,255,0.14);
-          border: 1px solid rgba(255,255,255,0.2);
-          color: #fff;
-          font-size: 11px; font-weight: 700;
-          letter-spacing: 0.08em; text-transform: uppercase;
-          padding: 6px 13px; border-radius: var(--r-pill);
-          margin-bottom: 18px;
-          /* Reserve height so the locality resolving doesn't shift the headline */
-          min-height: 27px;
-        }
-        .hh-pin { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(74,222,128,0.25); }
-
         .hh-h1 {
           color: #fff; margin: 0 0 14px;
-          font-size: 34px; font-weight: 900;
-          letter-spacing: -0.045em; line-height: 1.03;
+          font-size: 27px; font-weight: 900;
+          letter-spacing: -0.045em; line-height: 1.05;
         }
-        @media (min-width: 640px)  { .hh-h1 { font-size: 52px; } }
-        @media (min-width: 1024px) { .hh-h1 { font-size: 64px; } }
+        @media (min-width: 400px)  { .hh-h1 { font-size: 30px; } }
+        @media (min-width: 640px)  { .hh-h1 { font-size: 48px; margin-bottom: 20px; } }
+        @media (min-width: 1024px) { .hh-h1 { font-size: 62px; } }
         .hh-h1 em { font-style: normal; color: #fdba74; position: relative; }
         /* The underline draws itself in once, after the headline lands */
         /* Words clip against their own line box and slide up into it */
@@ -248,15 +240,13 @@ export function HomeHero() {
         }
         @keyframes hh-underline { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
-        .hh-sub {
-          color: rgba(255,255,255,0.72);
-          font-size: 15px; font-weight: 500; line-height: 1.55;
-          margin: 0 0 24px; max-width: 34ch;
-        }
-        @media (min-width: 640px) { .hh-sub { font-size: 17px; max-width: 44ch; } }
-
         /* ── CTAs ─────────────────────────────────────────────────── */
-        .hh-ctas { display: flex; flex-wrap: wrap; gap: 10px; }
+        .hh-ctas { display: flex; flex-wrap: wrap; gap: 9px; }
+        @media (min-width: 640px) { .hh-ctas { gap: 10px; } }
+        /* They arrive after the headline has finished assembling */
+        .hh-ctas > * { animation: bz-rise 480ms var(--spring) both; }
+        .hh-ctas > *:nth-child(1) { animation-delay: 540ms; }
+        .hh-ctas > *:nth-child(2) { animation-delay: 620ms; }
         .hh-btn {
           display: inline-flex; align-items: center; justify-content: center; gap: 8px;
           padding: 13px 22px; border-radius: var(--r-pill);
@@ -268,8 +258,19 @@ export function HomeHero() {
         .hh-btn-primary {
           position: relative; overflow: hidden;
           background: #fff; color: var(--brand);
-          box-shadow: 0 8px 26px rgba(0,0,0,0.24);
+          /* A slow halo, so the primary action keeps a pulse of its own once the
+             entrance animations have all settled */
+          animation: bz-rise 480ms var(--spring) 540ms both,
+                     hh-cta-halo 3.6s ease-out 2.4s infinite;
         }
+        @keyframes hh-cta-halo {
+          0%,100% { box-shadow: 0 8px 26px rgba(0,0,0,0.24), 0 0 0 0 rgba(255,255,255,0.4); }
+          50%     { box-shadow: 0 8px 26px rgba(0,0,0,0.24), 0 0 0 12px rgba(255,255,255,0); }
+        }
+        .hh-btn-primary:hover { animation-play-state: paused; }
+        /* The arrow leads the eye rightward on hover */
+        .hh-btn-primary svg { transition: transform 300ms var(--spring); }
+        .hh-btn-primary:hover svg { transform: translateX(4px); }
         .hh-btn-primary::after {
           content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
           background: linear-gradient(90deg, transparent, rgba(234,88,12,0.18), transparent);
@@ -289,26 +290,33 @@ export function HomeHero() {
 
         /* ── Trust row ────────────────────────────────────────────── */
         .hh-trust {
-          display: flex; flex-wrap: wrap; gap: 18px;
-          margin: 26px 0 0; padding: 0; list-style: none;
+          display: flex; flex-wrap: wrap; gap: 10px 14px;
+          margin: 14px 0 0; padding: 0; list-style: none;
         }
+        @media (min-width: 640px) { .hh-trust { gap: 18px; margin-top: 26px; } }
         .hh-trust li {
-          display: flex; align-items: center; gap: 7px;
-          color: rgba(255,255,255,0.66);
-          font-size: 12.5px; font-weight: 600;
+          display: flex; align-items: center; gap: 6px;
+          color: rgba(255,255,255,0.62);
+          font-size: 11px; font-weight: 700; letter-spacing: -0.015em;
+          animation: bz-rise 460ms var(--ease) both;
         }
+        @media (min-width: 640px) { .hh-trust li { font-size: 12.5px; gap: 7px; } }
+        .hh-trust li:nth-child(1) { animation-delay: 700ms; }
+        .hh-trust li:nth-child(2) { animation-delay: 780ms; }
+        .hh-trust li:nth-child(3) { animation-delay: 860ms; }
         .hh-tick {
-          width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
+          width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
           background: rgba(74,222,128,0.2); color: #4ade80;
           display: flex; align-items: center; justify-content: center;
         }
+        @media (min-width: 640px) { .hh-tick { width: 16px; height: 16px; } }
 
         /* ── Floating category cards ──────────────────────────────── */
         .hh-art { display: none; }
         @media (min-width: 900px) {
-          .hh-art { display: block; position: relative; height: 300px; }
+          .hh-art { display: block; position: relative; height: 268px; }
         }
-        @media (min-width: 1024px) { .hh-art { height: 340px; } }
+        @media (min-width: 1024px) { .hh-art { height: 310px; } }
 
         /* Outer: position + the idle bob only */
         .hh-float {
@@ -383,8 +391,10 @@ export function HomeHero() {
           .hh-h1 em { color: #fdba74 !important; }
           .hh-h1 em .hh-word { animation: none !important; text-shadow: none !important; }
           .hh-h1 em::after { transform: scaleX(1) !important; }
-          .hh-btn { transition: none !important; }
-          .hh-btn-primary:hover, .hh-btn-ghost:hover, .hh-btn:active { transform: none !important; }
+          .hh-btn, .hh-btn-primary svg { transition: none !important; }
+          .hh-btn-primary, .hh-ctas > *, .hh-trust li { animation: none !important; opacity: 1 !important; transform: none !important; }
+          .hh-btn-primary:hover, .hh-btn-ghost:hover, .hh-btn:active,
+          .hh-btn-primary:hover svg { transform: none !important; }
         }
       `}</style>
 
@@ -412,11 +422,6 @@ export function HomeHero() {
           <div className="hh-cols">
             {/* ── Copy column ── */}
             <div className="bz-stagger">
-              <span className="hh-eyebrow">
-                <span className="hh-pin" aria-hidden="true" />
-                {locality ? `Live in ${locality}` : "Buy & sell in your neighbourhood"}
-              </span>
-
               <h1 className="hh-h1">
                 {/* Each word is its own span so it can rise on its own beat —
                     the line assembles itself rather than fading in as a block */}
@@ -440,11 +445,6 @@ export function HomeHero() {
                   </em>
                 </span>
               </h1>
-
-              <p className="hh-sub">
-                Thousands of ads from people near you — phones, scooters, furniture,
-                flats. No couriers, no commission. Just meet and deal.
-              </p>
 
               <div className="hh-ctas">
                 <GatedLink href="/sell" action="post an ad" className="hh-btn hh-btn-primary">
