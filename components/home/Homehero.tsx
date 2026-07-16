@@ -240,20 +240,53 @@ export function HomeHero() {
         }
         @keyframes hh-underline { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
+        /* ── Subtitle ─────────────────────────────────────────────
+           Hidden on phones. There the hero is headline + buttons and nothing
+           else — the line was costing ~60px of vertical space, which on a
+           marketplace is a row of stock the user never sees. From 640px up
+           there's room to spare and it earns its place, so it comes back:
+           tighter than before (one sentence, not three), and it arrives
+           between the headline and the buttons in the stagger. */
+        .hh-sub { display: none; }
+        @media (min-width: 640px) {
+          .hh-sub {
+            display: block;
+            color: rgba(255,255,255,0.7);
+            font-size: 15px; font-weight: 500; line-height: 1.5;
+            letter-spacing: -0.015em;
+            margin: -6px 0 20px; max-width: 44ch;
+            animation: bz-rise 460ms var(--ease) 470ms both;
+          }
+        }
+        @media (min-width: 1024px) { .hh-sub { font-size: 16.5px; max-width: 48ch; margin: -2px 0 24px; } }
+
         /* ── CTAs ─────────────────────────────────────────────────── */
-        .hh-ctas { display: flex; flex-wrap: wrap; gap: 9px; }
-        @media (min-width: 640px) { .hh-ctas { gap: 10px; } }
+        /* One row on phones. flex:1 1 0 makes the two buttons split the
+           available width evenly instead of sizing to their text and wrapping.
+           From 640px up they go back to hugging their labels. */
+        .hh-ctas { display: flex; flex-wrap: nowrap; gap: 8px; }
+        @media (min-width: 640px) { .hh-ctas { flex-wrap: wrap; gap: 10px; } }
         /* They arrive after the headline has finished assembling */
         .hh-ctas > * { animation: bz-rise 480ms var(--spring) both; }
         .hh-ctas > *:nth-child(1) { animation-delay: 540ms; }
         .hh-ctas > *:nth-child(2) { animation-delay: 620ms; }
         .hh-btn {
-          display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-          padding: 13px 22px; border-radius: var(--r-pill);
-          font-size: 14.5px; font-weight: 800; letter-spacing: -0.02em;
+          display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+          flex: 1 1 0; min-width: 0;
+          padding: 12px 12px; border-radius: var(--r-pill);
+          font-size: 13px; font-weight: 800; letter-spacing: -0.025em;
+          white-space: nowrap;
           text-decoration: none; cursor: pointer;
           transition: transform 240ms var(--spring), box-shadow 240ms ease, background 200ms ease;
         }
+        @media (min-width: 640px) {
+          .hh-btn {
+            flex: 0 0 auto; gap: 8px;
+            padding: 13px 22px; font-size: 14.5px; letter-spacing: -0.02em;
+          }
+        }
+        /* On the narrowest phones the qualifier goes; the button still reads. */
+        @media (max-width: 359px) { .hh-btn-free { display: none; } }
         .hh-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
         .hh-btn-primary {
           position: relative; overflow: hidden;
@@ -289,23 +322,36 @@ export function HomeHero() {
         .hh-btn:active { transform: scale(0.97); }
 
         /* ── Trust row ────────────────────────────────────────────── */
+        /* One row on phones too. Three items at 10px with short labels come to
+           roughly 250px — comfortable even on a 320px screen. */
         .hh-trust {
-          display: flex; flex-wrap: wrap; gap: 10px 14px;
+          display: flex; flex-wrap: nowrap; gap: 9px;
           margin: 14px 0 0; padding: 0; list-style: none;
         }
-        @media (min-width: 640px) { .hh-trust { gap: 18px; margin-top: 26px; } }
+        @media (min-width: 640px) { .hh-trust { flex-wrap: wrap; gap: 18px; margin-top: 26px; } }
         .hh-trust li {
-          display: flex; align-items: center; gap: 6px;
+          display: flex; align-items: center; gap: 5px;
           color: rgba(255,255,255,0.62);
-          font-size: 11px; font-weight: 700; letter-spacing: -0.015em;
+          font-size: 10px; font-weight: 700; letter-spacing: -0.02em;
+          white-space: nowrap;
           animation: bz-rise 460ms var(--ease) both;
         }
-        @media (min-width: 640px) { .hh-trust li { font-size: 12.5px; gap: 7px; } }
+        @media (min-width: 640px) { .hh-trust li { font-size: 12.5px; gap: 7px; letter-spacing: -0.015em; } }
+
+        /* Short label on phones, full label from 640px. Swapped in CSS rather
+           than with a JS breakpoint — a useMediaQuery here would render one
+           string on the server and the other on the client, which is a
+           hydration mismatch for no gain. */
+        .hh-trust-long { display: none; }
+        @media (min-width: 640px) {
+          .hh-trust-short { display: none; }
+          .hh-trust-long  { display: inline; }
+        }
         .hh-trust li:nth-child(1) { animation-delay: 700ms; }
         .hh-trust li:nth-child(2) { animation-delay: 780ms; }
         .hh-trust li:nth-child(3) { animation-delay: 860ms; }
         .hh-tick {
-          width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+          width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0;
           background: rgba(74,222,128,0.2); color: #4ade80;
           display: flex; align-items: center; justify-content: center;
         }
@@ -392,7 +438,7 @@ export function HomeHero() {
           .hh-h1 em .hh-word { animation: none !important; text-shadow: none !important; }
           .hh-h1 em::after { transform: scaleX(1) !important; }
           .hh-btn, .hh-btn-primary svg { transition: none !important; }
-          .hh-btn-primary, .hh-ctas > *, .hh-trust li { animation: none !important; opacity: 1 !important; transform: none !important; }
+          .hh-btn-primary, .hh-ctas > *, .hh-trust li, .hh-sub { animation: none !important; opacity: 1 !important; transform: none !important; }
           .hh-btn-primary:hover, .hh-btn-ghost:hover, .hh-btn:active,
           .hh-btn-primary:hover svg { transform: none !important; }
         }
@@ -446,9 +492,17 @@ export function HomeHero() {
                 </span>
               </h1>
 
+              {/* CSS-hidden below 640px rather than conditionally rendered — a
+                  JS breakpoint check would mismatch between server and client
+                  and cost a hydration error for no benefit. */}
+              <p className="hh-sub">
+                Thousands of ads from people near you. No couriers, no
+                commission — just meet and deal.
+              </p>
+
               <div className="hh-ctas">
                 <GatedLink href="/sell" action="post an ad" className="hh-btn hh-btn-primary">
-                  Post an ad — free
+                  Post an ad<span className="hh-btn-free">&nbsp;— free</span>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M5 12h14M13 6l6 6-6 6" />
                   </svg>
@@ -459,14 +513,19 @@ export function HomeHero() {
               </div>
 
               <ul className="hh-trust">
-                {["Free to post", "Photo checks on every ad", "Meet locally"].map((t) => (
-                  <li key={t}>
+                {[
+                  { short: "Free to post", long: "Free to post" },
+                  { short: "Photo checks", long: "Photo checks on every ad" },
+                  { short: "Meet locally", long: "Meet locally" },
+                ].map((t) => (
+                  <li key={t.long}>
                     <span className="hh-tick" aria-hidden="true">
                       <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round">
                         <path d="M20 6L9 17l-5-5" />
                       </svg>
                     </span>
-                    {t}
+                    <span className="hh-trust-short">{t.short}</span>
+                    <span className="hh-trust-long">{t.long}</span>
                   </li>
                 ))}
               </ul>

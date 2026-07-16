@@ -52,9 +52,11 @@ function Tip({ label, children }: { label: string; children: React.ReactNode }) 
         <div aria-hidden="true" style={{
           position: "absolute", top: "calc(100% + 6px)", left: "50%",
           transform: "translateX(-50%)",
-          background: "#1a1a1a", color: "white",
-          fontSize: 11, fontWeight: 600, padding: "4px 10px",
+          background: "#1c1917", color: "white",
+          fontSize: 11, fontWeight: 700, letterSpacing: "-0.015em",
+          padding: "5px 11px",
           borderRadius: 100, whiteSpace: "nowrap",
+          boxShadow: "0 4px 14px rgba(124,32,0,0.22)",
           pointerEvents: "none", zIndex: 300,
           animation: "tip-in 120ms ease both",
         }}>{label}</div>
@@ -65,7 +67,7 @@ function Tip({ label, children }: { label: string; children: React.ReactNode }) 
 
 export function Header() {
   const { user, profile, isLoading } = useUser();
-  const { needsSetup, detectCurrentLocation, locality } = useActiveLocation();
+  const { needsSetup, detectCurrentLocation, locality, setActiveLocation } = useActiveLocation();
   const router = useRouter();
   const supabase = useRef(createClient());
 
@@ -214,8 +216,25 @@ export function Header() {
         .mob-pill .hdr-icon:active { transform:scale(0.82); transition-duration:80ms; }
         .mob-pill .sell-fab:active  { transform:scale(0.88); }
 
-        /* Desktop sell = 44px gradient circle */
-        .sell-circle { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#ea580c,#f97316); box-shadow:0 3px 12px rgba(234,88,12,0.4); border:none; cursor:pointer; text-decoration:none; flex-shrink:0; transition:transform 260ms cubic-bezier(0.34,1.56,0.64,1),box-shadow 260ms ease; }
+        /* Desktop sell = labelled gradient pill.
+           It was a bare 44px "+" circle, which reads as "add" — could be anything.
+           OLX and Zomato both put a word on their primary action for a reason;
+           the label is what makes it unmissable. */
+        .sell-circle {
+          height:44px; padding:0 20px 0 15px; border-radius:100px;
+          display:flex; align-items:center; justify-content:center; gap:6px;
+          background:linear-gradient(135deg,#ea580c,#f97316);
+          color:#fff; font-size:14px; font-weight:900; letter-spacing:-0.03em;
+          box-shadow:0 3px 12px rgba(234,88,12,0.4);
+          border:none; cursor:pointer; text-decoration:none; flex-shrink:0;
+          white-space:nowrap;
+          transition:transform 260ms cubic-bezier(0.34,1.56,0.64,1),box-shadow 260ms ease;
+        }
+        /* Below 1100px the pill would squeeze the search bar — drop the label */
+        @media (max-width: 1099px) {
+          .sell-circle { width:44px; padding:0; gap:0; }
+          .sell-circle-label { display:none; }
+        }
         .sell-circle:hover  { transform:scale(1.12); box-shadow:0 5px 20px rgba(234,88,12,0.55); }
         .sell-circle:active { transform:scale(0.9); }
 
@@ -398,6 +417,58 @@ export function Header() {
           .hdr-logo-dot, .mob-pill { animation: none !important; }
           .mob-pill { transition: none !important; }
         }
+
+        /* ══════════════════════════════════════════════════════════
+           NAV COLOUR + TYPE
+           ══════════════════════════════════════════════════════════ */
+
+        .hdr-logo {
+          text-decoration: none;
+          font-size: 20px; font-weight: 900;
+          letter-spacing: -0.05em;
+          color: #1a1a1a;
+          display: inline-flex; align-items: baseline;
+          transition: transform 260ms cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @media (hover: hover) { .hdr-logo:hover { transform: scale(1.04); } }
+        .hdr-logo:active { transform: scale(0.96); }
+        /* ".in" carries the brand colour — the old grey 400-weight "in" read as
+           an afterthought rather than part of the name. */
+        .hdr-logo-in { color: #ea580c; font-weight: 900; }
+        .hdr-logo-dot { color: #ea580c; }
+
+        /* Pill: pure white once scrolled, with a warmer shadow than plain black.
+           A neutral drop shadow under a warm palette reads as dirty. */
+        .hdr-pill[data-scrolled="true"] {
+          box-shadow: 0 10px 34px rgba(124,32,0,0.13), 0 2px 8px rgba(124,32,0,0.07) !important;
+        }
+
+        /* Icons: warm grey at rest, brand on hover. Cool #374151 against orange
+           was the main reason the bar felt like a different product. */
+        .hdr-icon { color: #57534e; }
+        @media (hover: hover) { .hdr-icon:hover { color: #ea580c; } }
+        .hdr-icon.active { color: #ea580c; }
+
+        .sell-circle svg, .sell-fab svg { stroke: #fff; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hdr-logo { transition: none !important; }
+          .hdr-logo:hover, .hdr-logo:active { transform: none !important; }
+        }
+
+        /* ── Mobile pill ──────────────────────────────────────────
+           Same warm treatment as desktop, so the two don't read as two
+           different apps at the 640px boundary. */
+        .mob-pill .hdr-icon { color: #57534e; }
+        .mob-pill .hdr-icon.active { color: #ea580c; }
+
+        /* The Sell FAB gets a white ring so it reads as lifted off the pill
+           rather than pasted onto it */
+        .sell-fab {
+          border: 3px solid #fff !important;
+          box-sizing: border-box;
+        }
+
       `}</style>
 
       {/* ══════════════════════════════════════════════════════════════
@@ -437,8 +508,12 @@ export function Header() {
 
           {/* LEFT: logo + home */}
           <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
-            <Link href="/" style={{ textDecoration:"none", fontWeight:900, fontSize:18, letterSpacing:"-0.03em", color:"#1a1a1a" }}>
-              bazar<span className="hdr-logo-dot" style={{ color:"#ea580c" }}>.</span><span style={{ color:"#9ca3af", fontWeight:400, fontSize:16 }}>in</span>
+            {/* Wordmark. NOTE: no background-clip gradient here — .hdr-logo-dot
+                is animated (scale), and a transformed child gets its own layer
+                that a clipped background can't paint into, so the text would
+                vanish. Solid colours only. */}
+            <Link href="/" className="hdr-logo" aria-label="bazar.in home">
+              bazar<span className="hdr-logo-dot">.</span><span className="hdr-logo-in">in</span>
             </Link>
             <Tip label="Home">
               <Link href="/" className={`hdr-icon${isHomeActive?" active":""}`} aria-label="Home" style={{ textDecoration:"none" }}>
@@ -544,6 +619,7 @@ export function Header() {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round">
                   <path d="M12 5v14M5 12h14"/>
                 </svg>
+                <span className="sell-circle-label">Sell</span>
               </GatedLink>
             </Tip>
           </div>
@@ -939,7 +1015,20 @@ export function Header() {
                 {!justCaptured && (
                   <>
                     <p style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#9ca3af", marginBottom:8 }}>Or search manually</p>
-                    <LocationSearchInput onSelect={() => { setLocSheetOpen(false); setDetectedLocality(null); setJustCaptured(false); }} />
+                    {/* onSelect receives the chosen StoredLocation. This used to
+                        be `() => { ...close... }` — the parameter was dropped on
+                        the floor, so picking a place closed the sheet and changed
+                        nothing. LocationModal (desktop) always did this right;
+                        only this copy was broken, which is why it looked like a
+                        mobile-only bug. */}
+                    <LocationSearchInput
+                      onSelect={(location) => {
+                        setActiveLocation(location);
+                        setLocSheetOpen(false);
+                        setDetectedLocality(null);
+                        setJustCaptured(false);
+                      }}
+                    />
                   </>
                 )}
               </div>

@@ -16,6 +16,34 @@ export type StoredLocation = {
 };
 
 // Define and export a function that reads the active location override from localStorage
+/**
+ * Trim a stale locality down to its first two parts.
+ *
+ * Localities are produced short at the source now (lib/server/nominatim.ts, from
+ * Nominatim's structured `address` object). But anything saved BEFORE that fix is
+ * still in localStorage as the full postal chain — "Meenambakkam, Grand Southern
+ * Trunk Road, CMWSSB Division 159, ..., Tamil Nadu, 600027, India". That stale
+ * value is what overflows headings and turns "More across {city}" into "More
+ * across India".
+ *
+ * We deliberately just take the first two segments rather than trying to pick out
+ * the "real" city. Once it's a flat string the structure is gone, and guessing
+ * lands on the state ("Tamil Nadu") as often as the city. Two segments gives
+ * "Meenambakkam, Grand Southern Trunk Road" and "Irumbuliyur, Tambaram" — short,
+ * recognisable, and honest about what we know.
+ *
+ * This only patches legacy data. New selections are already correct.
+ */
+function shortenLocality(locality: string | null | undefined): string {
+  if (!locality) return "";
+  return locality
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(", ");
+}
+
 export function readActiveLocation(): StoredLocation | null {
   // Wrap in try/catch since localStorage can throw in some privacy modes/environments
   try {
@@ -23,8 +51,9 @@ export function readActiveLocation(): StoredLocation | null {
     const raw = localStorage.getItem(ACTIVE_LOCATION_KEY);
     // If nothing has been stored yet, there's no override to return
     if (!raw) return null;
-    // Parse and return the stored location object
-    return JSON.parse(raw) as StoredLocation;
+    const parsed = JSON.parse(raw) as StoredLocation;
+    // Normalise anything saved before localities were shortened at the source
+    return { ...parsed, locality: shortenLocality(parsed.locality) };
   } catch {
     // If anything went wrong (storage blocked, corrupted JSON, etc.), treat it as "no override"
     return null;
@@ -51,7 +80,12 @@ export function readRecentLocations(): StoredLocation[] {
     // If nothing has been stored yet, return an empty list
     if (!raw) return [];
     // Parse and return the stored array of locations
-    return JSON.parse(raw) as StoredLocation[];
+    // Same normalisation as readActiveLocation — the recents list is rendered
+    // in the location sheet and would otherwise show the old long strings.
+    return (JSON.parse(raw) as StoredLocation[]).map((l) => ({
+      ...l,
+      locality: shortenLocality(l.locality),
+    }));
   } catch {
     // If anything went wrong, just return an empty list
     return [];

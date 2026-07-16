@@ -27,21 +27,62 @@ export type PlaceSearchResult = {
 
 // Define the shape Nominatim's "address" object roughly takes (we only type the fields we use)
 type NominatimAddress = {
-  // A neighbourhood-level name, when available
+  // Neighbourhood-level names, in the order we prefer them
   suburb?: string;
-  // An alternate neighbourhood-level name some regions use instead of "suburb"
   neighbourhood?: string;
-  // A city-district-level name, used in some large cities
+  quarter?: string;
   city_district?: string;
-  // The city name, when available
+  hamlet?: string;
+  road?: string;
+  // City-level names, in the order we prefer them
   city?: string;
-  // The town name, used for smaller urban areas instead of "city"
   town?: string;
-  // The village name, used for rural areas
   village?: string;
-  // The broader state/province name, used as a last-resort fallback
+  county?: string;
+  state_district?: string;
   state?: string;
 };
+
+/**
+ * Collapse a Nominatim address into a short, human "Area, City" label.
+ *
+ * Nominatim's `display_name` is the full postal chain — e.g. "Meenambakkam,
+ * Grand Southern Trunk Road, CMWSSB Division 159, Ward 159, Zone 12 Alandur,
+ * Chennai Corporation, Alandur, Chennai, Tamil Nadu, 600027, India". Nobody
+ * describes where they live that way. They say "Meenambakkam, Chennai".
+ *
+ * That string ends up in a page heading, a nav chip and every listing card, so
+ * its length isn't cosmetic — it decides whether those layouts hold together.
+ * We take ONE neighbourhood-level part and ONE city-level part from the
+ * structured `address` object and join them. Two parts, never more.
+ */
+function toShortLabel(address: NominatimAddress, fallback?: string): string | null {
+  const area =
+    address.suburb ??
+    address.neighbourhood ??
+    address.quarter ??
+    address.city_district ??
+    address.hamlet ??
+    address.road;
+  const city =
+    address.city ??
+    address.town ??
+    address.village ??
+    address.county ??
+    address.state_district ??
+    address.state;
+
+  if (area && city && area !== city) return `${area}, ${city}`;
+  if (area || city) return (area ?? city) as string;
+
+  // No structured parts at all — take the first two segments of the postal
+  // chain rather than returning the whole thing.
+  if (fallback) {
+    const parts = fallback.split(",").map((x) => x.trim()).filter(Boolean).slice(0, 2);
+    return parts.length ? parts.join(", ") : null;
+  }
+  return null;
+}
 
 // Define and export a function that turns coordinates into a human-readable locality string
 export async function reverseGeocode(
@@ -70,25 +111,9 @@ export async function reverseGeocode(
   // Pull out the address breakdown object, defaulting to an empty object if missing
   const address: NominatimAddress = data.address ?? {};
 
-  // Pick the most specific "neighbourhood-level" name available, trying several possible fields
-  const neighbourhoodLevel = address.suburb ?? address.neighbourhood ?? address.city_district;
-  // Pick the most specific "city-level" name available, trying several possible fields
-  const cityLevel = address.city ?? address.town ?? address.village ?? address.state;
-
-  // If we have both a neighbourhood and a city, combine them into "Neighbourhood, City"
-  if (neighbourhoodLevel && cityLevel) {
-    // Return the combined, comma-separated locality string
-    return `${neighbourhoodLevel}, ${cityLevel}`;
-  }
-
-  // If we only have one of the two, just return whichever one we have
-  if (neighbourhoodLevel || cityLevel) {
-    // Return the single available piece of location info
-    return neighbourhoodLevel ?? cityLevel ?? null;
-  }
-
-  // If neither was found, fall back to Nominatim's own generated display name, if present
-  return data.display_name ?? null;
+  // Previously this fell through to `data.display_name` — the full postal
+  // chain. toShortLabel keeps it to two parts.
+  return toShortLabel(address, data.display_name);
 }
 
 // Define and export a function that searches for places matching a free-text query
@@ -123,13 +148,26 @@ export async function searchPlaces(
   const results = await response.json();
 
   // Transform Nominatim's raw result shape into our simpler PlaceSearchResult shape
+  /**
+   * This request already asks for addressdetails=1 — the old code then ignored
+   * them and returned `display_name` verbatim. That's why choosing a place from
+   * search set your location to a 12-part postal address, while "use current
+   * location" (which goes through reverseGeocode) produced a clean one. Both
+   * paths now yield the same short label.
+   */
   return results.map(
-    (result: { display_name: string; lat: string; lon: string }): PlaceSearchResult => ({
-      // Use Nominatim's full display name as our label
-      label: result.display_name,
-      // Parse the latitude string into a number
+    (result: {
+      display_name: string;
+      lat: string;
+      lon: string;
+      address?: NominatimAddress;
+      name?: string;
+    }): PlaceSearchResult => ({
+      label:
+        toShortLabel(result.address ?? {}, result.display_name) ??
+        result.name ??
+        result.display_name,
       lat: parseFloat(result.lat),
-      // Parse the longitude string into a number
       lng: parseFloat(result.lon),
     })
   );
