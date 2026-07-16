@@ -1,21 +1,27 @@
 "use client";
 
 /**
- * The listing card.
+ * The listing card — home feed, search, wishlist, seller pages, related rail.
  *
- * This one component is the home feed, search results, wishlist, seller pages
- * and the "you may also like" rail — so it's the single highest-leverage surface
- * in the app. Restyling it restyles five pages.
+ * WHY IT LOOKS LIKE THIS
+ * ----------------------
+ * Cards land at ~210px wide on desktop (1600px / 7 cols) and ~180px on mobile
+ * (2 cols). A 1:1 photo at that width is ~200px tall against ~70px of text, so
+ * the card reads as "a picture with a caption". Two fixes:
  *
- * Design notes:
- * - Price leads, not the title. Zepto/Zomato both do this and it's right: on a
- *   marketplace the price is the thing being scanned, the title is the thing
- *   being read once something catches the eye.
- * - The type already carried `condition`, `view_count` and `distance_km` and the
- *   old card threw all three away. They're free signal — "New", "Popular" and a
- *   distance chip cost nothing extra to render and are exactly what makes a
- *   grid feel alive rather than like a spreadsheet.
- * - Badges are capped at two. Every card screaming is the same as none of them.
+ *   1. The photo is 4:3, not square. That reclaims a quarter of its height and
+ *      shifts the balance toward content without shrinking the card.
+ *   2. Every field the type carries is now on the card. `condition` and
+ *      `view_count` were being dropped entirely; they're the difference between
+ *      a caption and an actual listing.
+ *
+ * CONTAINER QUERIES, NOT MEDIA QUERIES
+ * ------------------------------------
+ * The same card renders at 180px (2-col mobile) and at 380px (a 3-col tablet
+ * grid). Viewport breakpoints can't tell those apart — a media query for "small
+ * screen" would shrink the tablet card too. `container-type: inline-size` lets
+ * the card respond to ITS OWN width, so it's dense when narrow and generous when
+ * wide, on any screen. That's what makes it hold up everywhere.
  */
 
 import Link from "next/link";
@@ -27,10 +33,7 @@ import type { FeedListingItem } from "@/types";
 
 type ListingCardProps = {
   listing: FeedListingItem;
-  /**
-   * Position in its grid. Drives the entrance stagger only — optional, so every
-   * existing <ListingCard listing={x} /> call site keeps working untouched.
-   */
+  /** Position in its grid — drives the entrance stagger. Optional. */
   index?: number;
 };
 
@@ -42,10 +45,10 @@ const FRESH_HOURS = 24;
 function HeartSVG({ filled }: { filled: boolean }) {
   return (
     <svg
-      width="17" height="17" viewBox="0 0 24 24"
+      width="16" height="16" viewBox="0 0 24 24"
       fill={filled ? "#ef4444" : "none"}
       stroke={filled ? "#ef4444" : "#fff"}
-      strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"
+      strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
     >
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
@@ -69,26 +72,30 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
   const isFresh = hoursOld < FRESH_HOURS;
   const isNew = listing.condition === "new";
   const isPopular = listing.view_count >= POPULAR_VIEWS;
+  const isRent = listing.listing_type === "rent";
   const href = `/listing/${listing.id}`;
 
-  // Two badges maximum, most interesting first.
-  const badges: { label: string; kind: "fresh" | "new" | "hot" }[] = [];
-  if (isFresh) badges.push({ label: "Just listed", kind: "fresh" });
-  if (isNew) badges.push({ label: "New", kind: "new" });
-  if (isPopular && badges.length < 2) badges.push({ label: "Popular", kind: "hot" });
+  // One photo badge maximum. Two competing flags is noise; the condition pill
+  // lives down in the body where it doesn't fight the photo.
+  const photoBadge = isFresh
+    ? { label: "Just listed", kind: "fresh" as const }
+    : isPopular
+      ? { label: "Popular", kind: "hot" as const }
+      : null;
 
   return (
     <>
       <style>{`
         .lc {
+          container-type: inline-size;
           position: relative;
           width: 100%;
           overflow: hidden;
           border-radius: var(--r-md);
           border: 1px solid var(--line);
           background: #fff;
-          /* Cards fade up in sequence. Modulo keeps infinite-scroll pages from
-             inheriting an ever-growing delay. */
+          display: flex;
+          flex-direction: column;
           animation: bz-rise 420ms var(--ease) both;
           transition: transform 280ms var(--spring),
                       box-shadow 280ms ease, border-color 280ms ease;
@@ -101,130 +108,162 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
             box-shadow: var(--sh-lg);
             border-color: var(--brand-border);
           }
-          .lc:hover .lc-img   { transform: scale(1.07); }
+          .lc:hover .lc-img   { transform: scale(1.08); }
           .lc:hover .lc-title { color: var(--brand); }
-          .lc:hover .lc-price { transform: translateX(2px); }
-          /* Light sweeps across the photo on hover */
           .lc:hover .lc-sheen { animation: bz-shine 780ms ease both; }
           .lc:hover .lc-scrim { opacity: 1; }
         }
         .lc:active { transform: scale(0.975); }
 
+        /* ── Photo ────────────────────────────────────────────────
+           5:4. Square (1:1) made the card 70% picture; 4:3 overcorrected and
+           read as squashed. 5:4 gives the photo real height while still
+           leaving the body enough room to look like a listing. */
         .lc-photo {
           position: relative;
-          aspect-ratio: 1;
+          aspect-ratio: 5 / 4;
           width: 100%;
           overflow: hidden;
           background: var(--surface-sunk);
+          display: block;
+          flex-shrink: 0;
         }
         .lc-img {
           width: 100%; height: 100%; object-fit: cover;
-          transition: transform 520ms var(--ease);
+          transition: transform 560ms var(--ease);
+        }
+        .lc-noimg {
+          width: 100%; height: 100%;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 26px; opacity: 0.25;
         }
         .lc-sheen {
           position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent);
           transform: translateX(-140%) skewX(-18deg);
           pointer-events: none;
         }
-        /* Scrim keeps the badges legible over any photo */
         .lc-scrim {
           position: absolute; inset: 0;
-          background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 42%);
-          opacity: 0.82;
+          background: linear-gradient(to top, rgba(0,0,0,0.46) 0%, transparent 38%);
+          opacity: 0.8;
           transition: opacity 280ms ease;
           pointer-events: none;
         }
 
-        /* ── Chips ────────────────────────────────────────────────── */
         .lc-dist {
-          position: absolute; top: 7px; left: 7px;
+          position: absolute; top: 6px; left: 6px;
           display: inline-flex; align-items: center; gap: 3px;
           padding: 3px 7px; border-radius: var(--r-pill);
           background: rgba(0,0,0,0.55);
           backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
           color: #fff; font-size: 9.5px; font-weight: 800;
-          letter-spacing: -0.01em;
         }
 
-        .lc-badges {
-          position: absolute; left: 7px; bottom: 7px;
-          display: flex; flex-wrap: wrap; gap: 4px;
-        }
         .lc-badge {
-          display: inline-flex; align-items: center; gap: 3px;
-          padding: 3px 7px; border-radius: var(--r-pill);
+          position: absolute; left: 6px; bottom: 6px;
+          display: inline-flex; align-items: center; gap: 4px;
+          padding: 3px 8px; border-radius: var(--r-pill);
           font-size: 9px; font-weight: 800;
-          letter-spacing: 0.03em; text-transform: uppercase;
+          letter-spacing: 0.04em; text-transform: uppercase;
           color: #fff;
         }
-        .lc-badge--fresh {
-          background: linear-gradient(135deg, #16a34a, #22c55e);
-          box-shadow: 0 2px 8px rgba(34,197,94,0.45);
-        }
-        .lc-badge--new  { background: var(--brand-grad); box-shadow: 0 2px 8px rgba(234,88,12,0.45); }
-        .lc-badge--hot  { background: linear-gradient(135deg, #b91c1c, #ef4444); box-shadow: 0 2px 8px rgba(239,68,68,0.45); }
-        /* Only the freshness badge pulses — if they all did, none would read */
+        .lc-badge--fresh { background: linear-gradient(135deg,#16a34a,#22c55e); box-shadow: 0 2px 8px rgba(34,197,94,0.5); }
+        .lc-badge--hot   { background: linear-gradient(135deg,#b91c1c,#ef4444); box-shadow: 0 2px 8px rgba(239,68,68,0.5); }
         .lc-badge--fresh::before {
           content: ''; width: 4px; height: 4px; border-radius: 50%;
           background: #fff; animation: lc-blink 1.8s ease-in-out infinite;
         }
-        @keyframes lc-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+        @keyframes lc-blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
 
-        /* ── Heart ────────────────────────────────────────────────── */
         .lc-heart {
-          position: absolute; top: 6px; right: 6px;
-          width: 30px; height: 30px; border-radius: 50%;
+          position: absolute; top: 5px; right: 5px;
+          width: 29px; height: 29px; border-radius: 50%;
           border: none; padding: 0; cursor: pointer;
           display: flex; align-items: center; justify-content: center;
-          background: rgba(0,0,0,0.34);
+          background: rgba(0,0,0,0.36);
           backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
           transition: transform 260ms var(--spring), background 200ms ease;
         }
-        @media (hover: hover) { .lc-heart:hover { background: rgba(0,0,0,0.55); transform: scale(1.14); } }
+        @media (hover: hover) { .lc-heart:hover { background: rgba(0,0,0,0.6); transform: scale(1.15); } }
         .lc-heart:active { transform: scale(0.86); }
         .lc-heart:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-        @keyframes lc-heart-pop {
-          0% { transform: scale(1); } 40% { transform: scale(1.35); }
-          70% { transform: scale(0.9); } 100% { transform: scale(1); }
-        }
+        @keyframes lc-heart-pop { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 70%{transform:scale(0.9)} 100%{transform:scale(1)} }
         .lc-heart-pop { animation: lc-heart-pop 380ms var(--spring); }
 
         /* ── Body ─────────────────────────────────────────────────── */
-        .lc-body { display: block; padding: 9px 10px 11px; text-decoration: none; }
-        @media (min-width: 640px) { .lc-body { padding: 11px 12px 13px; } }
-
-        .lc-price {
-          font-size: 15px; font-weight: 900; letter-spacing: -0.04em;
-          color: var(--ink); margin: 0 0 3px;
-          transition: transform 280ms var(--spring), color 200ms ease;
+        .lc-body {
+          display: flex; flex-direction: column;
+          padding: 9px 10px 10px;
+          text-decoration: none;
+          flex: 1;
         }
-        @media (min-width: 640px) { .lc-price { font-size: 17px; } }
-        .lc-price span { font-size: 0.68em; font-weight: 600; color: var(--ink-faint); letter-spacing: 0; }
+
+        .lc-top {
+          display: flex; align-items: baseline; justify-content: space-between;
+          gap: 6px; margin-bottom: 3px;
+        }
+        .lc-price {
+          font-size: 15px; font-weight: 900; letter-spacing: -0.045em;
+          color: var(--ink); white-space: nowrap;
+        }
+        .lc-price em { font-style: normal; font-size: 0.62em; font-weight: 600; color: var(--ink-faint); letter-spacing: 0; }
+
+        /* Condition pill — 'New' earns brand orange, 'Used' stays quiet */
+        .lc-cond {
+          flex-shrink: 0;
+          font-size: 8.5px; font-weight: 800;
+          letter-spacing: 0.04em; text-transform: uppercase;
+          padding: 2px 6px; border-radius: var(--r-pill);
+        }
+        .lc-cond--new  { background: var(--brand-tint); color: var(--brand); border: 1px solid var(--brand-border); }
+        .lc-cond--used { background: #f3f4f6; color: var(--ink-muted); border: 1px solid #e5e7eb; }
 
         .lc-title {
           font-size: 11.5px; font-weight: 600; line-height: 1.35;
-          color: var(--ink-soft); margin: 0 0 6px;
+          color: var(--ink-soft); margin: 0 0 8px;
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
           overflow: hidden;
           transition: color 200ms ease;
-          min-height: 2.7em; /* two lines reserved, so grids stay even */
+          min-height: 2.7em;
         }
-        @media (min-width: 640px) { .lc-title { font-size: 12.5px; } }
 
-        .lc-meta {
-          display: flex; align-items: center; gap: 5px;
-          font-size: 10px; color: var(--ink-faint); font-weight: 500;
-        }
-        .lc-meta-loc {
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        .lc-rule { height: 1px; background: var(--line); margin: 0 0 7px; }
+
+        .lc-foot { display: flex; flex-direction: column; gap: 3px; margin-top: auto; }
+        .lc-row {
+          display: flex; align-items: center; gap: 4px;
+          font-size: 10px; font-weight: 600; color: var(--ink-muted);
           min-width: 0;
         }
-        .lc-dot { flex-shrink: 0; opacity: 0.5; }
+        .lc-row svg { flex-shrink: 0; opacity: 0.65; }
+        .lc-loc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .lc-sep { opacity: 0.4; flex-shrink: 0; }
+        .lc-time { color: var(--ink-faint); font-weight: 500; flex-shrink: 0; }
+        .lc-views { color: var(--ink-faint); font-weight: 500; display: flex; align-items: center; gap: 3px; }
+
+        /* ── CONTAINER QUERIES — the card reacts to its own width ──── */
+        /* Roomy (4-col tablet, 3-col wide phone): let it breathe */
+        @container (min-width: 240px) {
+          /* With width to spare, go nearly square — the photo is the product */
+          .lc-photo { aspect-ratio: 9 / 8; }
+          .lc-body  { padding: 12px 13px 13px; }
+          .lc-price { font-size: 18px; }
+          .lc-title { font-size: 13px; }
+          .lc-row   { font-size: 11px; }
+          .lc-cond  { font-size: 9.5px; padding: 3px 8px; }
+        }
+        /* Tight (7-col desktop, cramped phones): drop what's least useful
+           rather than shrinking everything into illegibility */
+        @container (max-width: 168px) {
+          .lc-views { display: none; }
+          .lc-title { font-size: 11px; }
+          .lc-price { font-size: 14px; }
+        }
 
         @media (prefers-reduced-motion: reduce) {
-          .lc, .lc-img, .lc-price, .lc-heart, .lc-sheen, .lc-scrim, .lc-title { animation: none !important; transition: none !important; }
-          .lc:hover, .lc:active, .lc:hover .lc-img, .lc:hover .lc-price { transform: none !important; }
+          .lc, .lc-img, .lc-heart, .lc-sheen, .lc-scrim, .lc-title { animation: none !important; transition: none !important; }
+          .lc:hover, .lc:active, .lc:hover .lc-img { transform: none !important; }
           .lc-badge--fresh::before { animation: none !important; }
         }
       `}</style>
@@ -236,9 +275,8 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={listing.cover_photo_url} alt={listing.title} className="lc-img" />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-2xl opacity-30">📦</div>
+            <div className="lc-noimg">📦</div>
           )}
-
           <span className="lc-sheen" aria-hidden="true" />
           <span className="lc-scrim" aria-hidden="true" />
 
@@ -251,19 +289,13 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
             </span>
           )}
 
-          {badges.length > 0 && (
-            <span className="lc-badges">
-              {badges.map((b) => (
-                <span key={b.label} className={`lc-badge lc-badge--${b.kind}`}>
-                  {b.label}
-                </span>
-              ))}
-            </span>
+          {photoBadge && (
+            <span className={`lc-badge lc-badge--${photoBadge.kind}`}>{photoBadge.label}</span>
           )}
         </Link>
 
-        {/* Heart lives outside the Link — nesting a button inside an anchor is
-            invalid HTML and breaks keyboard navigation */}
+        {/* Outside the Link — a <button> inside an <a> is invalid HTML and
+            breaks keyboard navigation */}
         <button
           type="button"
           onClick={handleWishlist}
@@ -275,16 +307,39 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
 
         {/* Body */}
         <Link href={href} className="lc-body">
-          <p className="lc-price">
-            ₹{listing.price.toLocaleString("en-IN")}
-            {listing.listing_type === "rent" && <span>/mo</span>}
-          </p>
-          <p className="lc-title">{listing.title}</p>
-          <p className="lc-meta">
-            <span className="lc-meta-loc">{listing.locality ?? "Nearby"}</span>
-            <span className="lc-dot" aria-hidden="true">·</span>
-            <span style={{ flexShrink: 0 }}>{formatRelativeDate(listing.created_at)}</span>
-          </p>
+          <span className="lc-top">
+            <span className="lc-price">
+              ₹{listing.price.toLocaleString("en-IN")}
+              {isRent && <em>/mo</em>}
+            </span>
+            <span className={`lc-cond lc-cond--${isNew ? "new" : "used"}`}>
+              {isNew ? "New" : "Used"}
+            </span>
+          </span>
+
+          <span className="lc-title">{listing.title}</span>
+
+          <span className="lc-rule" aria-hidden="true" />
+
+          <span className="lc-foot">
+            <span className="lc-row">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
+              </svg>
+              <span className="lc-loc">{listing.locality ?? "Nearby"}</span>
+            </span>
+            <span className="lc-row">
+              <span className="lc-views">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                {listing.view_count.toLocaleString("en-IN")}
+              </span>
+              <span className="lc-sep" aria-hidden="true">·</span>
+              <span className="lc-time">{formatRelativeDate(listing.created_at)}</span>
+            </span>
+          </span>
         </Link>
       </div>
     </>

@@ -185,28 +185,143 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
 
   return (
     // Wider container — max-w-[1600px] uses full available width on large screens
+    <>
+      <style>{`
+        /* ── Feed typography ──────────────────────────────────────────
+           Matches the hero and contact page: heavy weights, tight tracking,
+           real size steps. The old h1 was text-lg/bold and the section
+           headings were 13px grey — they read as form labels, not headings. */
+        .tf-head {
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 14px; margin-bottom: 16px;
+        }
+        .tf-h1 {
+          font-size: 22px; font-weight: 900;
+          letter-spacing: -0.045em; line-height: 1.1;
+          color: var(--ink, #1a1a1a); margin: 0;
+          min-width: 0;
+        }
+        @media (min-width: 640px)  { .tf-h1 { font-size: 28px; } }
+        @media (min-width: 1024px) { .tf-h1 { font-size: 32px; } }
+        .tf-h1 em {
+          font-style: normal; color: var(--brand, #ea580c);
+          position: relative; white-space: nowrap;
+        }
+        /* Underline sketches itself in once the locality resolves */
+        .tf-h1 em::after {
+          content: ''; position: absolute; left: 0; right: 0; bottom: -1px;
+          height: 4px; border-radius: 4px;
+          background: var(--brand-border, #fed7aa);
+          transform-origin: left;
+          animation: tf-underline 620ms var(--ease) 260ms both;
+        }
+        @keyframes tf-underline { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+        .tf-refresh {
+          flex-shrink: 0;
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 8px 14px; border-radius: var(--r-pill, 100px);
+          border: 1.5px solid var(--brand-border, #fed7aa);
+          background: var(--brand-tint, #fff7ed);
+          color: var(--brand, #ea580c);
+          font-size: 12.5px; font-weight: 800; letter-spacing: -0.02em;
+          cursor: pointer;
+          transition: transform 240ms var(--spring), background 200ms ease, box-shadow 200ms ease;
+        }
+        @media (hover: hover) {
+          .tf-refresh:hover {
+            background: #fff; transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(234,88,12,0.22);
+          }
+          .tf-refresh:hover svg { transform: rotate(-180deg); }
+        }
+        .tf-refresh:active { transform: scale(0.95); }
+        .tf-refresh svg { transition: transform 520ms var(--ease); }
+
+        /* ── Section heading ──────────────────────────────────────── */
+        .tf-h2 {
+          display: flex; align-items: center; gap: 9px;
+          font-size: 16px; font-weight: 900;
+          letter-spacing: -0.035em;
+          color: var(--ink, #1a1a1a);
+          margin: 0 0 12px;
+        }
+        @media (min-width: 640px) { .tf-h2 { font-size: 19px; } }
+        .tf-h2-bar {
+          width: 4px; height: 17px; border-radius: 4px; flex-shrink: 0;
+          background: var(--brand-grad, linear-gradient(135deg,#ea580c,#f97316));
+        }
+        @media (min-width: 640px) { .tf-h2-bar { height: 20px; } }
+
+        /* ── Location banner ──────────────────────────────────────── */
+        .tf-locbanner {
+          display: flex; align-items: center; gap: 10px;
+          margin-bottom: 18px; padding: 12px 15px;
+          border-radius: var(--r-md, 16px);
+          background: var(--brand-tint, #fff7ed);
+          border: 1.5px solid var(--brand-border, #fed7aa);
+          color: var(--brand-dark, #9a3412);
+          font-size: 13px; font-weight: 600; line-height: 1.45;
+        }
+        .tf-locbanner svg { flex-shrink: 0; color: var(--brand, #ea580c); }
+
+        /* ── Empty states ─────────────────────────────────────────── */
+        .tf-empty {
+          display: flex; flex-direction: column; align-items: center;
+          gap: 3px; padding: 56px 20px; text-align: center;
+        }
+        .tf-empty-emoji { font-size: 40px; margin-bottom: 6px; opacity: 0.85; }
+        .tf-empty-h {
+          font-size: 16px; font-weight: 800; letter-spacing: -0.03em;
+          color: var(--ink-soft, #374151);
+        }
+        .tf-empty-s { font-size: 13px; color: var(--ink-faint, #9ca3af); font-weight: 500; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .tf-h1 em::after { animation: none !important; transform: scaleX(1) !important; }
+          .tf-refresh, .tf-refresh svg { transition: none !important; }
+          .tf-refresh:hover, .tf-refresh:active { transform: none !important; }
+          .tf-refresh:hover svg { transform: none !important; }
+        }
+      `}</style>
+
     <div className="mx-auto w-full max-w-[1600px] px-4 py-6 md:px-8">
       <div className="mb-4">
         <CategoryChips />
       </div>
 
       {category === "not-found" ? (
-        <p className="text-sm text-neutral-500">That category couldn&apos;t be found.</p>
+        <p className="tf-empty">
+          <span className="tf-empty-emoji" aria-hidden="true">🤔</span>
+          <span className="tf-empty-h">Category not found</span>
+          <span className="tf-empty-s">That one doesn&apos;t exist — try browsing the rail above.</span>
+        </p>
       ) : (
         <>
-          <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-lg font-bold text-neutral-900">
-              {category && category !== "loading" ? category.name : "Listings near you"}
+          <div className="tf-head">
+            <h1 className="tf-h1">
+              {category && category !== "loading" ? (
+                category.name
+              ) : (
+                <>
+                  Listings near <em>{locality ?? "you"}</em>
+                </>
+              )}
             </h1>
-            <button type="button" onClick={handleRefresh}
-              className="text-sm font-medium text-orange-600 hover:text-orange-700">
-              ↻ Refresh
+            <button type="button" onClick={handleRefresh} className="tf-refresh">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 3v6h-6" />
+              </svg>
+              Refresh
             </button>
           </div>
 
           {isReady && needsSetup && (
-            <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Set your location (tap the pin in the header) to see listings ranked by distance from you.
+            <p className="tf-locbanner">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
+              </svg>
+              <span>Set your location using the pin in the header to see listings ranked by distance.</span>
             </p>
           )}
 
@@ -241,11 +356,16 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
 
           {tier1.hasLoadedOnce && tier2.hasLoadedOnce && tier3.hasLoadedOnce &&
             tier1.items.length === 0 && tier2.items.length === 0 && tier3.items.length === 0 && (
-              <p className="text-sm text-neutral-500">No listings here yet — be the first to post one!</p>
+              <p className="tf-empty">
+                <span className="tf-empty-emoji" aria-hidden="true">🪧</span>
+                <span className="tf-empty-h">Nothing here yet</span>
+                <span className="tf-empty-s">Be the first to post a listing in this area.</span>
+              </p>
             )}
         </>
       )}
     </div>
+    </>
   );
 }
 
@@ -262,8 +382,12 @@ function FeedSection({ title, tier, onPrev, onNext }: FeedSectionProps) {
 
   return (
     <section className="mb-8">
-      {/* Section heading */}
-      <h2 className="mb-3 text-sm font-semibold text-neutral-700">{title}</h2>
+      {/* Section heading — the accent bar carries the eye down the page and
+          gives each tier a visual anchor the old 13px grey text never had */}
+      <h2 className="tf-h2">
+        <span className="tf-h2-bar" aria-hidden="true" />
+        {title}
+      </h2>
 
       {/* Responsive grid:
           mobile  (default) : 2 cols
