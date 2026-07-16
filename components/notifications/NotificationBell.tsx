@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useAuthGate } from "@/components/auth/AuthGateContext";
 import { useUser } from "@/lib/hooks/useUser";
@@ -43,6 +44,8 @@ export function NotificationBell() {
   const [isLoadingNotifs, setIsLoadingNotifs] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // Optional header artwork — falls back to the plain gradient if absent.
+  const [artFailed, setArtFailed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 639px)");
   const router = useRouter();
@@ -153,9 +156,27 @@ export function NotificationBell() {
         background: "linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%)",
         padding: isMobileSheet ? "14px 20px 18px" : "16px 20px 14px",
         flexShrink: 0,
+        overflow: "hidden",
         borderRadius: isMobileSheet ? 0 : "16px 16px 0 0",
         position: "relative",
       }}>
+        {!artFailed && (
+          <>
+            {/* Optional header artwork, masked so it fades out on the left where
+                the title sits, plus a scrim for guaranteed legibility. */}
+            <div className="pop-art" aria-hidden="true">
+              <Image
+                src="/images/header-notifications.png"
+                alt=""
+                fill
+                sizes="(max-width: 639px) 100vw, 340px"
+                style={{ objectFit: "cover", objectPosition: "center right" }}
+                onError={() => setArtFailed(true)}
+              />
+            </div>
+            <div className="pop-art-scrim" aria-hidden="true" />
+          </>
+        )}
         {/* Grid overlay */}
         <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize:"28px 28px", borderRadius: isMobileSheet ? 0 : "16px 16px 0 0", pointerEvents:"none" }} />
         {/* Drag handle — only on mobile sheet */}
@@ -265,6 +286,20 @@ export function NotificationBell() {
     <>
       <style>{`
         /* Bell ring animation when unread */
+        /* Shared header-artwork treatment (mirrors ChatsPopover) */
+        .pop-art {
+          position: absolute; inset: 0; pointer-events: none;
+          opacity: 0.5;
+          -webkit-mask-image: linear-gradient(90deg, transparent 4%, rgba(0,0,0,0.5) 40%, #000 82%);
+          mask-image: linear-gradient(90deg, transparent 4%, rgba(0,0,0,0.5) 40%, #000 82%);
+          animation: pop-art-in 900ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes pop-art-in { from { opacity: 0; transform: scale(1.1); } }
+        .pop-art-scrim {
+          position: absolute; inset: 0; pointer-events: none;
+          background: linear-gradient(90deg, rgba(26,10,0,0.85) 0%, rgba(26,10,0,0.35) 55%, transparent 100%);
+        }
+
         @keyframes bell-ring {
           0%,100%{ transform: rotate(0); }
           10%     { transform: rotate(18deg); }
@@ -305,6 +340,7 @@ export function NotificationBell() {
         .notif-item-link:active > div { background: rgba(234,88,12,0.1) !important; transform: scale(0.99); }
 
         @media (prefers-reduced-motion: reduce) {
+          .pop-art { animation: none !important; opacity: 0.5 !important; transform: none !important; }
           .bell-btn,.bell-btn:hover,.notif-dropdown,.notif-sheet,.notif-backdrop { animation:none!important; transition-duration:0ms!important; }
           .bell-btn:hover { transform:none!important; }
           div[style*="notif-item-in"] { animation:none!important; }

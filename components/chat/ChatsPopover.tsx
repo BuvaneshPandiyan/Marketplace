@@ -17,6 +17,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -57,6 +58,8 @@ export function ChatsPopover() {
   const [isLoadingChats, setIsLoadingChats] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // Optional header artwork — falls back to the plain gradient if absent.
+  const [artFailed, setArtFailed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 639px)");
   const router = useRouter();
@@ -244,6 +247,23 @@ export function ChatsPopover() {
           position: "relative",
         }}
       >
+        {!artFailed && (
+          <>
+            {/* Artwork behind the header. Masked so it fades out on the left where
+                the title sits, then a scrim over that for guaranteed legibility. */}
+            <div className="pop-art" aria-hidden="true">
+              <Image
+                src="/images/header-chats.png"
+                alt=""
+                fill
+                sizes="(max-width: 639px) 100vw, 340px"
+                style={{ objectFit: "cover", objectPosition: "center right" }}
+                onError={() => setArtFailed(true)}
+              />
+            </div>
+            <div className="pop-art-scrim" aria-hidden="true" />
+          </>
+        )}
         <div
           style={{
             position: "absolute",
@@ -538,6 +558,20 @@ export function ChatsPopover() {
   return (
     <>
       <style>{`
+        /* Shared header-artwork treatment */
+        .pop-art {
+          position: absolute; inset: 0; pointer-events: none;
+          opacity: 0.5;
+          -webkit-mask-image: linear-gradient(90deg, transparent 4%, rgba(0,0,0,0.5) 40%, #000 82%);
+          mask-image: linear-gradient(90deg, transparent 4%, rgba(0,0,0,0.5) 40%, #000 82%);
+          animation: pop-art-in 900ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes pop-art-in { from { opacity: 0; transform: scale(1.1); } }
+        .pop-art-scrim {
+          position: absolute; inset: 0; pointer-events: none;
+          background: linear-gradient(90deg, rgba(26,10,0,0.85) 0%, rgba(26,10,0,0.35) 55%, transparent 100%);
+        }
+
         @keyframes chat-wiggle {
           0%,100%{ transform: rotate(0); }
           25%    { transform: rotate(-9deg); }
@@ -570,7 +604,8 @@ export function ChatsPopover() {
         .chat-item-link:active > div { background: rgba(234,88,12,0.1) !important; }
 
         @media (prefers-reduced-motion: reduce) {
-          .chatpop-btn,.chatpop-btn:hover,.chat-dropdown,.chat-sheet,.chat-backdrop { animation:none!important; transition-duration:0ms!important; }
+          .chatpop-btn,.chatpop-btn:hover,.chat-dropdown,.chat-sheet,.chat-backdrop,.pop-art { animation:none!important; transition-duration:0ms!important; }
+          .pop-art { opacity: 0.5 !important; transform: none !important; }
           .chatpop-btn:hover { transform:none!important; }
           .chatpop-badge { animation:none!important; }
           div[style*="chat-item-in"] { animation:none!important; }

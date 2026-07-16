@@ -1,132 +1,418 @@
-// Mark this as a Client Component since it's an interactive modal with its own state
 "use client";
 
-// Import React's state hook
-import { useState } from "react";
-// Import our useActiveLocation hook to read/update the active browsing location
+/**
+ * Location switcher.
+ *
+ * Rebuilt to match the rest of the app's modals (AuthGateModal, the chats
+ * popover): gradient header with the faint grid, bottom sheet on phones and a
+ * centred card from 640px, portalled to body so no ancestor's overflow or
+ * transform can clip it.
+ *
+ * What it replaced: a plain white box at `pt-20` with an invisible backdrop, a
+ * ✕ character for close, and 📍/🕑 emoji as icons. It worked, but it looked like
+ * a different application to everything around it.
+ *
+ * Behaviour is unchanged — same detect, same search, same recents, same
+ * setActiveLocation call.
+ */
+
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import Image from "next/image";
 import { useActiveLocation } from "@/lib/hooks/useActiveLocation";
-// Import the reusable manual search input component
 import { LocationSearchInput } from "@/components/location/LocationSearchInput";
-// Import the shared location shape
 import type { StoredLocation } from "@/lib/client/locationStorage";
 
-// Define the props this component accepts
 type LocationModalProps = {
-  // A callback fired when the modal should close (backdrop click, selection made, etc.)
   onClose: () => void;
 };
 
-// Define and export the LocationModal component
 export function LocationModal({ onClose }: LocationModalProps) {
-  // Pull location state/actions from our location context
   const { recentLocations, setActiveLocation, detectCurrentLocation } = useActiveLocation();
-  // Track whether we're currently detecting the device's GPS position
   const [isDetecting, setIsDetecting] = useState(false);
-  // Track any error message from the "use current location" attempt
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  /**
+   * Header artwork is optional. Missing file -> onError flips this and the
+   * header falls back to the plain gradient, which is what it looks like today.
+   * Same pattern as HomeHero: no broken image, no layout shift, drop the file in
+   * and it appears with no code change.
+   */
+  const [artFailed, setArtFailed] = useState(false);
 
-  // Define the click handler for the "Use current location" button
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
   async function handleUseCurrentLocation() {
-    // Clear any previous error
-    setErrorMessage(null);
-    // Mark that we're now detecting the device's position
     setIsDetecting(true);
-    // Call our context's geolocation-detection function
+    setErrorMessage(null);
     const result = await detectCurrentLocation();
-    // Mark detection as finished
     setIsDetecting(false);
-    // If it succeeded, close the modal — the new location is already applied
-    if (result.success) {
-      // Close the modal now that we have a new active location
-      onClose();
-    } else {
-      // Otherwise, show the error message returned by the hook
-      setErrorMessage(result.error ?? "Something went wrong.");
+    if (!result.success) {
+      setErrorMessage(result.error ?? "Couldn't get your location.");
+      return;
     }
-  }
-
-  // Define the handler for picking either a manual search result or a recent location
-  function handleSelectLocation(location: StoredLocation) {
-    // Apply the chosen location as the new active browsing location
-    setActiveLocation(location);
-    // Close the modal now that a selection has been made
     onClose();
   }
 
-  // Render the modal
-  return (
-    // A full-screen fixed overlay that darkens the background and centers the modal content
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-20">
-      {/* Clicking the backdrop itself (not its children) closes the modal */}
-      <div className="absolute inset-0" onClick={onClose} aria-hidden="true" />
+  function handleSelectLocation(location: StoredLocation) {
+    setActiveLocation(location);
+    onClose();
+  }
 
-      {/* The actual modal card, positioned above the backdrop */}
-      <div className="relative w-full max-w-sm rounded-xl bg-white p-5 shadow-xl">
-        {/* A header row with a title and a close button */}
-        <div className="mb-4 flex items-center justify-between">
-          {/* Modal title */}
-          <h2 className="text-base font-semibold text-neutral-900">Choose your location</h2>
-          {/* The close button, an X-style icon made from text for simplicity */}
+  if (!mounted) return null;
+
+  return createPortal(
+    <>
+      <style>{`
+        @keyframes lm-bg    { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes lm-sheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes lm-card  {
+          from { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+          to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        @keyframes lm-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        @keyframes lm-ping { 0% { transform: scale(0.8); opacity: 0.7; } 100% { transform: scale(1.9); opacity: 0; } }
+
+        .lm-back {
+          position: fixed; inset: 0; z-index: 9990;
+          background: rgba(12,6,2,0.55);
+          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+          animation: lm-bg 180ms ease both;
+        }
+
+        .lm-card {
+          position: fixed; z-index: 9991;
+          left: 0; right: 0; bottom: 0;
+          background: #fff;
+          /* 24px radius + 65vh + 320ms — identical to the chats and
+             notification sheets. This was 26px / 88vh / 380ms, which is why it
+             felt taller and slower than everything else. */
+          border-radius: 24px 24px 0 0;
+          overflow: hidden;
+          height: 65vh;
+          display: flex; flex-direction: column;
+          box-shadow: 0 -16px 56px rgba(0,0,0,0.25);
+          /* Promote to its own layer before the slide starts, so the first frame
+             isn't spent rasterising a blurred, shadowed, rounded box */
+          will-change: transform;
+          animation: lm-sheet 320ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @media (min-width: 640px) {
+          .lm-card {
+            top: 50%; left: 50%; right: auto; bottom: auto;
+            width: min(92vw, 420px);
+            border-radius: var(--r-xl, 26px);
+            transform: translate(-50%,-50%);
+            height: auto; max-height: 84vh;
+            box-shadow: 0 30px 90px rgba(0,0,0,0.3);
+            animation: lm-card 300ms cubic-bezier(0.34,1.56,0.64,1) both;
+          }
+        }
+
+        /* ── Header ───────────────────────────────────────────────── */
+        .lm-head {
+          position: relative; flex-shrink: 0;
+          background: var(--brand-hero, linear-gradient(135deg,#1a0a00,#7c2000 45%,#ea580c));
+          padding: 16px 20px 20px;
+        }
+        /* Artwork sits behind the grid and the copy. Masked so it fades out
+           toward the left, where the title and subtitle sit — they always land
+           on flat colour. */
+        .lm-head-art {
+          position: absolute; inset: 0;
+          pointer-events: none;
+          opacity: 0.55;
+          -webkit-mask-image: linear-gradient(90deg, transparent 4%, rgba(0,0,0,0.5) 38%, #000 82%);
+          mask-image: linear-gradient(90deg, transparent 4%, rgba(0,0,0,0.5) 38%, #000 82%);
+          animation: lm-art 900ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes lm-art { from { opacity: 0; transform: scale(1.1); } }
+        /* Keeps the header legible whatever the artwork does */
+        .lm-head-scrim {
+          position: absolute; inset: 0; pointer-events: none;
+          background: linear-gradient(90deg, rgba(26,10,0,0.85) 0%, rgba(26,10,0,0.35) 55%, transparent 100%);
+        }
+
+        .lm-head-grid {
+          position: absolute; inset: 0; pointer-events: none;
+          background-image:
+            linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+          background-size: 26px 26px;
+        }
+        .lm-grip {
+          width: 36px; height: 4px; border-radius: 100px;
+          background: rgba(255,255,255,0.25);
+          margin: 0 auto 14px; position: relative;
+        }
+        @media (min-width: 640px) { .lm-grip { display: none; } }
+        .lm-head-row {
+          position: relative;
+          display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }
+        .lm-title { display: flex; align-items: center; gap: 10px; }
+        .lm-title-pin {
+          width: 34px; height: 34px; border-radius: 11px; flex-shrink: 0;
+          background: rgba(255,255,255,0.16);
+          display: flex; align-items: center; justify-content: center;
+          color: #fff;
+          animation: lm-pin-bob 3.4s ease-in-out 600ms infinite;
+        }
+        @keyframes lm-pin-bob {
+          0%,100% { transform: translateY(0) rotate(0deg); }
+          50%     { transform: translateY(-3px) rotate(-4deg); }
+        }
+        .lm-h2 {
+          font-size: 16px; font-weight: 900; letter-spacing: -0.035em;
+          color: #fff; margin: 0;
+        }
+        .lm-sub { font-size: 11.5px; color: rgba(255,255,255,0.62); margin: 1px 0 0; font-weight: 600; }
+        .lm-x {
+          width: 30px; height: 30px; border-radius: 50%; border: none; flex-shrink: 0;
+          background: rgba(255,255,255,0.16); color: #fff; cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          transition: background 160ms ease, transform 200ms ease;
+        }
+        .lm-x:hover { background: rgba(255,255,255,0.3); transform: rotate(90deg); }
+        .lm-x:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+        /* ── Body ─────────────────────────────────────────────────── */
+        .lm-body {
+          padding: 18px 20px 22px;
+          flex: 1; min-height: 0;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: calc(22px + env(safe-area-inset-bottom));
+        }
+        .lm-body > * { animation: lm-rise 380ms cubic-bezier(0.22,1,0.36,1) both; }
+        .lm-body > *:nth-child(1) { animation-delay: 70ms; }
+        .lm-body > *:nth-child(2) { animation-delay: 110ms; }
+        .lm-body > *:nth-child(3) { animation-delay: 150ms; }
+        .lm-body > *:nth-child(4) { animation-delay: 190ms; }
+        .lm-body > *:nth-child(5) { animation-delay: 230ms; }
+
+        /* Detect button — the primary path, so it looks like it */
+        .lm-detect {
+          position: relative;
+          width: 100%;
+          display: flex; align-items: center; gap: 11px;
+          padding: 13px 15px; border-radius: var(--r-md, 16px);
+          border: 1.5px solid var(--brand-border, #fed7aa);
+          background: var(--brand-tint, #fff7ed);
+          cursor: pointer; text-align: left;
+          transition: transform 220ms var(--spring), box-shadow 220ms ease, background 200ms ease;
+        }
+        @media (hover: hover) {
+          .lm-detect:not(:disabled):hover {
+            background: #fff; transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(234,88,12,0.2);
+          }
+        }
+        .lm-detect:disabled { opacity: 0.65; cursor: default; }
+        .lm-detect:focus-visible { outline: 2px solid var(--brand, #ea580c); outline-offset: 2px; }
+        @media (hover: hover) {
+          .lm-detect:not(:disabled):hover .lm-detect-ico { transform: scale(1.1) rotate(-8deg); }
+          .lm-detect:not(:disabled):hover .lm-detect-t   { color: var(--brand, #ea580c); }
+        }
+        .lm-detect-ico {
+          position: relative;
+          transition: transform 280ms var(--spring);
+          width: 34px; height: 34px; border-radius: 11px; flex-shrink: 0;
+          background: var(--brand-grad, linear-gradient(135deg,#ea580c,#f97316));
+          color: #fff;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 3px 10px rgba(234,88,12,0.35);
+        }
+        .lm-detect-ico::after {
+          content: ''; position: absolute; inset: 0; border-radius: 11px;
+          border: 2px solid rgba(234,88,12,0.5);
+          animation: lm-ping 2.2s ease-out infinite;
+          pointer-events: none;
+        }
+        .lm-detect-t { transition: color 200ms ease; font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; color: var(--brand-dark, #9a3412); }
+        .lm-detect-s { font-size: 11px; color: #b45309; margin-top: 1px; font-weight: 600; }
+        @keyframes lm-spin { to { transform: rotate(360deg); } }
+        .lm-spin { animation: lm-spin 700ms linear infinite; }
+
+        .lm-err {
+          margin: 10px 0 0; padding: 9px 12px;
+          border-radius: 12px; background: #fef2f2; border: 1.5px solid #fecaca;
+          color: #dc2626; font-size: 12px; font-weight: 600; line-height: 1.4;
+        }
+
+        /* Divider with a word in it */
+        .lm-or {
+          display: flex; align-items: center; gap: 10px;
+          margin: 18px 0 12px;
+        }
+        .lm-or::before, .lm-or::after {
+          content: ''; flex: 1; height: 1px; background: var(--line, #f0f0f0);
+        }
+        .lm-or span {
+          font-size: 9.5px; font-weight: 900; letter-spacing: 0.1em;
+          text-transform: uppercase; color: var(--ink-faint, #9ca3af);
+        }
+
+        .lm-recent-h {
+          display: flex; align-items: center; gap: 6px;
+          font-size: 9.5px; font-weight: 900; letter-spacing: 0.1em;
+          text-transform: uppercase; color: var(--ink-faint, #9ca3af);
+          margin: 18px 0 8px;
+        }
+        .lm-recents { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+        .lm-recent {
+          width: 100%;
+          display: flex; align-items: center; gap: 10px;
+          padding: 10px 11px; border-radius: 12px;
+          border: none; background: transparent; cursor: pointer; text-align: left;
+          font-size: 13px; font-weight: 700; letter-spacing: -0.02em;
+          color: var(--ink-soft, #374151);
+          transition: background 180ms ease, transform 180ms var(--spring), color 180ms ease;
+        }
+        @media (hover: hover) {
+          .lm-recent:hover { background: var(--brand-tint, #fff7ed); color: var(--brand, #ea580c); transform: translateX(3px); }
+          .lm-recent:hover .lm-recent-ico { background: var(--brand-border, #fed7aa); color: var(--brand, #ea580c); }
+        }
+        .lm-recent:focus-visible { outline: 2px solid var(--brand, #ea580c); outline-offset: -2px; }
+        .lm-recent-ico {
+          width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+          background: #f5f5f4; color: #a8a29e;
+          display: flex; align-items: center; justify-content: center;
+          transition: background 180ms ease, color 180ms ease;
+        }
+        .lm-recent-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .lm-back, .lm-card, .lm-body > *, .lm-detect-ico::after, .lm-spin, .lm-head-art { animation: none !important; opacity: 1 !important; }
+          .lm-head-art { opacity: 0.55 !important; transform: none !important; }
+          .lm-card { transform: none !important; }
+          .lm-detect, .lm-recent, .lm-x, .lm-detect-ico, .lm-detect-t { transition: none !important; }
+          .lm-title-pin { animation: none !important; }
+          .lm-detect:hover .lm-detect-ico { transform: none !important; }
+          .lm-detect:hover, .lm-recent:hover, .lm-x:hover { transform: none !important; }
+        }
+        @media (prefers-reduced-motion: reduce) and (min-width: 640px) {
+          .lm-card { transform: translate(-50%,-50%) !important; }
+        }
+      `}</style>
+
+      <div className="lm-back" onClick={onClose} aria-hidden="true" />
+
+      <div className="lm-card" role="dialog" aria-modal="true" aria-labelledby="lm-title">
+        <div className="lm-head">
+          {!artFailed && (
+            <div className="lm-head-art" aria-hidden="true">
+              <Image
+                src="/images/location-header.png"
+                alt=""
+                fill
+                sizes="(max-width: 639px) 100vw, 420px"
+                style={{ objectFit: "cover", objectPosition: "center right" }}
+                onError={() => setArtFailed(true)}
+              />
+            </div>
+          )}
+          {!artFailed && <div className="lm-head-scrim" aria-hidden="true" />}
+          <div className="lm-head-grid" aria-hidden="true" />
+          <div className="lm-grip" aria-hidden="true" />
+          <div className="lm-head-row">
+            <div className="lm-title">
+              <span className="lm-title-pin" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
+                </svg>
+              </span>
+              <div>
+                <h2 className="lm-h2" id="lm-title">Where are you?</h2>
+                <p className="lm-sub">We&apos;ll show what&apos;s close by first</p>
+              </div>
+            </div>
+            <button type="button" onClick={onClose} className="lm-x" aria-label="Close">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div className="lm-body">
           <button
             type="button"
-            onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-600"
-            aria-label="Close"
+            onClick={handleUseCurrentLocation}
+            disabled={isDetecting}
+            className="lm-detect"
           >
-            ✕
+            <span className="lm-detect-ico" aria-hidden="true">
+              {isDetecting ? (
+                <svg className="lm-spin" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+              ) : (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+                </svg>
+              )}
+            </span>
+            <span>
+              <span className="lm-detect-t" style={{ display: "block" }}>
+                {isDetecting ? "Finding you…" : "Use my current location"}
+              </span>
+              <span className="lm-detect-s" style={{ display: "block" }}>
+                {isDetecting ? "One moment" : "Fastest way to get accurate results"}
+              </span>
+            </span>
           </button>
-        </div>
 
-        {/* The "use current location" button */}
-        <button
-          type="button"
-          onClick={handleUseCurrentLocation}
-          disabled={isDetecting}
-          className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-orange-200 bg-orange-50 py-2.5 text-sm font-medium text-orange-700 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {/* A small location-pin emoji for visual flair */}
-          <span aria-hidden="true">📍</span>
-          {/* Swap the label while detection is in progress */}
-          {isDetecting ? "Detecting..." : "Use current location"}
-        </button>
+          {errorMessage && <p className="lm-err" role="alert">{errorMessage}</p>}
 
-        {/* Show an error message if the current-location attempt failed */}
-        {errorMessage && <p className="mb-4 text-sm text-red-600">{errorMessage}</p>}
+          <div className="lm-or"><span>or search</span></div>
 
-        {/* A small divider label between the GPS option and manual search */}
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-400">Or search manually</p>
-
-        {/* The reusable manual search input, wired to apply+close on selection */}
-        <div className="mb-4">
-          <LocationSearchInput onSelect={handleSelectLocation} />
-        </div>
-
-        {/* Only show the recent-locations section if there's actually history to show */}
-        {recentLocations.length > 0 && (
-          // A small section listing previously chosen locations for quick re-selection
           <div>
-            {/* Section label */}
-            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-400">Recent</p>
-            {/* The list of recent locations */}
-            <ul className="space-y-1">
-              {/* Loop over each recent location and render it as a clickable row */}
-              {recentLocations.map((location, index) => (
-                // Each row is a list item containing a button for the whole clickable area
-                <li key={index}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectLocation(location)}
-                    className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-neutral-700 hover:bg-neutral-50"
-                  >
-                    {/* A small clock emoji hinting this is a past selection */}
-                    <span aria-hidden="true">🕑</span> {location.locality}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <LocationSearchInput onSelect={handleSelectLocation} />
           </div>
-        )}
+
+          {recentLocations.length > 0 && (
+            <div>
+              <p className="lm-recent-h">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+                </svg>
+                Recent
+              </p>
+              <ul className="lm-recents">
+                {recentLocations.map((location, index) => (
+                  <li key={`${location.locality}-${index}`}>
+                    <button type="button" onClick={() => handleSelectLocation(location)} className="lm-recent">
+                      <span className="lm-recent-ico" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+                        </svg>
+                      </span>
+                      <span className="lm-recent-t">{location.locality}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>,
+    document.body
   );
 }

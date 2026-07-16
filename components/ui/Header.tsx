@@ -5,15 +5,16 @@
  * Mobile:   padding-top 0, padding-bottom calc(80px + env(safe-area-inset-bottom))
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useUser } from "@/lib/hooks/useUser";
 import { GatedLink } from "@/components/auth/GatedLink";
+import { LocationModal } from "@/components/location/LocationModal";
+import Image from "next/image";
 import { LocationPill } from "@/components/location/LocationPill";
-import { LocationSearchInput } from "@/components/location/LocationSearchInput";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ChatsPopover } from "@/components/chat/ChatsPopover";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -67,16 +68,16 @@ function Tip({ label, children }: { label: string; children: React.ReactNode }) 
 
 export function Header() {
   const { user, profile, isLoading } = useUser();
-  const { needsSetup, detectCurrentLocation, locality, setActiveLocation } = useActiveLocation();
+  // LocationModal owns detection and setting now — Header only needs to know
+  // whether a location exists (for the pin's active state) and what to show.
+  const { needsSetup } = useActiveLocation();
   const router = useRouter();
   const supabase = useRef(createClient());
 
   // ── state ──────────────────────────────────────────────────────────
   const [locSheetOpen, setLocSheetOpen]       = useState(false);
-  const [isDetecting, setIsDetecting]         = useState(false);
-  const [detectError, setDetectError]         = useState<string | null>(null);
-  const [detectedLocality, setDetectedLocality] = useState<string | null>(null);
-  const [justCaptured,     setJustCaptured]     = useState(false);
+  // Optional drawer header artwork — falls back to the plain gradient if absent.
+  const [drawerArtFailed, setDrawerArtFailed] = useState(false);
   const [scrolled, setScrolled]               = useState(false);
   const [drawerOpen, setDrawerOpen]           = useState(false);
   const [logoutConfirm, setLogoutConfirm]     = useState(false);
@@ -97,7 +98,6 @@ export function Header() {
   useEffect(() => {
     setDrawerOpen(false); setLocSheetOpen(false);
     setSearchExpanded(false); setLogoutConfirm(false); setNavMobileVisible(true);
-    setDetectedLocality(null); setJustCaptured(false); setDetectError(null);
   }, [pathname]);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 6);
@@ -109,18 +109,6 @@ export function Header() {
     else            document.body.style.overflow = "";
     return () => { document.body.style.overflow = ""; };
   }, [drawerOpen]);
-
-  const handleDetectLocation = useCallback(async () => {
-    setIsDetecting(true); setDetectError(null); setDetectedLocality(null);
-    const result = await detectCurrentLocation();
-    if (result.success) {
-      setDetectedLocality(locality || "Location detected");
-      setJustCaptured(true);
-      setTimeout(() => setJustCaptured(false), 3000);
-    }
-    else                setDetectError(result.error ?? "Couldn't detect location.");
-    setIsDetecting(false);
-  }, [detectCurrentLocation, locality]);
 
   async function handleLogout() {
     setIsSigningOut(true);
@@ -469,6 +457,23 @@ export function Header() {
           box-sizing: border-box;
         }
 
+
+        /* Shared header-artwork treatment (mirrors ChatsPopover / NotificationBell) */
+        .pop-art {
+          position: absolute; inset: 0; pointer-events: none;
+          opacity: 0.5;
+          -webkit-mask-image: linear-gradient(90deg, transparent 4%, rgba(0,0,0,0.5) 40%, #000 82%);
+          mask-image: linear-gradient(90deg, transparent 4%, rgba(0,0,0,0.5) 40%, #000 82%);
+          animation: pop-art-in 900ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes pop-art-in { from { opacity: 0; transform: scale(1.1); } }
+        .pop-art-scrim {
+          position: absolute; inset: 0; pointer-events: none;
+          background: linear-gradient(90deg, rgba(26,10,0,0.85) 0%, rgba(26,10,0,0.35) 55%, transparent 100%);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .pop-art { animation: none !important; opacity: 0.5 !important; transform: none !important; }
+        }
       `}</style>
 
       {/* ══════════════════════════════════════════════════════════════
@@ -766,9 +771,26 @@ export function Header() {
             {/* ── GRADIENT HEADER — matches notification bell style ── */}
             <div style={{
               background:"linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%)",
+              overflow:"hidden",
               padding:"14px 20px 16px", flexShrink:0,
               position:"relative",
             }}>
+              {!drawerArtFailed && (
+                <>
+                  {/* Optional artwork, masked left so the title stays on flat colour */}
+                  <div className="pop-art" aria-hidden="true">
+                    <Image
+                      src="/images/header-menu.png"
+                      alt=""
+                      fill
+                      sizes="320px"
+                      style={{ objectFit: "cover", objectPosition: "center right" }}
+                      onError={() => setDrawerArtFailed(true)}
+                    />
+                  </div>
+                  <div className="pop-art-scrim" aria-hidden="true" />
+                </>
+              )}
               {/* Subtle grid overlay */}
               <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize:"28px 28px", borderRadius:"24px 24px 0 0" }} />
 
@@ -902,140 +924,17 @@ export function Header() {
           LOCATION BOTTOM SHEET
           ══════════════════════════════ */}
       <AnimatePresence>
-        {locSheetOpen && (
-          <>
-            <motion.div key="loc-bd" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
-              onClick={() => { setLocSheetOpen(false); setDetectedLocality(null); setDetectError(null); }}
-              style={{ position:"fixed", inset:0, zIndex:9985, background:"rgba(0,0,0,0.4)", backdropFilter:"blur(2px)" }} />
-            <motion.div key="loc-sh" initial={{ y:"100%" }} animate={{ y:0 }} exit={{ y:"100%" }}
-              transition={{ type:"spring", stiffness:380, damping:32 }}
-              style={{
-                position:"fixed", bottom:0, left:0, right:0, zIndex:9986, background:"white",
-                borderRadius:"24px 24px 0 0",
-                boxShadow:"0 -16px 56px rgba(0,0,0,0.25)",
-                height:"65vh",
-                display:"flex", flexDirection:"column",
-                overflow:"hidden",
-              }}>
+        {/* Mobile location picker.
+            This used to be a bespoke bottom sheet living right here — a second
+            implementation of what LocationModal already does. That duplication
+            is what caused the "picking a location does nothing on mobile" bug:
+            this copy's onSelect discarded its argument while LocationModal's
+            called setActiveLocation correctly.
 
-              {/* ── GRADIENT HEADER — matches notification bell + drawer style ── */}
-              <div style={{
-                background:"linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%)",
-                padding:"14px 20px 18px", flexShrink:0, position:"relative",
-              }}>
-                {/* Grid overlay */}
-                <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize:"28px 28px", borderRadius:"24px 24px 0 0", pointerEvents:"none" }} />
-                {/* Drag handle */}
-                <div style={{ width:36, height:4, borderRadius:100, background:"rgba(255,255,255,0.25)", margin:"0 auto 14px", position:"relative" }} />
-                {/* Title row */}
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", position:"relative" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                    <span style={{ fontSize:20 }}>📍</span>
-                    <div>
-                      <p style={{ fontWeight:700, fontSize:15, color:"white", margin:0 }}>Set location</p>
-                      <p style={{ fontSize:11, color:"rgba(255,255,255,0.6)", margin:0 }}>
-                        {locality && !needsSetup ? locality : "Choose your area"}
-                      </p>
-                    </div>
-                  </div>
-                  <button type="button" onClick={() => { setLocSheetOpen(false); setDetectedLocality(null); setDetectError(null); setJustCaptured(false); }}
-                    style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Inner content: scrolls only when list overflows the maxHeight cap */}
-              <div style={{ overflowY:"auto", flex:1 }}>
-              <div style={{ maxWidth:560, margin:"0 auto", padding:"20px 20px 32px" }}>
-
-                {/* ── SUCCESS BANNER — pops up right after GPS capture ── */}
-                {justCaptured && (
-                  <div style={{
-                    display:"flex", alignItems:"center", gap:10,
-                    padding:"12px 14px", borderRadius:12, marginBottom:14,
-                    background:"rgba(34,197,94,0.08)", border:"1.5px solid rgba(34,197,94,0.3)",
-                    animation:"loc-success-in 350ms cubic-bezier(0.22,1,0.36,1) both",
-                  }}>
-                    <div style={{ width:30, height:30, borderRadius:"50%", background:"#22c55e", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
-                    </div>
-                    <div>
-                      <p style={{ fontSize:13, fontWeight:700, color:"#15803d", margin:0 }}>Location captured!</p>
-                      <p style={{ fontSize:11, color:"#6b7280", margin:"1px 0 0" }}>{detectedLocality}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* ── CURRENT SAVED LOCATION — shown on open when already set ── */}
-                {!justCaptured && locality && !needsSetup && !detectedLocality && (
-                  <div style={{
-                    display:"flex", alignItems:"center", gap:10,
-                    padding:"11px 14px", borderRadius:12, marginBottom:14,
-                    background:"rgba(234,88,12,0.05)", border:"1.5px solid rgba(234,88,12,0.2)",
-                  }}>
-                    <span style={{ fontSize:18, flexShrink:0 }}>📍</span>
-                    <div style={{ minWidth:0, flex:1 }}>
-                      <p style={{ fontSize:10, fontWeight:700, color:"#9ca3af", margin:0, textTransform:"uppercase", letterSpacing:"0.06em" }}>Current location</p>
-                      <p style={{ fontSize:13, fontWeight:700, color:"#ea580c", margin:"1px 0 0", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{locality}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* ── GPS / CHANGE BUTTON ── */}
-                <div style={{ marginBottom:12 }}>
-                  {detectedLocality && !justCaptured ? (
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"11px 16px", borderRadius:100, border:"1.5px solid #ea580c", background:"rgba(234,88,12,0.04)" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth={2} strokeLinecap="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-                        <span style={{ fontSize:14, fontWeight:600, color:"#ea580c" }}>{detectedLocality}</span>
-                      </div>
-                      <button type="button" onClick={() => setDetectedLocality(null)}
-                        style={{ fontSize:12, fontWeight:700, color:"#ea580c", border:"none", cursor:"pointer", padding:"4px 10px", borderRadius:100, background:"rgba(234,88,12,0.1)" }}>
-                        Change
-                      </button>
-                    </div>
-                  ) : justCaptured ? (
-                    <button type="button" onClick={() => { setJustCaptured(false); setDetectedLocality(null); }}
-                      style={{ width:"100%", padding:"10px 0", borderRadius:100, border:"1px solid #e5e7eb", background:"white", fontSize:13, fontWeight:500, color:"#6b7280", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                      Use a different location
-                    </button>
-                  ) : (
-                    <button type="button" onClick={handleDetectLocation} disabled={isDetecting}
-                      style={{ width:"100%", padding:"11px 0", borderRadius:100, border:"1px solid #e5e7eb", background:"white", fontSize:14, fontWeight:500, color:"#374151", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth={2} strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-                      {isDetecting ? "Detecting your location…" : needsSetup ? "Use current location" : "Use current location again"}
-                    </button>
-                  )}
-                </div>
-
-                {detectError && <p style={{ fontSize:12, color:"#dc2626", textAlign:"center", marginBottom:10 }}>{detectError}</p>}
-
-                {!justCaptured && (
-                  <>
-                    <p style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#9ca3af", marginBottom:8 }}>Or search manually</p>
-                    {/* onSelect receives the chosen StoredLocation. This used to
-                        be `() => { ...close... }` — the parameter was dropped on
-                        the floor, so picking a place closed the sheet and changed
-                        nothing. LocationModal (desktop) always did this right;
-                        only this copy was broken, which is why it looked like a
-                        mobile-only bug. */}
-                    <LocationSearchInput
-                      onSelect={(location) => {
-                        setActiveLocation(location);
-                        setLocSheetOpen(false);
-                        setDetectedLocality(null);
-                        setJustCaptured(false);
-                      }}
-                    />
-                  </>
-                )}
-              </div>
-              </div>
-            </motion.div>
-          </>
-        )}
+            LocationModal is already a bottom sheet below 640px and a centred
+            card above it, so pointing mobile at it gives the same design on
+            both breakpoints AND leaves one place for location bugs to live. */}
+        {locSheetOpen && <LocationModal onClose={() => setLocSheetOpen(false)} />}
       </AnimatePresence>
     </>
   );
