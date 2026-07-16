@@ -1,95 +1,85 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+/**
+ * Category rail.
+ *
+ * Rebuilt to the Zomato/Swiggy pattern: a horizontal rail of big tiles — large
+ * gradient icon tile with the label beneath — that scrolls on every screen size.
+ *
+ * What this replaced, and why:
+ *   - 38px text pills with 24px icons. Small, grey, and easy to miss; they read
+ *     as filter tags rather than as a way in.
+ *   - A "More +17" dropdown on desktop. Hiding 17 of 24 categories behind a
+ *     dropdown buries most of the catalogue. A rail shows everything and lets
+ *     you flick through it.
+ *   - A separate bottom sheet on mobile. That was a second implementation of the
+ *     same idea, which meant two things to keep in sync. Now one rail serves both.
+ *
+ * The per-category accent colours are kept — they were the good part.
+ */
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import type { Category } from "@/types";
 
-// ── Preferred display order — extended to 24 categories ──────────────
 const PREFERRED_ORDER = [
-  "electronics-mobiles",
-  "vehicles",
-  "property-rentals",
-  "furniture-home",
-  "fashion",
-  "jobs",
-  "services",
-  "sports-fitness",
-  "books-education",
-  "pets",
-  "kids-baby",
-  "beauty-health",
-  "home-appliances",
-  "computers-laptops",
-  "cameras-photography",
-  "music-instruments",
-  "garden-outdoor",
-  "tools-equipment",
-  "toys-games",
-  "watches-jewellery",
-  "food-agriculture",
-  "travel-luggage",
-  "art-collectibles",
-  "health-medical",
+  "electronics-mobiles", "vehicles", "property-rentals", "furniture-home",
+  "fashion", "jobs", "services", "sports-fitness", "books-education", "pets",
+  "kids-baby", "beauty-health", "home-appliances", "computers-laptops",
+  "cameras-photography", "music-instruments", "garden-outdoor", "tools-equipment",
+  "toys-games", "watches-jewellery", "food-agriculture", "travel-luggage",
+  "art-collectibles", "health-medical",
 ];
 
-const CATEGORY_ACCENT: Record<string, { bg: string; color: string; border: string }> = {
-  "electronics-mobiles":  { bg: "rgba(59,130,246,0.10)",  color: "#3b82f6", border: "rgba(59,130,246,0.25)"  },
-  "vehicles":             { bg: "rgba(234,88,12,0.10)",   color: "#ea580c", border: "rgba(234,88,12,0.25)"   },
-  "property-rentals":     { bg: "rgba(16,185,129,0.10)",  color: "#10b981", border: "rgba(16,185,129,0.25)"  },
-  "furniture-home":       { bg: "rgba(245,158,11,0.10)",  color: "#f59e0b", border: "rgba(245,158,11,0.25)"  },
-  "fashion":              { bg: "rgba(236,72,153,0.10)",  color: "#ec4899", border: "rgba(236,72,153,0.25)"  },
-  "jobs":                 { bg: "rgba(139,92,246,0.10)",  color: "#8b5cf6", border: "rgba(139,92,246,0.25)"  },
-  "services":             { bg: "rgba(20,184,166,0.10)",  color: "#14b8a6", border: "rgba(20,184,166,0.25)"  },
-  "sports-fitness":       { bg: "rgba(34,197,94,0.10)",   color: "#22c55e", border: "rgba(34,197,94,0.25)"   },
-  "books-education":      { bg: "rgba(99,102,241,0.10)",  color: "#6366f1", border: "rgba(99,102,241,0.25)"  },
-  "pets":                 { bg: "rgba(251,146,60,0.10)",  color: "#fb923c", border: "rgba(251,146,60,0.25)"  },
-  "kids-baby":            { bg: "rgba(232,121,249,0.10)", color: "#e879f9", border: "rgba(232,121,249,0.25)" },
-  "beauty-health":        { bg: "rgba(244,114,182,0.10)", color: "#f472b6", border: "rgba(244,114,182,0.25)" },
-  "home-appliances":      { bg: "rgba(56,189,248,0.10)",  color: "#38bdf8", border: "rgba(56,189,248,0.25)"  },
-  "computers-laptops":    { bg: "rgba(100,116,139,0.10)", color: "#64748b", border: "rgba(100,116,139,0.25)" },
-  "cameras-photography":  { bg: "rgba(168,85,247,0.10)",  color: "#a855f7", border: "rgba(168,85,247,0.25)"  },
-  "music-instruments":    { bg: "rgba(239,68,68,0.10)",   color: "#ef4444", border: "rgba(239,68,68,0.25)"   },
-  "garden-outdoor":       { bg: "rgba(74,222,128,0.10)",  color: "#4ade80", border: "rgba(74,222,128,0.25)"  },
-  "tools-equipment":      { bg: "rgba(120,113,108,0.10)", color: "#78716c", border: "rgba(120,113,108,0.25)" },
-  "toys-games":           { bg: "rgba(251,191,36,0.10)",  color: "#fbbf24", border: "rgba(251,191,36,0.25)"  },
-  "watches-jewellery":    { bg: "rgba(217,119,6,0.10)",   color: "#d97706", border: "rgba(217,119,6,0.25)"   },
-  "food-agriculture":     { bg: "rgba(132,204,22,0.10)",  color: "#84cc16", border: "rgba(132,204,22,0.25)"  },
-  "travel-luggage":       { bg: "rgba(6,182,212,0.10)",   color: "#06b6d4", border: "rgba(6,182,212,0.25)"   },
-  "art-collectibles":     { bg: "rgba(249,115,22,0.10)",  color: "#f97316", border: "rgba(249,115,22,0.25)"  },
-  "health-medical":       { bg: "rgba(20,184,166,0.10)",  color: "#14b8a6", border: "rgba(20,184,166,0.25)"  },
+/** Two-stop gradient per category. The tile is filled with it, so these carry
+ *  much more weight than they did as a 10%-opacity pill background. */
+const ACCENT: Record<string, [string, string]> = {
+  "electronics-mobiles": ["#3b82f6", "#60a5fa"],
+  "vehicles":            ["#ea580c", "#fb923c"],
+  "property-rentals":    ["#10b981", "#34d399"],
+  "furniture-home":      ["#f59e0b", "#fbbf24"],
+  "fashion":             ["#ec4899", "#f472b6"],
+  "jobs":                ["#8b5cf6", "#a78bfa"],
+  "services":            ["#14b8a6", "#2dd4bf"],
+  "sports-fitness":      ["#22c55e", "#4ade80"],
+  "books-education":     ["#6366f1", "#818cf8"],
+  "pets":                ["#fb923c", "#fdba74"],
+  "kids-baby":           ["#e879f9", "#f0abfc"],
+  "beauty-health":       ["#f472b6", "#f9a8d4"],
+  "home-appliances":     ["#38bdf8", "#7dd3fc"],
+  "computers-laptops":   ["#64748b", "#94a3b8"],
+  "cameras-photography": ["#a855f7", "#c084fc"],
+  "music-instruments":   ["#ef4444", "#f87171"],
+  "garden-outdoor":      ["#4ade80", "#86efac"],
+  "tools-equipment":     ["#78716c", "#a8a29e"],
+  "toys-games":          ["#fbbf24", "#fcd34d"],
+  "watches-jewellery":   ["#d97706", "#f59e0b"],
+  "food-agriculture":    ["#84cc16", "#a3e635"],
+  "travel-luggage":      ["#06b6d4", "#22d3ee"],
+  "art-collectibles":    ["#f97316", "#fb923c"],
+  "health-medical":      ["#14b8a6", "#5eead4"],
 };
-const DEFAULT_ACCENT = { bg: "rgba(107,114,128,0.08)", color: "#6b7280", border: "rgba(107,114,128,0.2)" };
-
-// How many chips show inline on desktop before the "More" dropdown
-const INLINE_COUNT = 7;
+const DEFAULT_ACCENT: [string, string] = ["#6b7280", "#9ca3af"];
 
 export function CategoryChips() {
   const [supabase] = useState(() => createClient());
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const moreBtnRef = useRef<HTMLButtonElement>(null);
-  const moreDropRef = useRef<HTMLDivElement>(null);
+  const railRef = useRef<HTMLDivElement>(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
   const pathname = usePathname();
 
-  const activeCategory = categories.find(c => pathname === `/category/${c.slug}`);
-  const inlineChips = categories.slice(0, INLINE_COUNT);
-  const moreChips   = categories.slice(INLINE_COUNT);
-  const activeIsInMore = moreChips.some(c => pathname === `/category/${c.slug}`);
-
-  // ── Fetch + sort ────────────────────────────────────────────────────
   useEffect(() => {
     async function load() {
       const { data } = await supabase.from("categories").select("*").is("parent_id", null);
       const sorted = (data ?? []).sort((a, b) => {
         const ai = PREFERRED_ORDER.indexOf(a.slug), bi = PREFERRED_ORDER.indexOf(b.slug);
         if (ai !== -1 && bi !== -1) return ai - bi;
-        if (ai !== -1) return -1; if (bi !== -1) return 1;
+        if (ai !== -1) return -1;
+        if (bi !== -1) return 1;
         return a.name.localeCompare(b.name);
       });
       setCategories(sorted);
@@ -98,281 +88,327 @@ export function CategoryChips() {
     load();
   }, [supabase]);
 
-  // ── Close "More" dropdown on outside click ──────────────────────────
-  useEffect(() => {
-    if (!moreOpen) return;
-    const fn = (e: MouseEvent) => {
-      if (moreDropRef.current?.contains(e.target as Node)) return;
-      if (moreBtnRef.current?.contains(e.target as Node)) return;
-      setMoreOpen(false);
-    };
-    document.addEventListener("mousedown", fn);
-    return () => document.removeEventListener("mousedown", fn);
-  }, [moreOpen]);
+  /** Track scroll position so the edge fades and arrows only show when there's
+   *  actually something in that direction. */
+  const syncEdges = useCallback(() => {
+    const el = railRef.current;
+    if (!el) return;
+    setAtStart(el.scrollLeft <= 4);
+    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
+  }, []);
 
-  // ── Mobile sheet ───────────────────────────────────────────────────
-  const openSheet = useCallback(() => { setSheetOpen(true); document.body.style.overflow = "hidden"; }, []);
-  const closeSheet = useCallback(() => { setSheetOpen(false); document.body.style.overflow = ""; setTimeout(() => triggerRef.current?.focus(), 50); }, []);
-  useEffect(() => { if (!sheetOpen) return; const fn = (e: KeyboardEvent) => { if (e.key === "Escape") closeSheet(); }; document.addEventListener("keydown", fn); return () => document.removeEventListener("keydown", fn); }, [sheetOpen, closeSheet]);
-  useEffect(() => () => { document.body.style.overflow = ""; }, []);
+  useEffect(() => {
+    const el = railRef.current;
+    if (!el) return;
+    syncEdges();
+    el.addEventListener("scroll", syncEdges, { passive: true });
+    window.addEventListener("resize", syncEdges);
+    return () => {
+      el.removeEventListener("scroll", syncEdges);
+      window.removeEventListener("resize", syncEdges);
+    };
+  }, [syncEdges, categories.length]);
+
+  function nudge(dir: 1 | -1) {
+    railRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+  }
 
   return (
     <>
       <style>{`
-        /* ── Chip base ── */
-        .cat-chip {
-          display: inline-flex; align-items: center; gap: 7px;
-          height: 38px; padding: 0 14px 0 8px; border-radius: 100px;
-          font-size: 13px; font-weight: 600; text-decoration: none;
-          white-space: nowrap; flex-shrink: 0; user-select: none;
-          border: 1.5px solid var(--chip-border, #e5e7eb);
-          background: white; color: #374151;
-          transition: transform 220ms cubic-bezier(0.34,1.56,0.64,1),
-                      box-shadow 220ms ease, background 180ms ease,
-                      border-color 180ms ease, color 180ms ease;
-          position: relative; overflow: hidden;
+        .cr-shell {
+          position: sticky; top: 92px; z-index: 40;
+          /* Warm cream band, not grey. This is the single biggest reason the rail
+             now reads as Zomato/Swiggy rather than as a filter bar. */
+          background: var(--brand-tint, #fff7ed);
+          border-bottom: 1px solid var(--brand-border, #fed7aa);
+          padding: 14px 0 14px;
+          margin-bottom: 8px;
+          overflow: hidden;
         }
-        .cat-chip::after {
-          content:''; position:absolute; inset:0;
-          background: linear-gradient(135deg, rgba(255,255,255,0.25), transparent);
-          opacity:0; transition: opacity 200ms ease;
-        }
-        .cat-chip:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.10); border-color: var(--chip-color, #e5e7eb); color: var(--chip-color, #374151); }
-        .cat-chip:hover::after { opacity:1; }
-        .cat-chip:active { transform: scale(0.96) translateY(0); }
-        .cat-chip.active-chip {
-          background: var(--chip-color, #ea580c); color: white !important;
-          border-color: var(--chip-color, #ea580c) !important;
-          box-shadow: 0 4px 18px color-mix(in srgb, var(--chip-color, #ea580c) 40%, transparent);
-        }
-        .cat-chip.active-chip::after { opacity:1; }
-        .chip-icon { width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; transition: transform 300ms cubic-bezier(0.34,1.56,0.64,1); }
-        .cat-chip:hover .chip-icon { transform: scale(1.2) rotate(-8deg); }
-        .cat-chip.active-chip .chip-icon { transform:scale(1.1); background:rgba(255,255,255,0.22) !important; }
+        @media (max-width: 767px) { .cr-shell { top: 0; padding: 10px 0 12px; } }
 
-        /* ── More button ── */
-        .more-btn {
-          display:inline-flex; align-items:center; gap:5px;
-          height:38px; padding:0 14px; border-radius:100px;
-          font-size:13px; font-weight:600; cursor:pointer;
-          border:1.5px solid #e5e7eb; background:white; color:#374151;
-          transition: all 180ms ease; flex-shrink:0; white-space:nowrap;
+        /* Faint dot field — texture, drifting slowly. Masked at the edges so it
+           never fights the tiles for attention. */
+        .cr-shell::before {
+          content: '';
+          position: absolute; inset: -50%;
+          background-image: radial-gradient(circle, rgba(234,88,12,0.13) 1px, transparent 1px);
+          background-size: 18px 18px;
+          -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 25%, #000 100%);
+          mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 25%, #000 100%);
+          animation: cr-dots 60s linear infinite;
+          pointer-events: none;
         }
-        .more-btn:hover { border-color:#ea580c; color:#ea580c; background:#fff7ed; }
-        .more-btn.has-active { border-color:#ea580c; color:#ea580c; background:rgba(234,88,12,0.06); }
-        .more-btn .chevron-icon { transition: transform 220ms ease; }
-        .more-btn.open .chevron-icon { transform: rotate(180deg); }
+        @keyframes cr-dots { to { transform: translate(18px, 18px); } }
 
-        /* ── More dropdown ── */
-        .more-drop {
-          position:absolute; top:calc(100% + 10px); right:0;
-          background:white; border-radius:16px; z-index:200;
-          box-shadow:0 12px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
-          border:1px solid rgba(0,0,0,0.06); overflow:hidden;
-          animation: drop-in 160ms cubic-bezier(0.22,1,0.36,1) both;
-          transform-origin: top right; min-width:260px;
+        /* ── Heading ──────────────────────────────────────────────── */
+        .cr-head {
+          position: relative;
+          display: flex; align-items: baseline; gap: 8px;
+          padding: 0 2px 10px;
         }
-        @keyframes drop-in { from{opacity:0;transform:scale(0.95) translateY(-6px)} to{opacity:1;transform:scale(1) translateY(0)} }
-        .more-item {
-          display:flex; align-items:center; gap:12px;
-          padding:10px 16px; text-decoration:none; color:#374151;
-          font-size:13px; font-weight:500; transition:background 120ms ease;
-          border-left:3px solid transparent;
+        .cr-head-h {
+          font-size: 15px; font-weight: 900; letter-spacing: -0.035em;
+          color: var(--ink, #1a1a1a); margin: 0;
         }
-        .more-item:hover { background:#f9f8f6; }
-        .more-item.active-item { background:rgba(234,88,12,0.05); border-left-color:var(--chip-color,#ea580c); color:var(--chip-color,#ea580c); font-weight:700; }
+        @media (min-width: 768px) { .cr-head-h { font-size: 18px; } }
+        .cr-head-h em {
+          font-style: normal; color: var(--brand, #ea580c);
+          position: relative;
+        }
+        /* Hand-drawn underline that sketches itself in */
+        .cr-head-h em::after {
+          content: ''; position: absolute; left: 0; right: 0; bottom: -2px;
+          height: 3px; border-radius: 3px;
+          background: var(--brand-border, #fed7aa);
+          transform-origin: left;
+          animation: cr-underline 620ms var(--ease) 320ms both;
+        }
+        @keyframes cr-underline { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+        .cr-head-sub {
+          font-size: 11.5px; font-weight: 600; color: var(--ink-faint, #9ca3af);
+          margin: 0;
+        }
+        @media (max-width: 479px) { .cr-head-sub { display: none; } }
 
-        /* ── Entrance animation ── */
-        @keyframes chip-in { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-        .chip-enter { animation: chip-in 280ms cubic-bezier(0.22,1,0.36,1) both; }
-        @keyframes skel-pulse { 0%,100%{opacity:0.4} 50%{opacity:0.7} }
-        .chip-skeleton { animation: skel-pulse 1.4s ease-in-out infinite; }
+        .cr-viewport { position: relative; }
 
-        /* ── Mobile trigger ── */
-        .cat-trigger { transition: transform 200ms ease, box-shadow 200ms ease; }
-        .cat-trigger:active { transform: scale(0.97); }
-        .chevron { transition: transform 280ms cubic-bezier(0.34,1.56,0.64,1); }
-        .chevron.open { transform: rotate(180deg); }
-        .sheet-row { transition: background 120ms ease; }
-        .sheet-row:active { background:rgba(234,88,12,0.06) !important; }
+        .cr-rail {
+          display: flex; gap: 10px;
+          overflow-x: auto; overflow-y: hidden;
+          scroll-snap-type: x proximity;
+          padding: 4px 2px 8px;
+          -ms-overflow-style: none; scrollbar-width: none;
+          /* Momentum on iOS, and don't let a horizontal flick hijack the page */
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior-x: contain;
+        }
+        .cr-rail::-webkit-scrollbar { display: none; }
+        @media (min-width: 768px) { .cr-rail { gap: 14px; } }
 
-        @media(prefers-reduced-motion:reduce){
-          .cat-chip,.chip-icon,.chip-enter,.chip-skeleton,.cat-trigger,.chevron,.more-btn,.more-drop {
-            animation:none !important; transition-duration:0ms !important;
+        /* ── Tile ─────────────────────────────────────────────────── */
+        .cr-tile {
+          flex: 0 0 auto;
+          scroll-snap-align: start;
+          width: 74px;
+          display: flex; flex-direction: column; align-items: center; gap: 8px;
+          text-decoration: none;
+          animation: bz-pop 420ms var(--spring) both;
+        }
+        @media (min-width: 768px) { .cr-tile { width: 84px; } }
+
+        .cr-icon {
+          position: relative;
+          width: 58px; height: 58px;
+          border-radius: 19px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 25px;
+          overflow: hidden;
+          /* The gradient is set inline per category */
+          box-shadow: 0 6px 16px var(--cr-shadow);
+          transition: transform 320ms var(--spring), box-shadow 320ms ease;
+        }
+        @media (min-width: 768px) { .cr-icon { width: 66px; height: 66px; border-radius: 22px; font-size: 28px; } }
+
+        /* Gloss across the top of the tile — reads as a physical button */
+        .cr-icon::before {
+          content: ''; position: absolute; inset: 0;
+          background: linear-gradient(160deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.06) 46%, transparent 60%);
+          pointer-events: none;
+        }
+        /* Shine sweep on hover */
+        .cr-icon::after {
+          content: ''; position: absolute; top: -50%; bottom: -50%; left: -70%;
+          width: 45%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+          transform: translateX(-140%) skewX(-20deg);
+          pointer-events: none;
+        }
+
+        .cr-label {
+          font-size: 11px; font-weight: 700;
+          letter-spacing: -0.02em; line-height: 1.25;
+          color: var(--ink-soft, #374151);
+          text-align: center;
+          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+          overflow: hidden;
+          transition: color 200ms ease;
+        }
+        @media (min-width: 768px) { .cr-label { font-size: 12px; } }
+
+        /* A soft bloom of the category's own colour, behind its tile. Sits at
+           z-index -1 relative to the tile content and only blooms on hover. */
+        .cr-tile { position: relative; }
+        .cr-tile::before {
+          content: '';
+          position: absolute; top: 4px; left: 50%;
+          width: 58px; height: 58px; border-radius: 50%;
+          transform: translateX(-50%) scale(0.6);
+          background: var(--cr-a);
+          filter: blur(18px);
+          opacity: 0;
+          transition: opacity 340ms ease, transform 340ms var(--spring);
+          pointer-events: none;
+        }
+        @media (min-width: 768px) { .cr-tile::before { width: 66px; height: 66px; } }
+
+        @media (hover: hover) {
+          .cr-tile:hover::before { opacity: 0.55; transform: translateX(-50%) scale(1.5); }
+          .cr-tile:hover .cr-icon {
+            transform: translateY(-6px) scale(1.1) rotate(-5deg);
+            box-shadow: 0 16px 34px var(--cr-shadow-strong);
           }
-          .cat-chip:hover { transform:none; }
+          .cr-tile:hover .cr-icon::after { animation: bz-shine 700ms ease both; }
+          .cr-tile:hover .cr-label { color: var(--cr-a); transform: translateY(1px); }
+        }
+        .cr-label { transition: color 200ms ease, transform 200ms ease; }
+        .cr-tile:active .cr-icon { transform: scale(0.93); }
+        .cr-tile:focus-visible { outline: none; }
+        .cr-tile:focus-visible .cr-icon { outline: 3px solid var(--cr-a); outline-offset: 3px; }
+
+        /* ── Active ───────────────────────────────────────────────── */
+        .cr-tile.is-active .cr-icon {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 28px var(--cr-shadow-strong), 0 0 0 3px rgba(255,255,255,0.9), 0 0 0 5px var(--cr-a);
+        }
+        .cr-tile.is-active .cr-label { color: var(--cr-a); font-weight: 800; }
+        .cr-tile.is-active .cr-icon::before { opacity: 0.5; }
+        .cr-tile.is-active::before { opacity: 0.4; transform: translateX(-50%) scale(1.3); }
+        /* A dot beneath the active label */
+        .cr-tile.is-active .cr-label::after {
+          content: ''; display: block; margin: 4px auto 0;
+          width: 5px; height: 5px; border-radius: 50%;
+          background: var(--cr-a);
+          animation: bz-pop 340ms var(--spring) both;
+        }
+
+        /* ── Edge fades + arrows ──────────────────────────────────── */
+        .cr-fade {
+          position: absolute; top: 0; bottom: 8px; width: 44px;
+          pointer-events: none; z-index: 2;
+          opacity: 1; transition: opacity 260ms ease;
+        }
+        .cr-fade-l { left: 0;  background: linear-gradient(90deg, var(--brand-tint, #fff7ed) 25%, transparent); }
+        .cr-fade-r { right: 0; background: linear-gradient(270deg, var(--brand-tint, #fff7ed) 25%, transparent); }
+        .cr-fade[data-hidden="true"] { opacity: 0; }
+
+        .cr-arrow {
+          position: absolute; top: 26px; z-index: 3;
+          width: 32px; height: 32px; border-radius: 50%;
+          border: 1px solid rgba(0,0,0,0.06);
+          background: #fff; color: var(--ink-soft, #374151);
+          cursor: pointer;
+          display: none; align-items: center; justify-content: center;
+          box-shadow: var(--sh-md, 0 4px 20px rgba(0,0,0,0.07));
+          transition: transform 220ms var(--spring), background 200ms ease, opacity 220ms ease;
+        }
+        @media (min-width: 768px) and (hover: hover) { .cr-arrow { display: flex; } }
+        .cr-arrow:hover { transform: scale(1.14); background: var(--brand-tint, #fff7ed); color: var(--brand, #ea580c); }
+        .cr-arrow[data-hidden="true"] { opacity: 0; pointer-events: none; }
+        .cr-arrow-l { left: -6px; }
+        .cr-arrow-r { right: -6px; }
+
+        /* ── Skeleton ─────────────────────────────────────────────── */
+        .cr-skel { flex: 0 0 auto; width: 74px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        @media (min-width: 768px) { .cr-skel { width: 84px; } }
+        .cr-skel-icon { width: 58px; height: 58px; border-radius: 19px; background: #e7e5e4; }
+        @media (min-width: 768px) { .cr-skel-icon { width: 66px; height: 66px; border-radius: 22px; } }
+        .cr-skel-text { width: 70%; height: 9px; border-radius: 5px; background: #e7e5e4; }
+        .cr-skel-icon, .cr-skel-text { animation: cr-pulse 1.4s ease-in-out infinite; }
+        @keyframes cr-pulse { 0%,100% { opacity: 0.45; } 50% { opacity: 0.8; } }
+
+        @media (prefers-reduced-motion: reduce) {
+          .cr-tile, .cr-icon, .cr-icon::after, .cr-label,
+          .cr-skel-icon, .cr-skel-text, .cr-arrow,
+          .cr-tile.is-active .cr-label::after {
+            animation: none !important; transition: none !important;
+          }
+          .cr-tile:hover .cr-icon, .cr-tile:active .cr-icon { transform: none !important; }
+          .cr-shell::before, .cr-head-h em::after { animation: none !important; }
+          .cr-head-h em::after { transform: scaleX(1) !important; }
+          .cr-tile::before { transition: none !important; }
+          .cr-rail { scroll-behavior: auto !important; }
         }
       `}</style>
 
-      {/* ════════════════════════════════════════════════════
-          DESKTOP — inline chips + "More ▾" dropdown
-          Sticky at top:92px, hidden below md
-      ════════════════════════════════════════════════════ */}
-      <div className="relative hidden md:block"
-        style={{ position:"sticky", top:92, zIndex:40, background:"#f8f7f5", paddingTop:8, paddingBottom:8 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"nowrap", overflowX:"visible" }}>
-
-          {/* Inline chips */}
-          {loading && [90,110,85,105,95,80,100].map((w, i) => (
-            <div key={i} className="chip-skeleton" style={{ width:w, height:38, borderRadius:100, background:"#e5e7eb", flexShrink:0, animationDelay:`${i*70}ms` }} />
-          ))}
-          {!loading && inlineChips.map((cat, i) => {
-            const isActive = pathname === `/category/${cat.slug}`;
-            const acc = CATEGORY_ACCENT[cat.slug] ?? DEFAULT_ACCENT;
-            return (
-              <Link key={cat.id} href={`/category/${cat.slug}`}
-                className={`cat-chip chip-enter${isActive?" active-chip":""}`}
-                style={{
-                  "--chip-color": acc.color, "--chip-border": acc.border,
-                  animationDelay:`${i*40}ms`,
-                } as React.CSSProperties}>
-                <span className="chip-icon" style={{ background: isActive?"rgba(255,255,255,0.22)":acc.bg }}>
-                  {cat.icon}
-                </span>
-                {cat.name}
-              </Link>
-            );
-          })}
-
-          {/* ── "More ▾" dropdown button ── */}
-          {!loading && moreChips.length > 0 && (
-            <div style={{ position:"relative", flexShrink:0 }}>
-              <button ref={moreBtnRef} type="button"
-                className={`more-btn${moreOpen?" open":""}${activeIsInMore?" has-active":""}`}
-                onClick={() => setMoreOpen(o => !o)}>
-                {activeIsInMore ? (
-                  <>
-                    <span aria-hidden="true">{activeCategory?.icon}</span>
-                    {activeCategory?.name}
-                  </>
-                ) : (
-                  <>More <span style={{ opacity:0.6, fontSize:11 }}>+{moreChips.length}</span></>
-                )}
-                <svg className="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
-                  <path d="M6 9l6 6 6-6"/>
-                </svg>
-              </button>
-
-              {moreOpen && (
-                <div ref={moreDropRef} className="more-drop">
-                  <div style={{ padding:"10px 16px 8px", fontSize:10, fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", color:"#9ca3af" }}>
-                    All Categories
-                  </div>
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", paddingBottom:8 }}>
-                    {moreChips.map(cat => {
-                      const isActive = pathname === `/category/${cat.slug}`;
-                      const acc = CATEGORY_ACCENT[cat.slug] ?? DEFAULT_ACCENT;
-                      return (
-                        <Link key={cat.id} href={`/category/${cat.slug}`}
-                          className={`more-item${isActive?" active-item":""}`}
-                          style={{ "--chip-color": acc.color } as React.CSSProperties}
-                          onClick={() => setMoreOpen(false)}>
-                          <span style={{ width:28, height:28, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, background:acc.bg, flexShrink:0 }}>
-                            {cat.icon}
-                          </span>
-                          <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{cat.name}</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+      <div className="cr-shell">
+        <div className="cr-head">
+          <h2 className="cr-head-h">
+            What are you <em>looking for?</em>
+          </h2>
+          <p className="cr-head-sub">{categories.length > 0 ? `${categories.length} categories` : ""}</p>
         </div>
-      </div>
 
-      {/* ════════════════════════════════════════════════════
-          MOBILE — pill trigger + bottom sheet (unchanged)
-      ════════════════════════════════════════════════════ */}
-      <div className="md:hidden">
-        <button ref={triggerRef} type="button" onClick={openSheet}
-          aria-haspopup="dialog" aria-expanded={sheetOpen}
-          className="cat-trigger"
-          style={{
-            display:"flex", alignItems:"center", gap:8, width:"100%", minHeight:44,
-            padding:"0 16px", borderRadius:100,
-            border:`1px solid ${activeCategory ? CATEGORY_ACCENT[activeCategory.slug]?.border ?? "#e5e7eb" : "#e5e7eb"}`,
-            background: activeCategory ? CATEGORY_ACCENT[activeCategory.slug]?.bg ?? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.9)",
-            backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
-            boxShadow:"0 2px 8px rgba(0,0,0,0.06)", fontSize:14, fontWeight:600,
-            color: activeCategory ? CATEGORY_ACCENT[activeCategory.slug]?.color ?? "#374151" : "#374151",
-            cursor:"pointer", textAlign:"left",
-          }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ flexShrink:0, opacity:0.5 }}>
-            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-          </svg>
-          {activeCategory ? (
-            <span style={{ display:"flex", alignItems:"center", gap:6, flex:1 }}>
-              <span aria-hidden="true">{activeCategory.icon}</span>{activeCategory.name}
-            </span>
-          ) : <span style={{ flex:1 }}>Categories</span>}
-          <svg className={`chevron ${sheetOpen ? "open" : ""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ flexShrink:0, opacity:0.5 }}>
-            <path d="M6 9l6 6 6-6"/>
-          </svg>
-        </button>
+        <div className="cr-viewport">
+          <div className="cr-fade cr-fade-l" data-hidden={atStart} aria-hidden="true" />
+          <div className="cr-fade cr-fade-r" data-hidden={atEnd} aria-hidden="true" />
 
-        <AnimatePresence>
-          {sheetOpen && (
-            <>
-              <motion.div key="backdrop" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
-                transition={{ duration:0.15 }}
-                onClick={closeSheet}
-                style={{ position:"fixed", inset:0, zIndex:100, background:"rgba(0,0,0,0.45)", backdropFilter:"blur(3px)", WebkitBackdropFilter:"blur(3px)" }}
-                aria-hidden="true" />
+          <button
+            type="button"
+            className="cr-arrow cr-arrow-l"
+            data-hidden={atStart}
+            onClick={() => nudge(-1)}
+            aria-label="Scroll categories left"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="cr-arrow cr-arrow-r"
+            data-hidden={atEnd}
+            onClick={() => nudge(1)}
+            aria-label="Scroll categories right"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
 
-              <motion.div key="sheet" role="dialog" aria-modal="true" aria-label="Select a category"
-                initial={{ y:"100%" }} animate={{ y:0 }} exit={{ y:"100%" }}
-                transition={{ type:"spring", damping:32, stiffness:380 }}
-                style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:101, height:"65vh", background:"white", borderRadius:"24px 24px 0 0", display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 -16px 56px rgba(0,0,0,0.25)" }}>
-
-                {/* ── Gradient header — same as notification bell, location, drawer ── */}
-                <div style={{ background:"linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%)", padding:"14px 20px 18px", flexShrink:0, position:"relative" }}>
-                  {/* Grid overlay */}
-                  <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize:"28px 28px", borderRadius:"24px 24px 0 0", pointerEvents:"none" }} />
-                  {/* Drag handle */}
-                  <div style={{ width:36, height:4, borderRadius:100, background:"rgba(255,255,255,0.25)", margin:"0 auto 14px", position:"relative" }} />
-                  {/* Title row */}
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", position:"relative" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                      <span style={{ fontSize:20 }}>🗂️</span>
-                      <div>
-                        <p style={{ fontWeight:700, fontSize:15, color:"white", margin:0 }}>Categories</p>
-                        <p style={{ fontSize:11, color:"rgba(255,255,255,0.6)", margin:0 }}>
-                          {activeCategory ? activeCategory.name : "Browse all categories"}
-                        </p>
-                      </div>
-                    </div>
-                    <button type="button" onClick={closeSheet} aria-label="Close categories"
-                      style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
-                    </button>
-                  </div>
+          <div className="cr-rail" ref={railRef}>
+            {loading &&
+              Array.from({ length: 10 }).map((_, i) => (
+                <div className="cr-skel" key={i}>
+                  <div className="cr-skel-icon" style={{ animationDelay: `${i * 70}ms` }} />
+                  <div className="cr-skel-text" style={{ animationDelay: `${i * 70}ms` }} />
                 </div>
+              ))}
 
-                {/* Category list — no per-row motion.div (that was causing the lag) */}
-                <div style={{ overflowY:"auto", flex:1, padding:"6px 0" }}>
-                  {loading && [1,2,3,4,5].map(i => (
-                    <div key={i} className="chip-skeleton" style={{ margin:"6px 16px", height:52, borderRadius:12, background:"#f3f4f6", animationDelay:`${i*60}ms` }} />
-                  ))}
-                  {!loading && categories.map((cat) => {
-                    const isActive = pathname === `/category/${cat.slug}`;
-                    const acc = CATEGORY_ACCENT[cat.slug] ?? DEFAULT_ACCENT;
-                    return (
-                      <Link key={cat.id} href={`/category/${cat.slug}`} onClick={closeSheet} className="sheet-row"
-                        style={{ display:"flex", alignItems:"center", gap:14, padding:"0 20px", minHeight:52, textDecoration:"none", background: isActive ? acc.bg : "transparent", borderLeft: isActive ? `3px solid ${acc.color}` : "3px solid transparent" }}>
-                        <span style={{ width:36, height:36, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, background:acc.bg, flexShrink:0 }} aria-hidden="true">{cat.icon}</span>
-                        <span style={{ flex:1, fontSize:15, fontWeight:isActive?700:500, color:isActive?acc.color:"#374151" }}>{cat.name}</span>
-                        {isActive && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={acc.color} strokeWidth={2.5}><path d="M20 6L9 17l-5-5"/></svg>}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+            {!loading &&
+              categories.map((cat, i) => {
+                const isActive = pathname === `/category/${cat.slug}`;
+                const [a, b] = ACCENT[cat.slug] ?? DEFAULT_ACCENT;
+                return (
+                  <Link
+                    key={cat.id}
+                    href={`/category/${cat.slug}`}
+                    className={`cr-tile${isActive ? " is-active" : ""}`}
+                    aria-current={isActive ? "page" : undefined}
+                    style={
+                      {
+                        "--cr-a": a,
+                        "--cr-shadow": `${a}38`,
+                        "--cr-shadow-strong": `${a}66`,
+                        // Cap the stagger so tile 24 isn't still waiting a second in
+                        animationDelay: `${Math.min(i, 12) * 35}ms`,
+                      } as React.CSSProperties
+                    }
+                  >
+                    <span
+                      className="cr-icon"
+                      style={{ background: `linear-gradient(145deg, ${a}, ${b})` }}
+                      aria-hidden="true"
+                    >
+                      {cat.icon}
+                    </span>
+                    <span className="cr-label">{cat.name}</span>
+                  </Link>
+                );
+              })}
+          </div>
+        </div>
       </div>
     </>
   );
