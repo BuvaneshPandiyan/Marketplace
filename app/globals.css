@@ -61,12 +61,39 @@
   --color-brand-tint: var(--brand-tint);
 }
 
+/**
+ * Typeface.
+ *
+ * --font-sans is set by next/font in app/layout.tsx and points at a self-hosted
+ * Figtree. This replaced the system stack (-apple-system / Roboto / etc), every
+ * member of which resolves to a font the DEVICE chooses — so a user with a custom
+ * system font on their Samsung was seeing this site in it.
+ *
+ * The fallbacks after it only apply in the milliseconds before the woff2 lands,
+ * and next/font size-adjusts them to match Figtree's metrics so nothing shifts.
+ *
+ * `html` and `body` both, and everything inherits from there — nothing else in
+ * the codebase names a font.
+ */
+html, body {
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   /* Zomato/Zepto set type tight and heavy; this is the base everything inherits */
   letter-spacing: -0.011em;
+  /* Stop iOS Safari from inflating text in landscape — another way the device
+     overrides our typography without asking */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Form controls don't inherit font-family by default — they'd fall back to the
+   device's UI font, which is exactly what we're avoiding. */
+input, textarea, select, button {
+  font-family: inherit;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
