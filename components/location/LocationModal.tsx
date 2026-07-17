@@ -76,11 +76,17 @@ export function LocationModal({ onClose }: LocationModalProps) {
     }
     // Show what we pinned instead of vanishing — the user gets to confirm it's right
     setCaptured(result.locality ?? "Current location");
+    setChanging(false);
   }
 
   function handleSelectLocation(location: StoredLocation) {
     setActiveLocation(location);
     setCaptured(location.locality);
+    // Leave "changing" mode, or showPinned stays false and the modal sits on the
+    // picker even though the location just changed. This is why selecting a
+    // recent updated the navbar but not the modal.
+    setChanging(false);
+    setErrorMessage(null);
   }
 
   /**
@@ -365,6 +371,10 @@ export function LocationModal({ onClose }: LocationModalProps) {
           text-transform: uppercase; color: var(--ink-faint, #9ca3af);
         }
 
+        /* Search must sit above recents — see the note at the call site */
+        .lm-search      { position: relative; z-index: 3; }
+        .lm-recent-wrap { position: relative; z-index: 1; }
+
         .lm-recent-h {
           display: flex; align-items: center; gap: 6px;
           font-size: 9.5px; font-weight: 900; letter-spacing: 0.1em;
@@ -517,13 +527,18 @@ export function LocationModal({ onClose }: LocationModalProps) {
           {!showPinned && <div className="lm-or"><span>or search</span></div>}
 
           {!showPinned && (
-            <div>
+            /* z-index matters here: .lm-body > * carries a staggered rise with
+               fill-mode:both, which leaves a transform on every child — and a
+               transformed element makes its own stacking context. Without an
+               explicit order the recents block (a later sibling) paints over
+               this one's search dropdown, whatever z-index the dropdown sets. */
+            <div className="lm-search">
               <LocationSearchInput onSelect={handleSelectLocation} />
             </div>
           )}
 
           {!showPinned && recentLocations.length > 0 && (
-            <div>
+            <div className="lm-recent-wrap">
               <p className="lm-recent-h">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />

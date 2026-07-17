@@ -71,24 +71,94 @@ export function LocationSearchInput({ onSelect, placeholder }: LocationSearchInp
 
   // Render the search box and its results dropdown
   return (
-    // A relatively positioned wrapper so the results list can be absolutely positioned below it
-    <div className="relative">
+    <>
+      <style>{`
+        .lsi { position: relative; }
+
+        .lsi-input {
+          width: 100%;
+          padding: 12px 14px;
+          border-radius: var(--r-md, 16px);
+          border: 1.5px solid var(--line-strong, #e5e7eb);
+          background: #fff;
+          font-size: 13.5px; font-weight: 700; letter-spacing: -0.02em;
+          color: var(--ink, #1a1a1a);
+          outline: none;
+          transition: border-color 200ms ease, box-shadow 200ms ease;
+        }
+        .lsi-input::placeholder { color: var(--ink-faint, #9ca3af); font-weight: 600; }
+        .lsi-input:focus {
+          border-color: var(--brand, #ea580c);
+          box-shadow: 0 0 0 3px rgba(234,88,12,0.13);
+        }
+
+        .lsi-hint { margin-top: 6px; font-size: 11px; color: var(--ink-faint, #9ca3af); font-weight: 600; }
+
+        /* Opaque, and lifted clear of the input. The ordering that actually
+           decided the overlap lives in the modal (.lm-search vs
+           .lm-recent-wrap) — this z-index only competes locally. */
+        .lsi-results {
+          position: absolute;
+          top: calc(100% + 6px); left: 0; right: 0;
+          z-index: 20;
+          margin: 0; padding: 5px;
+          list-style: none;
+          border-radius: var(--r-md, 16px);
+          border: 1.5px solid var(--brand-border, #fed7aa);
+          background: #fff;
+          box-shadow: 0 16px 44px rgba(124,32,0,0.2), 0 3px 10px rgba(124,32,0,0.08);
+          max-height: 240px; overflow-y: auto;
+          animation: lsi-in 200ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes lsi-in {
+          from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+          to   { opacity: 1; transform: none; }
+        }
+
+        .lsi-row {
+          display: block; width: 100%;
+          padding: 10px 11px;
+          border: none; background: transparent;
+          border-radius: 10px;
+          text-align: left; cursor: pointer;
+          font-size: 13px; font-weight: 700; letter-spacing: -0.02em;
+          color: var(--ink-soft, #374151);
+          transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+        }
+        @media (hover: hover) {
+          .lsi-row:hover {
+            background: var(--brand-tint, #fff7ed);
+            color: var(--brand, #ea580c);
+            transform: translateX(3px);
+          }
+        }
+        .lsi-row:focus-visible { outline: 2px solid var(--brand, #ea580c); outline-offset: -2px; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .lsi-results { animation: none !important; }
+          .lsi-row, .lsi-input { transition: none !important; }
+          .lsi-row:hover { transform: none !important; }
+        }
+      `}</style>
+
+    {/* Relatively positioned wrapper so the results list can sit below the input */}
+    <div className="lsi">
       {/* The text input the user types their search query into */}
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder ?? "Search for your area..."}
-        className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+        className="lsi-input"
       />
 
       {/* Show a small loading hint while a search is in flight */}
-      {isSearching && <p className="mt-1 text-xs text-neutral-400">Searching...</p>}
+      {isSearching && <p className="lsi-hint">Searching...</p>}
 
       {/* Only render the results dropdown if we actually have results to show */}
       {results.length > 0 && (
         // An absolutely positioned dropdown list sitting just below the input
-        <ul className="absolute z-10 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-lg">
+        <ul className="lsi-results">
           {/* Loop over each search result and render it as a clickable row */}
           {results.map((result, index) => (
             // Each row is a list item containing a button for the whole clickable area
@@ -103,7 +173,7 @@ export function LocationSearchInput({ onSelect, placeholder }: LocationSearchInp
                   // Clear the results list so the dropdown closes
                   setResults([]);
                 }}
-                className="block w-full px-3 py-2 text-left text-sm hover:bg-neutral-50"
+                className="lsi-row"
               >
                 {/* Display the place's full label/address */}
                 {result.label}
@@ -113,5 +183,6 @@ export function LocationSearchInput({ onSelect, placeholder }: LocationSearchInp
         </ul>
       )}
     </div>
+    </>
   );
 }
