@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MyListingCard } from "@/components/listings/MyListingCard";
+import Image from "next/image";
 import Link from "next/link";
 
 type RawListing = {
@@ -36,6 +37,8 @@ export function MyListingsDashboard({ listings }: Props) {
   const [tab,      setTab]      = useState<string | null>(null);
   const [sort,     setSort]     = useState("newest");
   const [view,     setView]     = useState<"grid"|"list">("grid");
+  // Optional band artwork — falls back to the plain gradient if absent.
+  const [artFailed, setArtFailed] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
   const [mounted,  setMounted]  = useState(false);
   const [dropPos,  setDropPos]  = useState({ top: 0, right: 0 });
@@ -196,7 +199,43 @@ export function MyListingsDashboard({ listings }: Props) {
         /* ══════════════════════════════════════════════════════════
            PAGE HEAD + STATS
            ══════════════════════════════════════════════════════════ */
-        .ml-head { padding: 18px 0 4px; }
+        /* The band sits behind the head and bleeds edge to edge */
+        .ml-band {
+          position: absolute; top: 0; left: 0; right: 0;
+          height: 190px;
+          overflow: hidden;
+          background: linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%);
+          border-radius: 0 0 28px 28px;
+          pointer-events: none;
+        }
+        @media (min-width: 640px) { .ml-band { height: 210px; } }
+        .ml-band-art {
+          position: absolute; inset: 0;
+          opacity: 0.4;
+          -webkit-mask-image: linear-gradient(90deg, transparent 2%, rgba(0,0,0,0.55) 40%, #000 85%);
+          mask-image: linear-gradient(90deg, transparent 2%, rgba(0,0,0,0.55) 40%, #000 85%);
+          animation: ml-band-in 900ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes ml-band-in { from { opacity: 0; transform: scale(1.08); } }
+        .ml-band-grid {
+          position: absolute; inset: 0;
+          background-image:
+            linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+          background-size: 28px 28px;
+        }
+        .ml-band-glow {
+          position: absolute; top: -110px; right: -70px;
+          width: 300px; height: 300px; border-radius: 50%;
+          background: radial-gradient(circle, rgba(249,115,22,0.45) 0%, transparent 70%);
+          animation: ml-breathe 9s ease-in-out infinite;
+        }
+        @keyframes ml-breathe {
+          0%,100% { transform: scale(1); opacity: 0.85; }
+          50%     { transform: scale(1.14); opacity: 1; }
+        }
+
+        .ml-head { position: relative; z-index: 1; padding: 18px 0 4px; }
         @media (min-width: 640px) { .ml-head { padding: 26px 0 6px; } }
 
         .ml-head-row {
@@ -207,15 +246,15 @@ export function MyListingsDashboard({ listings }: Props) {
         .ml-h1 {
           font-size: 24px; font-weight: 900;
           letter-spacing: -0.045em; line-height: 1.1;
-          color: var(--ink, #1a1a1a); margin: 0;
+          color: #fff; margin: 0;
         }
         @media (min-width: 640px)  { .ml-h1 { font-size: 30px; } }
         @media (min-width: 1024px) { .ml-h1 { font-size: 34px; } }
-        .ml-h1 em { font-style: normal; color: var(--brand, #ea580c); position: relative; }
+        .ml-h1 em { font-style: normal; color: #fdba74; position: relative; }
         .ml-h1 em::after {
           content: ''; position: absolute; left: 0; right: 0; bottom: -1px;
           height: 4px; border-radius: 4px;
-          background: var(--brand-border, #fed7aa);
+          background: rgba(253,186,116,0.45);
           transform-origin: left;
           animation: ml-underline 620ms cubic-bezier(0.22,1,0.36,1) 220ms both;
         }
@@ -223,7 +262,7 @@ export function MyListingsDashboard({ listings }: Props) {
 
         .ml-h1-sub {
           font-size: 12.5px; font-weight: 700; letter-spacing: -0.02em;
-          color: var(--ink-faint, #9ca3af); margin: 5px 0 0;
+          color: rgba(255,255,255,0.72); margin: 5px 0 0;
         }
         @media (min-width: 640px) { .ml-h1-sub { font-size: 13.5px; } }
 
@@ -232,14 +271,15 @@ export function MyListingsDashboard({ listings }: Props) {
           flex-shrink: 0;
           display: inline-flex; align-items: center; gap: 7px;
           padding: 11px 17px; border-radius: 100px;
-          background: linear-gradient(135deg,#ea580c,#f97316);
-          color: #fff; text-decoration: none;
+          /* White on the band — an orange button on an orange band disappears */
+          background: #fff;
+          color: #ea580c; text-decoration: none;
           font-size: 13.5px; font-weight: 900; letter-spacing: -0.025em;
-          box-shadow: 0 5px 18px rgba(234,88,12,0.4);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.25);
           transition: transform 240ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 240ms ease;
         }
         @media (hover: hover) {
-          .ml-new:hover { transform: translateY(-2px); box-shadow: 0 9px 26px rgba(234,88,12,0.52); }
+          .ml-new:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,0.32); }
           .ml-new:hover svg { transform: rotate(90deg); }
         }
         .ml-new:active { transform: scale(0.95); }
@@ -310,6 +350,27 @@ export function MyListingsDashboard({ listings }: Props) {
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
+        /* ── Toolbar chips ────────────────────────────────────────── */
+        .ml-chip-idle {
+          font-size: 11.5px; font-weight: 800; letter-spacing: -0.02em;
+          color: var(--ink-faint, #9ca3af);
+        }
+        .ml-chip-active {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 5px 11px; border-radius: 100px; border: none;
+          background: linear-gradient(135deg,#ea580c,#f97316);
+          color: #fff; cursor: pointer;
+          font-size: 11.5px; font-weight: 800; letter-spacing: -0.02em;
+          box-shadow: 0 3px 10px rgba(234,88,12,0.35);
+          transition: transform 200ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 200ms ease;
+        }
+        @media (hover: hover) { .ml-chip-active:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(234,88,12,0.45); } }
+        .ml-chip-active:active { transform: scale(0.95); }
+        .ml-chip-n {
+          background: rgba(255,255,255,0.28); border-radius: 100px;
+          padding: 0 5px; font-size: 10px; font-weight: 900;
+        }
+
         /* ── Empty state ──────────────────────────────────────────── */
         .ml-empty-h {
           font-size: 22px; font-weight: 900; letter-spacing: -0.04em;
@@ -351,6 +412,9 @@ export function MyListingsDashboard({ listings }: Props) {
         }
 
         @media (prefers-reduced-motion: reduce) {
+          .ml-band-art, .ml-band-glow { animation: none !important; }
+          .ml-chip-active { transition: none !important; }
+          .ml-chip-active:hover, .ml-chip-active:active { transform: none !important; }
           .ml-empty-perks li { animation: none !important; }
           .ml-h1 em::after { animation: none !important; transform: scaleX(1) !important; }
           .ml-stat { animation: none !important; }
@@ -368,12 +432,35 @@ export function MyListingsDashboard({ listings }: Props) {
         ════════════════════════════════════════════════════════════════════
       */}
       <div className="mx-auto max-w-[1400px] px-3 sm:px-6"
-           style={{ paddingTop: 0, paddingBottom: 32 }}>
+           style={{ paddingTop: 0, paddingBottom: 32, position: "relative" }}>
 
         {/* ── PAGE HEAD ──
             The h1 used to be 16px/800 buried in the sticky toolbar, which is why
             the page read as a file browser rather than a place. Same type scale
             as the home feed and contact page. */}
+        {/* ── HERO BAND ──
+            The page opened straight onto grey with a heading floating on it,
+            which is why it read as empty no matter how much we put below. This
+            is the same dark→orange band as the home hero and contact page, so
+            the page has a top edge and the stat tiles have something to sit
+            against. It bleeds past the container's padding on purpose. */}
+        <div className="ml-band">
+          {!artFailed && (
+            <div className="ml-band-art" aria-hidden="true">
+              <Image
+                src="/images/header-listings.png"
+                alt=""
+                fill
+                sizes="100vw"
+                style={{ objectFit: "cover", objectPosition: "center right" }}
+                onError={() => setArtFailed(true)}
+              />
+            </div>
+          )}
+          <div className="ml-band-grid" aria-hidden="true" />
+          <div className="ml-band-glow" aria-hidden="true" />
+        </div>
+
         <div className="ml-head">
           <div className="ml-head-row">
             <div>
@@ -426,23 +513,26 @@ export function MyListingsDashboard({ listings }: Props) {
           paddingBottom: 12,
           borderBottom: "2px solid #ebebeb",
         }}>
-          {/* Left: accent bar + title + count pill */}
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:3, height:20, borderRadius:100, background:"linear-gradient(180deg,#ea580c,#f97316)", flexShrink:0 }} />
-            {/* Demoted from <h1> — the page head above owns that now, and two
-                h1s on one page is both wrong markup and a confused hierarchy. */}
-            <p style={{ fontSize:14, fontWeight:800, color:"#111", margin:0, letterSpacing:"-0.025em" }}>
-              My Listings
-            </p>
+          {/*
+            Left side used to read "▍My Listings · 3 total" — directly under a page
+            head already saying "Your listings · 2 live · 1 sold · 0 views". Two
+            titles and two counts for one list. The head owns naming the page; this
+            bar only needs to say what's being FILTERED, and only when something is.
+          */}
+          <div style={{ display:"flex", alignItems:"center", gap:8, minWidth:0 }}>
             {tab ? (
-              <span style={{ fontSize:11, color:"white", fontWeight:700, background:"#ea580c", padding:"2px 9px", borderRadius:100 }}>
-                {activeLabel} · {count(tab)}
+              <button type="button" onClick={() => setTab(null)} className="ml-chip-active">
+                {activeLabel}
+                <span className="ml-chip-n">{count(tab)}</span>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" aria-hidden="true">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            ) : (
+              <span className="ml-chip-idle">
+                Showing all {counts.total}
               </span>
-            ) : counts.total > 0 ? (
-              <span style={{ fontSize:11, color:"#9ca3af", background:"#f3f4f6", padding:"2px 9px", borderRadius:100, fontWeight:600 }}>
-                {counts.total} total
-              </span>
-            ) : null}
+            )}
           </div>
 
           {/* Right: view toggle + filter */}
