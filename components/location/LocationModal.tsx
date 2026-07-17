@@ -38,6 +38,12 @@ export function LocationModal({ onClose }: LocationModalProps) {
    * had no idea whether it got you right.
    */
   const [captured, setCaptured] = useState<string | null>(null);
+  /**
+   * Whether the user pinned a location during THIS session (vs. arriving with one
+   * already set). Kept separate from `captured` so the name can safely fall back
+   * to context — see handleUseCurrentLocation.
+   */
+  const [justPinned, setJustPinned] = useState(false);
   // True once the user asks to change an already-set location
   const [changing, setChanging] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -74,14 +80,22 @@ export function LocationModal({ onClose }: LocationModalProps) {
       setErrorMessage(result.error ?? "Couldn't get your location.");
       return;
     }
-    // Show what we pinned instead of vanishing — the user gets to confirm it's right
-    setCaptured(result.locality ?? "Current location");
+    /**
+     * Deliberately no "Current location" fallback here. If detect doesn't hand a
+     * name back, `pinnedName` falls through to `locality` from context — which
+     * setActiveLocation has just set to the real one. Inventing a placeholder
+     * meant a provider that didn't return the name showed "Current location"
+     * while every other part of the app showed "Tambaram".
+     */
+    setCaptured(result.locality ?? null);
+    setJustPinned(true);
     setChanging(false);
   }
 
   function handleSelectLocation(location: StoredLocation) {
     setActiveLocation(location);
     setCaptured(location.locality);
+    setJustPinned(true);
     // Leave "changing" mode, or showPinned stays false and the modal sits on the
     // picker even though the location just changed. This is why selecting a
     // recent updated the navbar but not the modal.
@@ -445,10 +459,10 @@ export function LocationModal({ onClose }: LocationModalProps) {
                 </svg>
               </span>
               <span className="lm-pinned-body">
-                <span className="lm-pinned-k">{captured ? "Location pinned" : "You're browsing"}</span>
+                <span className="lm-pinned-k">{justPinned ? "Location pinned" : "You're browsing"}</span>
                 <span className="lm-pinned-v">{pinnedName}</span>
               </span>
-              <button type="button" className="lm-change" onClick={() => { setChanging(true); setCaptured(null); }}>
+              <button type="button" className="lm-change" onClick={() => { setChanging(true); setCaptured(null); setJustPinned(false); }}>
                 Change
               </button>
             </div>

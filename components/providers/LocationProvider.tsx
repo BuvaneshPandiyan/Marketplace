@@ -169,36 +169,19 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       // Parse the JSON response body
       const result = await response.json();
       // Fall back to a generic label if reverse geocoding didn't find a specific locality name
-      const resolvedLocality = result.locality ?? "Current location";
+      // Only fall back to a generic label if reverse geocoding gave us nothing.
+      const resolvedLocality: string = result.locality ?? "Current location";
 
-      // Apply this as the new active browsing location (updates state, localStorage, and recents)
+      // setActiveLocation persists to the profile itself now (persistToProfile),
+      // so the old current_* write that used to live here is gone — it wrote to
+      // columns nothing read, which is half of why saved locations never stuck.
       setActiveLocation({ lat: coords.lat, lng: coords.lng, locality: resolvedLocality });
 
-      // If a user is logged in, also persist this as their "current location" on the profile row
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      // Only attempt the database update if we actually have a logged-in user
-      if (user) {
-        // Update the profile's current_lat/current_lng/current_locality columns
-        await supabase
-          // Target the profiles table
-          .from("profiles")
-          // Update these specific columns
-          .update({
-            // Save the freshly detected latitude
-            current_lat: coords.lat,
-            // Save the freshly detected longitude
-            current_lng: coords.lng,
-            // Save the freshly resolved locality name
-            current_locality: resolvedLocality,
-          })
-          // Only update this user's own row
-          .eq("id", user.id);
-      }
-
-      // Report success back to the calling UI
-      return { success: true };
+      // Hand the resolved name back. The modal shows it as confirmation, and
+      // without it the caller had no idea WHICH place we pinned — it would fall
+      // back to printing "Current location" while the rest of the app happily
+      // displayed the real name.
+      return { success: true, locality: resolvedLocality };
     } catch (error) {
       // If the browser's geolocation API failed, build a clear, user-facing error message
       const message =
