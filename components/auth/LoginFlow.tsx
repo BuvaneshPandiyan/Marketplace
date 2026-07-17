@@ -57,6 +57,21 @@ export function LoginFlow() {
 
       const { error: authErr } = await supabase.auth.signInWithPassword({ phone, password });
       if (authErr) { setError("Incorrect password. Try OTP login if you've forgotten it."); return; }
+      /**
+       * refresh() BEFORE push(), and it is not optional.
+       *
+       * signInWithPassword writes the auth cookie in the browser, but Next's
+       * Router Cache is still holding RSC payloads rendered while logged OUT —
+       * including the (main) layout, which is where `user` comes from. Navigate
+       * without refreshing and the app serves those stale payloads: the header
+       * thinks you're a guest, and middleware bounces /wishlist straight back to
+       * /login. One manual refresh fixed it, which is exactly what users saw.
+       *
+       * router.refresh() throws that cache away and re-requests from the server,
+       * which now sees the cookie. LogoutButton already did this; sign-in never
+       * did — so logging OUT updated the UI correctly and logging IN didn't.
+       */
+      router.refresh();
       router.push(redirectTo);
     } catch {
       setError("Network error. Please try again.");
@@ -114,6 +129,13 @@ export function LoginFlow() {
         .select("name, username, password_set")
         .eq("id", data.user.id)
         .maybeSingle();
+
+      // Same reasoning as the password path above: the session cookie now exists,
+      // but every cached RSC payload still says "logged out". Drop the Router
+      // Cache once here so all four branches below navigate with a server that
+      // knows who we are — /onboarding is middleware-protected too, so without
+      // this a brand new user could be bounced off their own onboarding page.
+      router.refresh();
 
       // No profile at all → brand new user, needs onboarding
       if (!profile) {

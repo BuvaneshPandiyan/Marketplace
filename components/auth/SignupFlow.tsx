@@ -163,6 +163,14 @@ export function SignupFlow() {
       // 5. Welcome notification (fire-and-forget)
       fetch("/api/notifications/welcome", { method:"POST" }).catch(()=>{});
 
+      /**
+       * Same fix as LoginFlow: verifyOtp has set the session cookie, but every
+       * RSC payload in Next's Router Cache was rendered logged-out. Land on "/"
+       * without refreshing and a user who just signed up is greeted by a header
+       * that thinks they're a guest — and the first protected page they tap
+       * bounces them to /login.
+       */
+      router.refresh();
       router.push("/");
     } catch { setError("Something went wrong. Please try again."); }
     finally { setSubmitting(false); }
