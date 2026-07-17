@@ -27,7 +27,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useWishlist } from "@/lib/client/useWishlist";
-import { formatDistance } from "@/lib/geo";
+import { useActiveLocation } from "@/lib/hooks/useActiveLocation";
+import { formatDistance, haversineDistanceKm } from "@/lib/geo";
 import { formatRelativeDate } from "@/lib/client/formatRelativeDate";
 import type { FeedListingItem } from "@/types";
 
@@ -61,6 +62,38 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
     currentPrice: listing.price,
   });
   const [popping, setPopping] = useState(false);
+  const { lat: userLat, lng: userLng } = useActiveLocation();
+
+  /**
+   * Distance to this listing.
+   *
+   * The feed's RPCs only return distance_km for tiers 1 and 2 — get_listings_far
+   * sorts by recency and never computes it, so every tier-3 card had no distance
+   * at all. Rather than add a migration, we fall back to computing it here: the
+   * listing already carries lat/lng and the user's coords are in context, and
+   * haversine over two known points is exact. Server value wins when present
+   * (it's the same maths, done by PostGIS), otherwise we do it locally — so
+   * every card gets a distance, at any range.
+   *
+   * Coordinates are the real ones. fuzzCoordinate exists but is display-only,
+   * applied in MapPreview at 150m; it never touches what's stored.
+   */
+  const distanceKm =
+    listing.distance_km ??
+    (userLat != null && userLng != null
+      ? haversineDistanceKm(userLat, userLng, listing.lat, listing.lng)
+      : null);
+
+  /**
+   * Directions, not a pin drop. We know both ends, so Google can show the route
+   * and the real travel distance — which is what someone tapping "2.5 km away"
+   * actually wants to know. Falls back to a plain search when we don't have the
+   * user's position.
+   */
+  const mapsUrl =
+    userLat != null && userLng != null
+      ? `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${listing.lat},${listing.lng}`
+      : `https://www.google.com/maps/search/?api=1&query=${listing.lat},${listing.lng}`;
 
   function handleWishlist() {
     toggle();
@@ -165,13 +198,53 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
           pointer-events: none;
         }
 
+        /* ── Distance chip ────────────────────────────────────────
+           This is a link now, so it has to LOOK tappable — a static label and a
+           button look identical when both are just text on a photo. It gets a
+           ring, a breathing pulse to catch the eye, and an arrow that slides out
+           on hover. z-index 2 puts it above the photo link's hit area. */
         .lc-dist {
-          position: absolute; top: 6px; left: 6px;
+          position: absolute; top: 6px; left: 6px; z-index: 2;
           display: inline-flex; align-items: center; gap: 3px;
-          padding: 3px 7px; border-radius: var(--r-pill);
-          background: rgba(0,0,0,0.55);
+          padding: 4px 8px; border-radius: var(--r-pill);
+          background: rgba(0,0,0,0.6);
           backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(255,255,255,0.22);
           color: #fff; font-size: 9.5px; font-weight: 800;
+          letter-spacing: -0.01em;
+          text-decoration: none; cursor: pointer;
+          font-variant-numeric: tabular-nums;
+          animation: lc-dist-pulse 3.2s ease-out 1.5s infinite;
+          transition: background 200ms ease, transform 240ms var(--spring),
+                      border-color 200ms ease;
+        }
+        /* A soft ring pushes outward every few seconds — enough to read as
+           interactive without becoming a distraction in a grid of 20 cards */
+        @keyframes lc-dist-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.34); }
+          45%      { box-shadow: 0 0 0 5px rgba(255,255,255,0); }
+        }
+        @media (hover: hover) {
+          .lc-dist:hover {
+            background: var(--brand); border-color: rgba(255,255,255,0.5);
+            transform: scale(1.06);
+            animation-play-state: paused;
+          }
+          .lc-dist:hover .lc-dist-pin { transform: translateY(-1px) scale(1.15); }
+          /* The arrow is hidden until hover — it would crowd the chip otherwise */
+          .lc-dist:hover .lc-dist-go { max-width: 12px; opacity: 1; margin-left: 1px; }
+        }
+        .lc-dist:active { transform: scale(0.93); }
+        .lc-dist:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+        .lc-dist-pin { transition: transform 260ms var(--spring); }
+        .lc-dist-go {
+          max-width: 0; opacity: 0; overflow: hidden;
+          transition: max-width 240ms var(--ease), opacity 200ms ease, margin-left 240ms var(--ease);
+        }
+        /* Touch has no hover, so the arrow is always out — it's the only cue
+           a phone user gets that this does something */
+        @media (hover: none) {
+          .lc-dist-go { max-width: 12px; opacity: 0.75; margin-left: 1px; }
         }
 
         .lc-badge {
@@ -299,7 +372,10 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .lc, .lc-img, .lc-heart, .lc-sheen, .lc-scrim, .lc-title { animation: none !important; transition: none !important; }
+          .lc, .lc-img, .lc-heart, .lc-sheen, .lc-scrim, .lc-title,
+          .lc-dist, .lc-dist-pin, .lc-dist-go { animation: none !important; transition: none !important; }
+          .lc-dist:hover, .lc-dist:active { transform: none !important; }
+          .lc-dist-go { max-width: 12px !important; opacity: 0.75 !important; }
           .lc:hover, .lc:active, .lc:hover .lc-img,
           .lc:hover .lc-price, .lc:hover .lc-cond--new, .lc:hover .lc-cond--used { transform: none !important; }
           .lc-price, .lc-cond, .lc-rule::after { transition: none !important; }
@@ -320,19 +396,31 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
           <span className="lc-sheen" aria-hidden="true" />
           <span className="lc-scrim" aria-hidden="true" />
 
-          {typeof listing.distance_km === "number" && (
-            <span className="lc-dist">
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
-              </svg>
-              {formatDistance(listing.distance_km)}
-            </span>
-          )}
-
           {photoBadge && (
             <span className={`lc-badge lc-badge--${photoBadge.kind}`}>{photoBadge.label}</span>
           )}
         </Link>
+
+        {/* Distance chip — a sibling of the photo link, not a child. Nesting an
+            <a> inside an <a> is invalid HTML and browsers resolve the click
+            unpredictably. Same reason the heart lives out here. */}
+        {distanceKm != null && (
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="lc-dist"
+            aria-label={`${formatDistance(distanceKm)} — open directions in Google Maps`}
+          >
+            <svg className="lc-dist-pin" width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
+            </svg>
+            <span className="lc-dist-t">{formatDistance(distanceKm)}</span>
+            <svg className="lc-dist-go" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M7 17L17 7M7 7h10v10" />
+            </svg>
+          </a>
+        )}
 
         {/* Outside the Link — a <button> inside an <a> is invalid HTML and
             breaks keyboard navigation */}
