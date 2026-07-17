@@ -28,7 +28,7 @@ type LocationModalProps = {
 };
 
 export function LocationModal({ onClose }: LocationModalProps) {
-  const { recentLocations, setActiveLocation, detectCurrentLocation, locality } = useActiveLocation();
+  const { setActiveLocation, detectCurrentLocation, locality } = useActiveLocation();
   const [isDetecting, setIsDetecting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   /**
@@ -371,50 +371,21 @@ export function LocationModal({ onClose }: LocationModalProps) {
           text-transform: uppercase; color: var(--ink-faint, #9ca3af);
         }
 
-        /* Search must sit above recents — see the note at the call site */
-        .lm-search      { position: relative; z-index: 3; }
-        .lm-recent-wrap { position: relative; z-index: 1; }
-
-        .lm-recent-h {
-          display: flex; align-items: center; gap: 6px;
-          font-size: 9.5px; font-weight: 900; letter-spacing: 0.1em;
-          text-transform: uppercase; color: var(--ink-faint, #9ca3af);
-          margin: 18px 0 8px;
-        }
-        .lm-recents { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-        .lm-recent {
-          width: 100%;
-          display: flex; align-items: center; gap: 10px;
-          padding: 10px 11px; border-radius: 12px;
-          border: none; background: transparent; cursor: pointer; text-align: left;
-          font-size: 13px; font-weight: 700; letter-spacing: -0.02em;
-          color: var(--ink-soft, #374151);
-          transition: background 180ms ease, transform 180ms var(--spring), color 180ms ease;
-        }
-        @media (hover: hover) {
-          .lm-recent:hover { background: var(--brand-tint, #fff7ed); color: var(--brand, #ea580c); transform: translateX(3px); }
-          .lm-recent:hover .lm-recent-ico { background: var(--brand-border, #fed7aa); color: var(--brand, #ea580c); }
-        }
-        .lm-recent:focus-visible { outline: 2px solid var(--brand, #ea580c); outline-offset: -2px; }
-        .lm-recent-ico {
-          width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
-          background: #f5f5f4; color: #a8a29e;
-          display: flex; align-items: center; justify-content: center;
-          transition: background 180ms ease, color 180ms ease;
-        }
-        .lm-recent-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* Recents are gone: the modal is now detect-or-search only. They were
+           the thing the search dropdown kept colliding with, and a stale list of
+           places you've already left isn't worth a stacking-context fight. */
 
         @media (prefers-reduced-motion: reduce) {
           .lm-back, .lm-card, .lm-body > *, .lm-detect-ico::after, .lm-spin, .lm-head-art { animation: none !important; opacity: 1 !important; }
           .lm-head-art { opacity: 0.55 !important; transform: none !important; }
           .lm-card { transform: none !important; }
-          .lm-detect, .lm-recent, .lm-x, .lm-detect-ico, .lm-detect-t,
+          .lm-detect, .lm-x, .lm-detect-ico, .lm-detect-t,
           .lm-change, .lm-done, .lm-done svg { transition: none !important; }
           .lm-pinned, .lm-pinned-tick { animation: none !important; opacity: 1 !important; transform: none !important; }
           .lm-change:hover, .lm-done:hover, .lm-done:active, .lm-change:active { transform: none !important; }
           .lm-title-pin { animation: none !important; }
           .lm-detect:hover .lm-detect-ico { transform: none !important; }
-          .lm-detect:hover, .lm-recent:hover, .lm-x:hover { transform: none !important; }
+          .lm-detect:hover, .lm-x:hover { transform: none !important; }
         }
         @media (prefers-reduced-motion: reduce) and (min-width: 640px) {
           .lm-card { transform: translate(-50%,-50%) !important; }
@@ -527,40 +498,11 @@ export function LocationModal({ onClose }: LocationModalProps) {
           {!showPinned && <div className="lm-or"><span>or search</span></div>}
 
           {!showPinned && (
-            /* z-index matters here: .lm-body > * carries a staggered rise with
-               fill-mode:both, which leaves a transform on every child — and a
-               transformed element makes its own stacking context. Without an
-               explicit order the recents block (a later sibling) paints over
-               this one's search dropdown, whatever z-index the dropdown sets. */
             <div className="lm-search">
               <LocationSearchInput onSelect={handleSelectLocation} />
             </div>
           )}
 
-          {!showPinned && recentLocations.length > 0 && (
-            <div className="lm-recent-wrap">
-              <p className="lm-recent-h">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
-                </svg>
-                Recent
-              </p>
-              <ul className="lm-recents">
-                {recentLocations.map((location, index) => (
-                  <li key={`${location.locality}-${index}`}>
-                    <button type="button" onClick={() => handleSelectLocation(location)} className="lm-recent">
-                      <span className="lm-recent-ico" aria-hidden="true">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
-                        </svg>
-                      </span>
-                      <span className="lm-recent-t">{location.locality}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
       </div>
     </>,
