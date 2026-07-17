@@ -71,7 +71,7 @@ export const viewport: Viewport = {
   // Supported in Chrome 108+, Safari 15.4+, Firefox 101+.
   interactiveWidget: "resizes-visual",
   // Color the browser chrome on Android Chrome / iOS Safari to match the app's orange brand
-  themeColor: "#ea580c",
+  themeColor: "#FFFFFF",
 };
 
 // Root-level metadata — every page's title gets " | Marketplace" appended via the template
