@@ -89,15 +89,34 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
   // ── Mark messages as read ──────────────────────────────────────────────────────────────────
   // Defined with useCallback so it can safely be listed as a useEffect dependency below
   const markMessagesAsRead = useCallback(async () => {
-    // Only mark messages sent by the OTHER person — we don't mark our own messages as "read"
-    if (!otherUserProfile) return;
+    /**
+     * Mark everything in this conversation that ISN'T mine as read.
+     *
+     * This used to filter on `sender_id = otherUserProfile.id`, which quietly
+     * excluded system messages — the "This item has been marked as sold by the
+     * seller" rows. Those aren't sent by the other person, so they never matched,
+     * never got marked, and the unread badge sat at 1 forever no matter how many
+     * times you opened the chat.
+     *
+     * The rule now mirrors ChatsPopover's counter exactly:
+     *     counter:  !msg.read && msg.sender_id !== authUser.id
+     *     marker:   read = false AND sender_id != me
+     * If those two ever disagree again, a badge becomes unclearable — they have
+     * to be read as a pair.
+     *
+     * The `is.null` arm matters: SQL `sender_id != <uuid>` is NULL (not true) for
+     * a NULL sender, so a system message with no sender would slip through the
+     * neq and stay unread — while the JS counter, where `null !== uuid` is plain
+     * true, would keep counting it. Same disagreement, different disguise.
+     */
+    if (!currentUserId) return;
     await supabase
       .from("messages")
       .update({ read: true })
       .eq("conversation_id", conversation.id)
-      .eq("sender_id", otherUserProfile.id)
-      .eq("read", false);
-  }, [supabase, conversation.id, otherUserProfile]);
+      .eq("read", false)
+      .or(`sender_id.neq.${currentUserId},sender_id.is.null`);
+  }, [supabase, conversation.id, currentUserId]);
 
   // ── Initial load + Realtime subscription ──────────────────────────────────────────────────
   useEffect(() => {

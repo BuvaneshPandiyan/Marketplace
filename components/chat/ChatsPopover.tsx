@@ -181,9 +181,19 @@ export function ChatsPopover() {
       if (cancelled) return;
 
       channel = supabase.channel(channelName);
+      // INSERT keeps the list and badge current when a message arrives.
       channel.on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
+        () => loadChats()
+      );
+      // UPDATE matters just as much: reading a conversation flips messages to
+      // read = true, and without listening for that the badge would sit there
+      // until the route changed. Reopening the popover on the same page would
+      // still show the old count.
+      channel.on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages" },
         () => loadChats()
       );
       channel.subscribe();
