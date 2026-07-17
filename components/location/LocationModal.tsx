@@ -136,12 +136,16 @@ export function LocationModal({ onClose }: LocationModalProps) {
           position: fixed; z-index: 9991;
           left: 0; right: 0; bottom: 0;
           background: #fff;
-          /* 24px radius + 65vh + 320ms — identical to the chats and
-             notification sheets. This was 26px / 88vh / 380ms, which is why it
-             felt taller and slower than everything else. */
+          /* Radius and timing still match the chats/notification sheets, but NOT
+             a fixed height. Those two hold long scrolling lists, so 65vh is
+             right for them. This one holds two controls and a result list — a
+             fixed 65vh forced an inner scroll box, and that scroll box clipped
+             the search results. Auto-height means the sheet hugs its content and
+             grows when results appear, so nothing ever needs scrolling to. */
           border-radius: 24px 24px 0 0;
           overflow: hidden;
-          height: 65vh;
+          height: auto;
+          max-height: 82vh;
           display: flex; flex-direction: column;
           box-shadow: 0 -16px 56px rgba(0,0,0,0.25);
           /* Promote to its own layer before the slide starts, so the first frame
@@ -155,7 +159,7 @@ export function LocationModal({ onClose }: LocationModalProps) {
             width: min(92vw, 420px);
             border-radius: var(--r-xl, 26px);
             transform: translate(-50%,-50%);
-            height: auto; max-height: 84vh;
+            max-height: 84vh;
             box-shadow: 0 30px 90px rgba(0,0,0,0.3);
             animation: lm-card 300ms cubic-bezier(0.34,1.56,0.64,1) both;
           }

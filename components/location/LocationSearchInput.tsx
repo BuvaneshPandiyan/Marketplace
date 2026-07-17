@@ -94,24 +94,28 @@ export function LocationSearchInput({ onSelect, placeholder }: LocationSearchInp
 
         .lsi-hint { margin-top: 6px; font-size: 11px; color: var(--ink-faint, #9ca3af); font-weight: 600; }
 
-        /* Opaque, and lifted clear of the input. The ordering that actually
-           decided the overlap lives in the modal (.lm-search vs
-           .lm-recent-wrap) — this z-index only competes locally. */
+        /* IN FLOW, not absolute.
+           An absolutely-positioned dropdown gets clipped by any ancestor with
+           overflow:auto — and the modal body is exactly that. The results were
+           rendering below the scroll box's fold, so you had to scroll to see
+           what you'd searched for.
+           In flow, the list pushes the modal taller instead of hiding behind it.
+           There's nothing below the input to overlap, so nothing is lost by not
+           floating it. */
         .lsi-results {
-          position: absolute;
-          top: calc(100% + 6px); left: 0; right: 0;
-          z-index: 20;
-          margin: 0; padding: 5px;
+          position: relative;
+          margin: 6px 0 0; padding: 5px;
           list-style: none;
           border-radius: var(--r-md, 16px);
           border: 1.5px solid var(--brand-border, #fed7aa);
           background: #fff;
           box-shadow: 0 16px 44px rgba(124,32,0,0.2), 0 3px 10px rgba(124,32,0,0.08);
-          max-height: 240px; overflow-y: auto;
-          animation: lsi-in 200ms cubic-bezier(0.22,1,0.36,1) both;
+          max-height: 260px; overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          animation: lsi-in 220ms cubic-bezier(0.22,1,0.36,1) both;
         }
         @keyframes lsi-in {
-          from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+          from { opacity: 0; transform: translateY(-6px); }
           to   { opacity: 1; transform: none; }
         }
 
