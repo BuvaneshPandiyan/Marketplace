@@ -28,9 +28,18 @@ type LocationModalProps = {
 };
 
 export function LocationModal({ onClose }: LocationModalProps) {
-  const { recentLocations, setActiveLocation, detectCurrentLocation } = useActiveLocation();
+  const { recentLocations, setActiveLocation, detectCurrentLocation, locality } = useActiveLocation();
   const [isDetecting, setIsDetecting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  /**
+   * The place we just pinned, if the user detected one in this session. Holding
+   * it here (rather than closing straight away) is the point: detection used to
+   * dismiss the modal instantly, so you never saw WHICH place it decided on and
+   * had no idea whether it got you right.
+   */
+  const [captured, setCaptured] = useState<string | null>(null);
+  // True once the user asks to change an already-set location
+  const [changing, setChanging] = useState(false);
   const [mounted, setMounted] = useState(false);
   /**
    * Header artwork is optional. Missing file -> onError flips this and the
@@ -65,13 +74,22 @@ export function LocationModal({ onClose }: LocationModalProps) {
       setErrorMessage(result.error ?? "Couldn't get your location.");
       return;
     }
-    onClose();
+    // Show what we pinned instead of vanishing — the user gets to confirm it's right
+    setCaptured(result.locality ?? "Current location");
   }
 
   function handleSelectLocation(location: StoredLocation) {
     setActiveLocation(location);
-    onClose();
+    setCaptured(location.locality);
   }
+
+  /**
+   * What the modal is currently for. If we just pinned something, or a location
+   * is already set and the user hasn't asked to change it, this is a
+   * confirmation. Otherwise it's a picker.
+   */
+  const pinnedName = captured ?? locality ?? null;
+  const showPinned = Boolean(pinnedName) && !changing;
 
   if (!mounted) return null;
 
@@ -205,6 +223,86 @@ export function LocationModal({ onClose }: LocationModalProps) {
         .lm-body > *:nth-child(4) { animation-delay: 190ms; }
         .lm-body > *:nth-child(5) { animation-delay: 230ms; }
 
+        /* ── Pinned card ──────────────────────────────────────────
+           The confirmation. Green tick, the place name big and bold, and a
+           Change button — because "captured" with no name told the user
+           nothing, and no way back out told them less. */
+        .lm-pinned {
+          display: flex; align-items: center; gap: 12px;
+          padding: 14px 15px; border-radius: var(--r-md, 16px);
+          background: #f0fdf4; border: 1.5px solid #bbf7d0;
+          animation: lm-pin-in 480ms cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes lm-pin-in {
+          0%   { opacity: 0; transform: scale(0.94) translateY(8px); }
+          60%  { opacity: 1; transform: scale(1.02); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .lm-pinned-tick {
+          width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+          background: linear-gradient(135deg, #16a34a, #22c55e);
+          color: #fff;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 3px 12px rgba(34,197,94,0.4);
+          animation: lm-tick 520ms cubic-bezier(0.34,1.56,0.64,1) 120ms both;
+        }
+        @keyframes lm-tick {
+          0%   { transform: scale(0.3) rotate(-25deg); opacity: 0; }
+          60%  { transform: scale(1.18) rotate(6deg); opacity: 1; }
+          100% { transform: scale(1) rotate(0); }
+        }
+        .lm-pinned-body { flex: 1; min-width: 0; }
+        .lm-pinned-k {
+          display: block;
+          font-size: 9.5px; font-weight: 900;
+          letter-spacing: 0.1em; text-transform: uppercase;
+          color: #15803d;
+        }
+        .lm-pinned-v {
+          display: block;
+          font-size: 15px; font-weight: 900; letter-spacing: -0.035em;
+          color: #14532d; margin-top: 2px;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .lm-change {
+          flex-shrink: 0;
+          padding: 7px 13px; border-radius: var(--r-pill, 100px);
+          border: 1.5px solid #bbf7d0; background: #fff;
+          color: #15803d; font-size: 11.5px; font-weight: 900;
+          letter-spacing: -0.02em; cursor: pointer;
+          transition: transform 220ms var(--spring), background 200ms ease, border-color 200ms ease;
+        }
+        @media (hover: hover) {
+          .lm-change:hover { background: #dcfce7; border-color: #86efac; transform: translateY(-2px); }
+        }
+        .lm-change:active { transform: scale(0.94); }
+        .lm-change:focus-visible { outline: 2px solid #16a34a; outline-offset: 2px; }
+
+        /* Primary confirm */
+        .lm-done {
+          position: relative; overflow: hidden;
+          width: 100%; margin-top: 12px;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          padding: 14px; border-radius: var(--r-pill, 100px); border: none;
+          background: var(--brand-grad, linear-gradient(135deg,#ea580c,#f97316));
+          color: #fff; font-size: 14.5px; font-weight: 900; letter-spacing: -0.025em;
+          cursor: pointer;
+          box-shadow: 0 6px 20px rgba(234,88,12,0.42);
+          transition: transform 240ms var(--spring), box-shadow 240ms ease;
+        }
+        .lm-done::after {
+          content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+          transform: translateX(-120%) skewX(-18deg);
+        }
+        @media (hover: hover) {
+          .lm-done:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(234,88,12,0.55); }
+          .lm-done:hover::after { animation: bz-shine 750ms ease both; }
+          .lm-done:hover svg { transform: translateX(3px); }
+        }
+        .lm-done:active { transform: scale(0.97); }
+        .lm-done svg { transition: transform 240ms var(--spring); }
+
         /* Detect button — the primary path, so it looks like it */
         .lm-detect {
           position: relative;
@@ -300,7 +398,10 @@ export function LocationModal({ onClose }: LocationModalProps) {
           .lm-back, .lm-card, .lm-body > *, .lm-detect-ico::after, .lm-spin, .lm-head-art { animation: none !important; opacity: 1 !important; }
           .lm-head-art { opacity: 0.55 !important; transform: none !important; }
           .lm-card { transform: none !important; }
-          .lm-detect, .lm-recent, .lm-x, .lm-detect-ico, .lm-detect-t { transition: none !important; }
+          .lm-detect, .lm-recent, .lm-x, .lm-detect-ico, .lm-detect-t,
+          .lm-change, .lm-done, .lm-done svg { transition: none !important; }
+          .lm-pinned, .lm-pinned-tick { animation: none !important; opacity: 1 !important; transform: none !important; }
+          .lm-change:hover, .lm-done:hover, .lm-done:active, .lm-change:active { transform: none !important; }
           .lm-title-pin { animation: none !important; }
           .lm-detect:hover .lm-detect-ico { transform: none !important; }
           .lm-detect:hover, .lm-recent:hover, .lm-x:hover { transform: none !important; }
@@ -350,6 +451,38 @@ export function LocationModal({ onClose }: LocationModalProps) {
         </div>
 
         <div className="lm-body">
+          {/* ── Pinned state ──
+              Shown right after detecting/choosing, and also on open when a
+              location is already set. The picker below stays hidden until the
+              user explicitly asks to change it — otherwise the modal reads as
+              "pick a location" to someone who already has one. */}
+          {showPinned && (
+            <div className="lm-pinned">
+              <span className="lm-pinned-tick" aria-hidden="true">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </span>
+              <span className="lm-pinned-body">
+                <span className="lm-pinned-k">{captured ? "Location pinned" : "You're browsing"}</span>
+                <span className="lm-pinned-v">{pinnedName}</span>
+              </span>
+              <button type="button" className="lm-change" onClick={() => { setChanging(true); setCaptured(null); }}>
+                Change
+              </button>
+            </div>
+          )}
+
+          {showPinned && (
+            <button type="button" className="lm-done" onClick={onClose}>
+              Browse {pinnedName}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </button>
+          )}
+
+          {!showPinned && (
           <button
             type="button"
             onClick={handleUseCurrentLocation}
@@ -377,16 +510,19 @@ export function LocationModal({ onClose }: LocationModalProps) {
               </span>
             </span>
           </button>
+          )}
 
           {errorMessage && <p className="lm-err" role="alert">{errorMessage}</p>}
 
-          <div className="lm-or"><span>or search</span></div>
+          {!showPinned && <div className="lm-or"><span>or search</span></div>}
 
-          <div>
-            <LocationSearchInput onSelect={handleSelectLocation} />
-          </div>
+          {!showPinned && (
+            <div>
+              <LocationSearchInput onSelect={handleSelectLocation} />
+            </div>
+          )}
 
-          {recentLocations.length > 0 && (
+          {!showPinned && recentLocations.length > 0 && (
             <div>
               <p className="lm-recent-h">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

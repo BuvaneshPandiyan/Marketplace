@@ -36,7 +36,7 @@ type LocationContextValue = {
   setActiveLocation: (location: StoredLocation) => void;
   // Re-detect the device's real GPS position, use it as the active location, and save it as
   // the profile's "current location" (only meaningfully persists if the user is logged in)
-  detectCurrentLocation: () => Promise<{ success: boolean; error?: string }>;
+  detectCurrentLocation: () => Promise<{ success: boolean; error?: string; locality?: string }>;
 };
 
 // Create the actual React Context object, starting undefined until a provider sets it
@@ -103,6 +103,45 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   }, [profile, hasOverride]);
 
   // Define the function exposed to consumers for manually setting the active location
+  /**
+   * Save the chosen location onto the user's profile.
+   *
+   * Two column sets exist and they were never talking to each other:
+   *   default_*  — the user's sticky location. This is what the provider READS.
+   *   current_*  — the last GPS fix. This is all detectCurrentLocation WROTE.
+   *
+   * So a detected location was written to columns nothing reads, and a searched
+   * location wasn't written at all — setActiveLocation only ever touched
+   * localStorage. Either way, logging in on a new device meant picking your
+   * location again, because default_* had only ever been set at onboarding.
+   *
+   * Now every path writes both: default_* so it sticks and gets read back, and
+   * current_* so the last-known fix stays accurate for anything else using it.
+   *
+   * Fire-and-forget on purpose — the UI already has the location from local
+   * state, so nothing should wait on a round trip to feel responsive. Logged-out
+   * users just skip it and keep localStorage.
+   */
+  async function persistToProfile(location: StoredLocation) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase
+        .from("profiles")
+        .update({
+          default_lat: location.lat,
+          default_lng: location.lng,
+          default_locality: location.locality,
+          current_lat: location.lat,
+          current_lng: location.lng,
+          current_locality: location.locality,
+        })
+        .eq("id", user.id);
+    } catch {
+      // Never block the UI on this — localStorage already has it
+    }
+  }
+
   function setActiveLocation(location: StoredLocation) {
     // Update our in-memory state immediately so the UI reflects the change right away
     setLat(location.lat);
@@ -116,10 +155,12 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     writeActiveLocation(location);
     // Add this location to the recent-locations list and update our state with the new list
     setRecentLocations(addRecentLocation(location));
+    // And save it to the account, so it follows the user across devices
+    void persistToProfile(location);
   }
 
   // Define the function exposed to consumers for re-detecting the device's real GPS position
-  async function detectCurrentLocation(): Promise<{ success: boolean; error?: string }> {
+  async function detectCurrentLocation(): Promise<{ success: boolean; error?: string; locality?: string }> {
     try {
       // Ask the browser for the device's current GPS coordinates (triggers the permission prompt if needed)
       const coords = await getCurrentPositionAsync();
