@@ -164,11 +164,18 @@ export function Header() {
 
           /* ── Mobile icon overrides — smaller so all items fit comfortably ── */
         @media(max-width:639px){
-          .mob-pill .hdr-icon { width:32px; height:32px; }
-          .mob-pill .hdr-icon svg { width:15px; height:15px; }
-          .mob-pill .sell-fab  { width:38px; height:38px; }
-          .mob-pill .sell-fab svg { width:16px; height:16px; }
-          .mob-pill .collapse-btn { width:24px; height:24px; }
+          /* Everything up a step. The bar was 32px targets with 15px glyphs at
+             stroke 2 — under Apple's 44px minimum and visually thin against a
+             heavy brand. 40px targets, 20px glyphs, stroke 2.4. */
+          .mob-pill .hdr-icon { width:40px; height:40px; }
+          .mob-pill .hdr-icon svg { width:20px; height:20px; stroke-width:2.4; }
+          .mob-pill .sell-fab  { width:48px; height:48px; }
+          .mob-pill .sell-fab svg { width:22px; height:22px; stroke-width:2.8; }
+          .mob-pill .collapse-btn { width:26px; height:26px; }
+          /* ChatsPopover and NotificationBell own their own 44px button — pull
+             them in line with the rest of the row */
+          .mob-pill .chatpop-btn, .mob-pill .bell-btn { width:40px !important; height:40px !important; }
+          .mob-pill .chatpop-btn svg, .mob-pill .bell-btn svg { width:20px; height:20px; }
         }
 
         /* ── Nav-icon entrance: each icon bounces in with a stagger ── */
@@ -474,6 +481,88 @@ export function Header() {
         @media (prefers-reduced-motion: reduce) {
           .pop-art { animation: none !important; opacity: 0.5 !important; transform: none !important; }
         }
+
+        /* ══════════════════════════════════════════════════════════
+           MOBILE NAV — PER-ICON MOTION
+           Phones have no hover, so these fire on :active. Each icon moves the
+           way its own thing moves: the pin drops, the lens zooms, the bubble
+           wobbles, the plus turns, the bell swings, the bars squeeze.
+
+           Transform/opacity only, all CSS, no JS — nothing here delays the
+           first paint or costs a hydration pass.
+           ══════════════════════════════════════════════════════════ */
+        @media (max-width: 639px) {
+          .mob-pill { padding: 6px 7px; }
+
+          /* Bigger tap target = the icon needs room to move inside it */
+          .mob-pill .hdr-icon svg,
+          .mob-pill .chatpop-btn svg,
+          .mob-pill .bell-btn svg,
+          .mob-pill .sell-fab svg {
+            transition: transform 260ms cubic-bezier(0.34,1.56,0.64,1);
+          }
+
+          /* Location — the pin drops in */
+          .mob-pill [aria-label="Set location"]:active svg { animation: mob-pin 480ms cubic-bezier(0.34,1.56,0.64,1); }
+          @keyframes mob-pin {
+            0%   { transform: translateY(-5px) scale(1.15); }
+            55%  { transform: translateY(2px) scale(0.92); }
+            100% { transform: translateY(0) scale(1); }
+          }
+
+          /* Search — the lens zooms */
+          .mob-pill [aria-label="Search"]:active svg { animation: mob-zoom 440ms cubic-bezier(0.34,1.56,0.64,1); }
+          @keyframes mob-zoom {
+            0%   { transform: scale(1) rotate(0deg); }
+            45%  { transform: scale(1.28) rotate(-14deg); }
+            100% { transform: scale(1) rotate(0deg); }
+          }
+
+          /* Chats — the bubble wobbles */
+          .mob-pill .chatpop-btn:active svg { animation: mob-wobble 520ms ease; }
+          @keyframes mob-wobble {
+            0%,100% { transform: rotate(0deg); }
+            25%     { transform: rotate(-11deg) scale(1.1); }
+            55%     { transform: rotate(8deg) scale(1.05); }
+            80%     { transform: rotate(-3deg); }
+          }
+
+          /* Sell — the plus turns */
+          .mob-pill .sell-fab:active svg { transform: rotate(135deg) scale(1.1); }
+
+          /* Bell — it rings */
+          .mob-pill .bell-btn:active svg { animation: mob-ring 620ms ease; }
+          @keyframes mob-ring {
+            0%,100% { transform: rotate(0deg); }
+            15%     { transform: rotate(16deg); }
+            35%     { transform: rotate(-13deg); }
+            55%     { transform: rotate(9deg); }
+            75%     { transform: rotate(-5deg); }
+          }
+
+          /* Menu — the bars squeeze together */
+          .mob-pill [aria-label="Menu"]:active svg { animation: mob-squeeze 420ms cubic-bezier(0.34,1.56,0.64,1); }
+          @keyframes mob-squeeze {
+            0%   { transform: scaleY(1) scaleX(1); }
+            45%  { transform: scaleY(0.62) scaleX(1.14); }
+            100% { transform: scaleY(1) scaleX(1); }
+          }
+
+          /* The whole button dips under the finger — reads as a real press */
+          .mob-pill .hdr-icon:active,
+          .mob-pill .chatpop-btn:active,
+          .mob-pill .bell-btn:active { transform: scale(0.88); }
+          .mob-pill .sell-fab:active { transform: scale(0.9); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .mob-pill .hdr-icon svg, .mob-pill .chatpop-btn svg,
+          .mob-pill .bell-btn svg, .mob-pill .sell-fab svg {
+            animation: none !important; transition: none !important; transform: none !important;
+          }
+          .mob-pill .hdr-icon:active, .mob-pill .chatpop-btn:active,
+          .mob-pill .bell-btn:active, .mob-pill .sell-fab:active { transform: none !important; }
+        }
       `}</style>
 
       {/* ══════════════════════════════════════════════════════════════
@@ -686,7 +775,7 @@ export function Header() {
 
               {/* Sell FAB — center */}
               <div className="nav-item" style={{ position:"relative" }}>
-                <GatedLink href="/sell" action="post an ad" prefetch className="sell-fab" aria-label="Post an ad" style={{ width:42, height:42 }}>
+                <GatedLink href="/sell" action="post an ad" prefetch className="sell-fab" aria-label="Post an ad" style={{ width:48, height:48 }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
                 </GatedLink>
               </div>
