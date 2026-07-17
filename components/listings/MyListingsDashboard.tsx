@@ -9,6 +9,9 @@ import Link from "next/link";
 type RawListing = {
   id: string; status: string; title: string; price: number;
   listing_type: string; created_at: string;
+  // Present in the payload already (the page selects "*") — just never typed,
+  // so nothing could use it. It's the only engagement signal a seller has.
+  view_count: number | null;
   listing_photos: { url: string; sort_order: number }[];
   product_types: { name: string; question_schema: unknown } | null;
   listing_attributes: { id: string; key: string; value: string | null }[];
@@ -65,6 +68,40 @@ export function MyListingsDashboard({ listings }: Props) {
     sold:   listings.filter(l => l.status === "sold").length,
     draft:  listings.filter(l => l.status === "draft").length,
   };
+
+  /**
+   * The numbers a seller actually opens this page to find out.
+   *
+   * All of it was already in the payload and none of it was rendered — the page
+   * showed a toolbar and a grid, which is a file browser, not a dashboard. Views
+   * in particular is the only feedback a seller gets on whether an ad is working.
+   */
+  const totalViews = listings.reduce((sum, l) => sum + (l.view_count ?? 0), 0);
+  const soldValue = listings
+    .filter((l) => l.status === "sold")
+    .reduce((sum, l) => sum + (l.price ?? 0), 0);
+  const activeValue = listings
+    .filter((l) => l.status === "active")
+    .reduce((sum, l) => sum + (l.price ?? 0), 0);
+
+  /** ₹1,20,000 -> ₹1.2L. Stat tiles are narrow; full figures wrap and look broken. */
+  const compactINR = (n: number) => {
+    if (n >= 1e7) return `₹${(n / 1e7).toFixed(n >= 1e8 ? 0 : 1)}Cr`;
+    if (n >= 1e5) return `₹${(n / 1e5).toFixed(n >= 1e6 ? 0 : 1)}L`;
+    if (n >= 1e3) return `₹${(n / 1e3).toFixed(n >= 1e4 ? 0 : 1)}K`;
+    return `₹${n}`;
+  };
+
+  const STATS = [
+    { key: "active", label: "Live now",    value: String(counts.active),      sub: `${compactINR(activeValue)} listed`, tone: "orange" as const,
+      icon: <><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></> },
+    { key: "views",  label: "Total views", value: totalViews.toLocaleString("en-IN"), sub: counts.active > 0 ? `${Math.round(totalViews / Math.max(counts.active, 1))} avg per ad` : "—", tone: "blue" as const,
+      icon: <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></> },
+    { key: "sold",   label: "Sold",        value: String(counts.sold),        sub: counts.sold > 0 ? `${compactINR(soldValue)} earned` : "None yet", tone: "green" as const,
+      icon: <><path d="M20 6L9 17l-5-5" /></> },
+    { key: "total",  label: "All ads",     value: String(counts.total),       sub: counts.draft > 0 ? `${counts.draft} draft${counts.draft > 1 ? "s" : ""}` : "No drafts", tone: "grey" as const,
+      icon: <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></> },
+  ];
   const count = (v: string | null) =>
     v === null ? counts.total : counts[v as keyof typeof counts];
 
@@ -155,6 +192,172 @@ export function MyListingsDashboard({ listings }: Props) {
         @media(prefers-reduced-motion:reduce){
           .ml-fbtn,.ml-vbtn,.ml-drop,.ring-pulse{animation:none!important;transition-duration:0ms!important;}
         }
+
+        /* ══════════════════════════════════════════════════════════
+           PAGE HEAD + STATS
+           ══════════════════════════════════════════════════════════ */
+        .ml-head { padding: 18px 0 4px; }
+        @media (min-width: 640px) { .ml-head { padding: 26px 0 6px; } }
+
+        .ml-head-row {
+          display: flex; align-items: flex-start; justify-content: space-between;
+          gap: 14px; margin-bottom: 16px;
+        }
+
+        .ml-h1 {
+          font-size: 24px; font-weight: 900;
+          letter-spacing: -0.045em; line-height: 1.1;
+          color: var(--ink, #1a1a1a); margin: 0;
+        }
+        @media (min-width: 640px)  { .ml-h1 { font-size: 30px; } }
+        @media (min-width: 1024px) { .ml-h1 { font-size: 34px; } }
+        .ml-h1 em { font-style: normal; color: var(--brand, #ea580c); position: relative; }
+        .ml-h1 em::after {
+          content: ''; position: absolute; left: 0; right: 0; bottom: -1px;
+          height: 4px; border-radius: 4px;
+          background: var(--brand-border, #fed7aa);
+          transform-origin: left;
+          animation: ml-underline 620ms cubic-bezier(0.22,1,0.36,1) 220ms both;
+        }
+        @keyframes ml-underline { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+        .ml-h1-sub {
+          font-size: 12.5px; font-weight: 700; letter-spacing: -0.02em;
+          color: var(--ink-faint, #9ca3af); margin: 5px 0 0;
+        }
+        @media (min-width: 640px) { .ml-h1-sub { font-size: 13.5px; } }
+
+        /* Post an ad — the only action this page is really for */
+        .ml-new {
+          flex-shrink: 0;
+          display: inline-flex; align-items: center; gap: 7px;
+          padding: 11px 17px; border-radius: 100px;
+          background: linear-gradient(135deg,#ea580c,#f97316);
+          color: #fff; text-decoration: none;
+          font-size: 13.5px; font-weight: 900; letter-spacing: -0.025em;
+          box-shadow: 0 5px 18px rgba(234,88,12,0.4);
+          transition: transform 240ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 240ms ease;
+        }
+        @media (hover: hover) {
+          .ml-new:hover { transform: translateY(-2px); box-shadow: 0 9px 26px rgba(234,88,12,0.52); }
+          .ml-new:hover svg { transform: rotate(90deg); }
+        }
+        .ml-new:active { transform: scale(0.95); }
+        .ml-new svg { transition: transform 320ms cubic-bezier(0.34,1.56,0.64,1); }
+        @media (max-width: 419px) { .ml-new-t { display: none; } .ml-new { padding: 11px; } }
+
+        /* ── Stat tiles ──
+           2-up on phones, 4-up from 640. Four across a 360px screen would be
+           ~80px each, which can't hold a number and two labels. */
+        .ml-stats {
+          display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px;
+        }
+        @media (min-width: 640px) { .ml-stats { grid-template-columns: repeat(4, 1fr); gap: 12px; } }
+
+        .ml-stat {
+          position: relative; overflow: hidden;
+          display: flex; flex-direction: column;
+          padding: 12px 13px;
+          border-radius: 16px;
+          border: 1.5px solid var(--line, #f0f0f0);
+          background: #fff;
+          animation: ml-stat-in 460ms cubic-bezier(0.22,1,0.36,1) both;
+          transition: transform 240ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 240ms ease, border-color 240ms ease;
+        }
+        @keyframes ml-stat-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        @media (hover: hover) {
+          .ml-stat:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(0,0,0,0.08); }
+          .ml-stat:hover .ml-stat-ico { transform: scale(1.12) rotate(-6deg); }
+        }
+
+        .ml-stat-ico {
+          width: 26px; height: 26px; border-radius: 8px;
+          display: flex; align-items: center; justify-content: center;
+          margin-bottom: 8px; color: #fff; flex-shrink: 0;
+          transition: transform 260ms cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .ml-stat--orange .ml-stat-ico { background: linear-gradient(135deg,#ea580c,#f97316); box-shadow: 0 2px 8px rgba(234,88,12,0.35); }
+        .ml-stat--blue   .ml-stat-ico { background: linear-gradient(135deg,#2563eb,#3b82f6); box-shadow: 0 2px 8px rgba(37,99,235,0.35); }
+        .ml-stat--green  .ml-stat-ico { background: linear-gradient(135deg,#16a34a,#22c55e); box-shadow: 0 2px 8px rgba(34,197,94,0.35); }
+        .ml-stat--grey   .ml-stat-ico { background: linear-gradient(135deg,#57534e,#78716c); box-shadow: 0 2px 8px rgba(87,83,78,0.3); }
+
+        /* A wash of the tile's own colour, so four tiles don't read as four
+           identical boxes with different numbers */
+        .ml-stat::before {
+          content: ''; position: absolute; top: -14px; right: -14px;
+          width: 56px; height: 56px; border-radius: 50%;
+          opacity: 0.07; pointer-events: none;
+        }
+        .ml-stat--orange::before { background: #ea580c; }
+        .ml-stat--blue::before   { background: #2563eb; }
+        .ml-stat--green::before  { background: #16a34a; }
+        .ml-stat--grey::before   { background: #57534e; }
+
+        .ml-stat-v {
+          font-size: 22px; font-weight: 900; letter-spacing: -0.05em;
+          color: var(--ink, #1a1a1a); line-height: 1;
+          font-variant-numeric: tabular-nums;
+        }
+        @media (min-width: 640px) { .ml-stat-v { font-size: 26px; } }
+        .ml-stat-l {
+          font-size: 9.5px; font-weight: 900; letter-spacing: 0.08em;
+          text-transform: uppercase; color: var(--ink-muted, #6b7280);
+          margin-top: 4px;
+        }
+        .ml-stat-s {
+          font-size: 10.5px; font-weight: 600; color: var(--ink-faint, #9ca3af);
+          margin-top: 2px;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+
+        /* ── Empty state ──────────────────────────────────────────── */
+        .ml-empty-h {
+          font-size: 22px; font-weight: 900; letter-spacing: -0.04em;
+          color: var(--ink, #1a1a1a); margin: 0 0 7px;
+        }
+        @media (min-width: 640px) { .ml-empty-h { font-size: 26px; } }
+        .ml-empty-s {
+          font-size: 13.5px; font-weight: 500; line-height: 1.55;
+          color: var(--ink-muted, #6b7280);
+          max-width: 34ch; margin: 0 auto 20px;
+        }
+        .ml-empty-perks {
+          list-style: none; margin: 0 auto; padding: 0;
+          display: flex; flex-direction: column; gap: 10px;
+          max-width: 260px; text-align: left;
+        }
+        .ml-empty-perks li {
+          display: flex; align-items: center; gap: 11px;
+          animation: ml-stat-in 460ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        .ml-empty-perks li:nth-child(1) { animation-delay: 120ms; }
+        .ml-empty-perks li:nth-child(2) { animation-delay: 190ms; }
+        .ml-empty-perks li:nth-child(3) { animation-delay: 260ms; }
+        .ml-empty-perk-i {
+          width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+          background: var(--brand-tint, #fff7ed);
+          border: 1.5px solid var(--brand-border, #fed7aa);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 14px;
+        }
+        .ml-empty-perk-t {
+          display: block;
+          font-size: 12.5px; font-weight: 800; letter-spacing: -0.025em;
+          color: var(--ink-soft, #374151);
+        }
+        .ml-empty-perk-s {
+          display: block;
+          font-size: 11px; font-weight: 600; color: var(--ink-faint, #9ca3af);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .ml-empty-perks li { animation: none !important; }
+          .ml-h1 em::after { animation: none !important; transform: scaleX(1) !important; }
+          .ml-stat { animation: none !important; }
+          .ml-new, .ml-new svg, .ml-stat, .ml-stat-ico { transition: none !important; }
+          .ml-new:hover, .ml-new:active, .ml-stat:hover,
+          .ml-new:hover svg, .ml-stat:hover .ml-stat-ico { transform: none !important; }
+        }
       `}</style>
 
       {/*
@@ -166,6 +369,49 @@ export function MyListingsDashboard({ listings }: Props) {
       */}
       <div className="mx-auto max-w-[1400px] px-3 sm:px-6"
            style={{ paddingTop: 0, paddingBottom: 32 }}>
+
+        {/* ── PAGE HEAD ──
+            The h1 used to be 16px/800 buried in the sticky toolbar, which is why
+            the page read as a file browser rather than a place. Same type scale
+            as the home feed and contact page. */}
+        <div className="ml-head">
+          <div className="ml-head-row">
+            <div>
+              <h1 className="ml-h1">
+                Your <em>listings</em>
+              </h1>
+              <p className="ml-h1-sub">
+                {counts.total === 0
+                  ? "Nothing posted yet"
+                  : `${counts.active} live · ${counts.sold} sold · ${totalViews.toLocaleString("en-IN")} views`}
+              </p>
+            </div>
+            <Link href="/sell" prefetch className="ml-new">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              <span className="ml-new-t">Post an ad</span>
+            </Link>
+          </div>
+
+          {/* Stat tiles — only worth the space once there's something to count */}
+          {counts.total > 0 && (
+            <div className="ml-stats">
+              {STATS.map((st, i) => (
+                <div key={st.key} className={`ml-stat ml-stat--${st.tone}`} style={{ animationDelay: `${i * 60}ms` }}>
+                  <span className="ml-stat-ico" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+                      {st.icon}
+                    </svg>
+                  </span>
+                  <span className="ml-stat-v">{st.value}</span>
+                  <span className="ml-stat-l">{st.label}</span>
+                  <span className="ml-stat-s">{st.sub}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* ── TOOLBAR — clean sticky bar, no box ── */}
         <div className="ml-sticky-bar" style={{
@@ -183,9 +429,11 @@ export function MyListingsDashboard({ listings }: Props) {
           {/* Left: accent bar + title + count pill */}
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <div style={{ width:3, height:20, borderRadius:100, background:"linear-gradient(180deg,#ea580c,#f97316)", flexShrink:0 }} />
-            <h1 style={{ fontSize:16, fontWeight:800, color:"#111", margin:0, letterSpacing:"-0.02em" }}>
+            {/* Demoted from <h1> — the page head above owns that now, and two
+                h1s on one page is both wrong markup and a confused hierarchy. */}
+            <p style={{ fontSize:14, fontWeight:800, color:"#111", margin:0, letterSpacing:"-0.025em" }}>
               My Listings
-            </h1>
+            </p>
             {tab ? (
               <span style={{ fontSize:11, color:"white", fontWeight:700, background:"#ea580c", padding:"2px 9px", borderRadius:100 }}>
                 {activeLabel} · {count(tab)}
@@ -261,14 +509,34 @@ export function MyListingsDashboard({ listings }: Props) {
                 </svg>
               </div>
             </div>
-            <h2 style={{ fontSize:18, fontWeight:700, color:"#111", marginBottom:6 }}>No listings yet</h2>
-            <p style={{ fontSize:14, color:"#6b7280", maxWidth:260, margin:"0 auto 20px" }}>
-              Post your first listing — takes under 2 minutes.
+            <h2 className="ml-empty-h">Nothing listed yet</h2>
+            <p className="ml-empty-s">
+              That old phone in your drawer is worth something to someone
+              two streets away. Takes about a minute.
             </p>
-            <Link href="/sell" style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"9px 18px", borderRadius:8, background:"linear-gradient(135deg,#ea580c,#f97316)", color:"white", fontWeight:600, fontSize:13, textDecoration:"none" }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 5v14M5 12h14"/></svg>
-              Post your first listing
+            <Link href="/sell" prefetch className="ml-new" style={{ marginBottom: 22 }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" aria-hidden="true">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              Post your first ad
             </Link>
+            {/* Three reasons, because an empty state's job is to get the first
+                ad posted — not to announce that there are no ads */}
+            <ul className="ml-empty-perks">
+              {[
+                { i: "🏷️", t: "Free to post", s: "No commission, ever" },
+                { i: "📍", t: "Buyers nearby", s: "Ranked by distance" },
+                { i: "🛡️", t: "Your number stays hidden", s: "Until you share it" },
+              ].map((p) => (
+                <li key={p.t}>
+                  <span className="ml-empty-perk-i" aria-hidden="true">{p.i}</span>
+                  <span>
+                    <span className="ml-empty-perk-t">{p.t}</span>
+                    <span className="ml-empty-perk-s">{p.s}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
 
         ) : sorted.length === 0 ? (

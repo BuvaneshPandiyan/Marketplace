@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DEFAULT_COUNTRY_CODE, toE164 } from "@/lib/phone";
 import { CountryCodeSelect } from "@/components/auth/CountryCodeSelect";
@@ -10,7 +9,6 @@ import Link from "next/link";
 type Step = "details" | "otp";
 
 export function SignupFlow() {
-  const router     = useRouter();
   const [supabase] = useState(() => createClient());
   const fileRef    = useRef<HTMLInputElement>(null);
 
@@ -164,14 +162,11 @@ export function SignupFlow() {
       fetch("/api/notifications/welcome", { method:"POST" }).catch(()=>{});
 
       /**
-       * Same fix as LoginFlow: verifyOtp has set the session cookie, but every
-       * RSC payload in Next's Router Cache was rendered logged-out. Land on "/"
-       * without refreshing and a user who just signed up is greeted by a header
-       * that thinks they're a guest — and the first protected page they tap
-       * bounces them to /login.
+       * Hard navigation — same reasoning as LoginFlow. A client-side push would
+       * carry the logged-out Router Cache (and its prefetched /login redirects)
+       * into a session that just started.
        */
-      router.refresh();
-      router.push("/");
+      window.location.assign("/");
     } catch { setError("Something went wrong. Please try again."); }
     finally { setSubmitting(false); }
   }

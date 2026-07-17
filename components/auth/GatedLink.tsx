@@ -20,6 +20,7 @@
 import Link from "next/link";
 import type { ComponentProps, MouseEvent } from "react";
 import { useAuthGate } from "@/components/auth/AuthGateContext";
+import { useUser } from "@/lib/hooks/useUser";
 
 type Props = ComponentProps<typeof Link> & {
   /** Completes the sentence "Sign in to …", e.g. "post an ad" */
@@ -32,8 +33,9 @@ type Props = ComponentProps<typeof Link> & {
   onBlocked?: () => void;
 };
 
-export function GatedLink({ action, onBlocked, onClick, ...linkProps }: Props) {
+export function GatedLink({ action, onBlocked, onClick, prefetch, ...linkProps }: Props) {
   const { requireAuth } = useAuthGate();
+  const { user } = useUser();
 
   function handleClick(e: MouseEvent<HTMLAnchorElement>) {
     // requireAuth returns true when already logged in — let the navigation happen.
@@ -46,5 +48,24 @@ export function GatedLink({ action, onBlocked, onClick, ...linkProps }: Props) {
     onClick?.(e);
   }
 
-  return <Link {...linkProps} onClick={handleClick} />;
+  /**
+   * DO NOT PREFETCH THESE WHILE LOGGED OUT.
+   *
+   * <Link> prefetches by default. Every one of these points at a
+   * middleware-protected route, so a logged-out prefetch gets back "redirect to
+   * /login" — and Next stores that redirect in the Router Cache. Sign in, tap the
+   * link, and the router serves the cached redirect instead of asking the server:
+   * you land on /login despite having a valid session. A manual refresh drops the
+   * Router Cache, the prefetch re-runs with the cookie, and it works — which is
+   * exactly the "fails once, fine after F5" symptom.
+   *
+   * Prefetching a route the user cannot currently visit buys nothing anyway.
+   */
+  return (
+    <Link
+      {...linkProps}
+      prefetch={user ? prefetch : false}
+      onClick={handleClick}
+    />
+  );
 }

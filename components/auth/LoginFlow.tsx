@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DEFAULT_COUNTRY_CODE, toE164 } from "@/lib/phone";
 import { CountryCodeSelect } from "@/components/auth/CountryCodeSelect";
@@ -11,7 +11,6 @@ type Mode = "password" | "otp";
 type Step = "credentials" | "otp";
 
 export function LoginFlow() {
-  const router       = useRouter();
   const searchParams = useSearchParams();
   const [supabase]   = useState(() => createClient());
 
@@ -58,21 +57,21 @@ export function LoginFlow() {
       const { error: authErr } = await supabase.auth.signInWithPassword({ phone, password });
       if (authErr) { setError("Incorrect password. Try OTP login if you've forgotten it."); return; }
       /**
-       * refresh() BEFORE push(), and it is not optional.
+       * HARD navigation, deliberately — not router.push().
        *
-       * signInWithPassword writes the auth cookie in the browser, but Next's
-       * Router Cache is still holding RSC payloads rendered while logged OUT —
-       * including the (main) layout, which is where `user` comes from. Navigate
-       * without refreshing and the app serves those stale payloads: the header
-       * thinks you're a guest, and middleware bounces /wishlist straight back to
-       * /login. One manual refresh fixed it, which is exactly what users saw.
+       * A client-side push keeps Next's Router Cache alive, and that cache may
+       * already hold a prefetched "redirect to /login" for every protected route
+       * (the header prefetched them while we were logged out). Signing in doesn't
+       * invalidate those entries, so the first tap on Wishlist serves the cached
+       * redirect and bounces the user back here, still holding a valid session.
+       * router.refresh() doesn't help: it refreshes the CURRENT route, not other
+       * routes' prefetches.
        *
-       * router.refresh() throws that cache away and re-requests from the server,
-       * which now sees the cookie. LogoutButton already did this; sign-in never
-       * did — so logging OUT updated the UI correctly and logging IN didn't.
+       * assign() throws the whole client away and asks the server fresh, with the
+       * cookie attached. It costs one full page load — on a screen the user hits
+       * once per session, to fix an auth bug. Correct beats fast here.
        */
-      router.refresh();
-      router.push(redirectTo);
+      window.location.assign(redirectTo);
     } catch {
       setError("Network error. Please try again.");
     } finally { setIsSubmitting(false); }
@@ -130,27 +129,24 @@ export function LoginFlow() {
         .eq("id", data.user.id)
         .maybeSingle();
 
-      // Same reasoning as the password path above: the session cookie now exists,
-      // but every cached RSC payload still says "logged out". Drop the Router
-      // Cache once here so all four branches below navigate with a server that
-      // knows who we are — /onboarding is middleware-protected too, so without
-      // this a brand new user could be bounced off their own onboarding page.
-      router.refresh();
+      // Hard navigation for every branch, same reasoning as the password path.
+      // /onboarding is middleware-protected too, so a client-side push here can
+      // bounce a brand-new user off their own onboarding page.
 
       // No profile at all → brand new user, needs onboarding
       if (!profile) {
-        router.push("/onboarding/profile"); return;
+        window.location.assign("/onboarding/profile"); return;
       }
       // Profile incomplete (name or username missing) → finish onboarding
       if (!profile.name || !profile.username) {
-        router.push("/onboarding/profile"); return;
+        window.location.assign("/onboarding/profile"); return;
       }
       // Existing user, profile complete but no password set → prompt once
       if (!profile.password_set) {
-        router.push(`/onboarding/set-password?redirect=${encodeURIComponent(redirectTo)}`); return;
+        window.location.assign(`/onboarding/set-password?redirect=${encodeURIComponent(redirectTo)}`); return;
       }
       // All good — existing user, profile + password complete
-      router.push(redirectTo);
+      window.location.assign(redirectTo);
     } catch { setError("Network error. Please try again."); }
     finally { setIsSubmitting(false); }
   }
