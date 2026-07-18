@@ -88,8 +88,8 @@ export function LocationSearchInput({ onSelect, placeholder }: LocationSearchInp
         }
         .lsi-input::placeholder { color: var(--ink-faint, #9ca3af); font-weight: 600; }
         .lsi-input:focus {
-          border-color: var(--brand, #ea580c);
-          box-shadow: 0 0 0 3px rgba(234,88,12,0.13);
+          border-color: #0284c7;
+          box-shadow: 0 0 0 3px rgba(2,132,199,0.15);
         }
 
         .lsi-hint { margin-top: 6px; font-size: 11px; color: var(--ink-faint, #9ca3af); font-weight: 600; }
@@ -107,9 +107,9 @@ export function LocationSearchInput({ onSelect, placeholder }: LocationSearchInp
           margin: 6px 0 0; padding: 5px;
           list-style: none;
           border-radius: var(--r-md, 16px);
-          border: 1.5px solid var(--brand-border, #fed7aa);
+          border: 1.5px solid #bae6fd;
           background: #fff;
-          box-shadow: 0 16px 44px rgba(124,32,0,0.2), 0 3px 10px rgba(124,32,0,0.08);
+          box-shadow: 0 16px 44px rgba(8,47,73,0.2), 0 3px 10px rgba(8,47,73,0.1);
           max-height: 260px; overflow-y: auto;
           -webkit-overflow-scrolling: touch;
           animation: lsi-in 220ms cubic-bezier(0.22,1,0.36,1) both;
@@ -131,12 +131,12 @@ export function LocationSearchInput({ onSelect, placeholder }: LocationSearchInp
         }
         @media (hover: hover) {
           .lsi-row:hover {
-            background: var(--brand-tint, #fff7ed);
-            color: var(--brand, #ea580c);
+            background: #f0f9ff;
+            color: #0284c7;
             transform: translateX(3px);
           }
         }
-        .lsi-row:focus-visible { outline: 2px solid var(--brand, #ea580c); outline-offset: -2px; }
+        .lsi-row:focus-visible { outline: 2px solid #0284c7; outline-offset: -2px; }
 
         @media (prefers-reduced-motion: reduce) {
           .lsi-results { animation: none !important; }

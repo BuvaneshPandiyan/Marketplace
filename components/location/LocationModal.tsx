@@ -168,7 +168,7 @@ export function LocationModal({ onClose }: LocationModalProps) {
         /* ── Header ───────────────────────────────────────────────── */
         .lm-head {
           position: relative; flex-shrink: 0;
-          background: var(--brand-hero, linear-gradient(135deg,#1a0a00,#7c2000 45%,#ea580c));
+          background: linear-gradient(135deg,#082f49 0%,#075985 45%,#0284c7 100%);
           padding: 16px 20px 20px;
         }
         /* Artwork sits behind the grid and the copy. Masked so it fades out
@@ -186,7 +186,7 @@ export function LocationModal({ onClose }: LocationModalProps) {
         /* Keeps the header legible whatever the artwork does */
         .lm-head-scrim {
           position: absolute; inset: 0; pointer-events: none;
-          background: linear-gradient(90deg, rgba(26,10,0,0.85) 0%, rgba(26,10,0,0.35) 55%, transparent 100%);
+          background: linear-gradient(90deg, rgba(8,47,73,0.85) 0%, rgba(8,47,73,0.35) 55%, transparent 100%);
         }
 
         .lm-head-grid {
@@ -308,10 +308,10 @@ export function LocationModal({ onClose }: LocationModalProps) {
           width: 100%; margin-top: 12px;
           display: flex; align-items: center; justify-content: center; gap: 8px;
           padding: 14px; border-radius: var(--r-pill, 100px); border: none;
-          background: var(--brand-grad, linear-gradient(135deg,#ea580c,#f97316));
+          background: var(--brand-grad, linear-gradient(135deg,#0284c7,#0ea5e9));
           color: #fff; font-size: 14.5px; font-weight: 900; letter-spacing: -0.025em;
           cursor: pointer;
-          box-shadow: 0 6px 20px rgba(234,88,12,0.42);
+          box-shadow: 0 6px 20px rgba(2,132,199,0.46);
           transition: transform 240ms var(--spring), box-shadow 240ms ease;
         }
         .lm-done::after {
@@ -320,7 +320,7 @@ export function LocationModal({ onClose }: LocationModalProps) {
           transform: translateX(-120%) skewX(-18deg);
         }
         @media (hover: hover) {
-          .lm-done:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(234,88,12,0.55); }
+          .lm-done:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(2,132,199,0.55); }
           .lm-done:hover::after { animation: bz-shine 750ms ease both; }
           .lm-done:hover svg { transform: translateX(3px); }
         }
@@ -333,40 +333,40 @@ export function LocationModal({ onClose }: LocationModalProps) {
           width: 100%;
           display: flex; align-items: center; gap: 11px;
           padding: 13px 15px; border-radius: var(--r-md, 16px);
-          border: 1.5px solid var(--brand-border, #fed7aa);
-          background: var(--brand-tint, #fff7ed);
+          border: 1.5px solid var(--brand-border, #bae6fd);
+          background: var(--brand-tint, #f0f9ff);
           cursor: pointer; text-align: left;
           transition: transform 220ms var(--spring), box-shadow 220ms ease, background 200ms ease;
         }
         @media (hover: hover) {
           .lm-detect:not(:disabled):hover {
             background: #fff; transform: translateY(-2px);
-            box-shadow: 0 8px 22px rgba(234,88,12,0.2);
+            box-shadow: 0 8px 22px rgba(2,132,199,0.22);
           }
         }
         .lm-detect:disabled { opacity: 0.65; cursor: default; }
-        .lm-detect:focus-visible { outline: 2px solid var(--brand, #ea580c); outline-offset: 2px; }
+        .lm-detect:focus-visible { outline: 2px solid var(--brand, #0284c7); outline-offset: 2px; }
         @media (hover: hover) {
           .lm-detect:not(:disabled):hover .lm-detect-ico { transform: scale(1.1) rotate(-8deg); }
-          .lm-detect:not(:disabled):hover .lm-detect-t   { color: var(--brand, #ea580c); }
+          .lm-detect:not(:disabled):hover .lm-detect-t   { color: var(--brand, #0284c7); }
         }
         .lm-detect-ico {
           position: relative;
           transition: transform 280ms var(--spring);
           width: 34px; height: 34px; border-radius: 11px; flex-shrink: 0;
-          background: var(--brand-grad, linear-gradient(135deg,#ea580c,#f97316));
+          background: var(--brand-grad, linear-gradient(135deg,#0284c7,#0ea5e9));
           color: #fff;
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 3px 10px rgba(234,88,12,0.35);
+          box-shadow: 0 3px 10px rgba(2,132,199,0.4);
         }
         .lm-detect-ico::after {
           content: ''; position: absolute; inset: 0; border-radius: 11px;
-          border: 2px solid rgba(234,88,12,0.5);
+          border: 2px solid rgba(2,132,199,0.5);
           animation: lm-ping 2.2s ease-out infinite;
           pointer-events: none;
         }
-        .lm-detect-t { transition: color 200ms ease; font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; color: var(--brand-dark, #9a3412); }
-        .lm-detect-s { font-size: 11px; color: #b45309; margin-top: 1px; font-weight: 600; }
+        .lm-detect-t { transition: color 200ms ease; font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; color: var(--brand-dark, #075985); }
+        .lm-detect-s { font-size: 11px; color: #0369a1; margin-top: 1px; font-weight: 600; }
         @keyframes lm-spin { to { transform: rotate(360deg); } }
         .lm-spin { animation: lm-spin 700ms linear infinite; }
 
