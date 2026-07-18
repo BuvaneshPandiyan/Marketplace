@@ -71,7 +71,7 @@ export default function MyListingsLoading() {
       `}</style>
 
       <div
-        className="mx-auto max-w-[1400px] px-3 sm:px-6"
+        className="mx-auto max-w-[1600px] px-4 md:px-8"
         style={{ paddingTop: 0, paddingBottom: 32, position: "relative" }}
       >
         <div className="mls-band" aria-hidden="true">

@@ -132,24 +132,21 @@ export function MyListingsDashboard({ listings }: Props) {
     <div style={{ background: "#f5f4f2" }}>
       <style>{`
         .ml-fbtn {
-          display:inline-flex; align-items:center; gap:6px;
-          padding:7px 16px; border-radius:10px;
+          display:inline-flex; align-items:center; gap:7px;
+          padding:9px 16px; border-radius:100px;
           border:1.5px solid #e5e7eb; background:white;
-          font-size:13px; font-weight:600; color:#374151;
+          font-size:12.5px; font-weight:800; letter-spacing:-0.025em; color:#374151;
           cursor:pointer; transition:all 150ms ease;
           white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.05);
         }
         .ml-fbtn:hover { border-color:#ea580c; color:#ea580c; box-shadow:0 2px 8px rgba(234,88,12,0.15); }
-        .ml-fbtn.on    { border-color:#ea580c; color:#ea580c; background:rgba(234,88,12,.04); box-shadow:0 2px 8px rgba(234,88,12,0.12); }
 
         .ml-vbtn {
-          width:32px; height:32px; border-radius:8px;
-          border:1.5px solid #e5e7eb; display:flex; align-items:center;
-          justify-content:center; cursor:pointer; background:white;
-          transition:all 150ms ease; box-shadow:0 1px 3px rgba(0,0,0,0.05);
+          width:34px; height:34px; border-radius:100px;
+          border:none; display:flex; align-items:center;
+          justify-content:center; cursor:pointer; background:transparent;
+          transition:all 180ms cubic-bezier(0.34,1.56,0.64,1); box-shadow:none;
         }
-        .ml-vbtn:hover { border-color:#d1d5db; }
-        .ml-vbtn.on { background:#ea580c; border-color:#ea580c; box-shadow:0 2px 8px rgba(234,88,12,0.3); }
 
         .ml-drop {
           position:fixed; min-width:240px; background:white;
@@ -422,6 +419,65 @@ export function MyListingsDashboard({ listings }: Props) {
           .ml-new:hover, .ml-new:active, .ml-stat:hover,
           .ml-new:hover svg, .ml-stat:hover .ml-stat-ico { transform: none !important; }
         }
+
+        /* ══════════════════════════════════════════════════════════
+           TOOLBAR
+           ══════════════════════════════════════════════════════════ */
+
+        /* Segmented control, not two loose buttons. Grid/list are one choice
+           with two states — a shared track says that; two bordered boxes side by
+           side say "two unrelated buttons that happen to be adjacent". */
+        .ml-seg {
+          display: flex; align-items: center; gap: 2px;
+          padding: 3px; border-radius: 100px;
+          background: #ececea;
+          border: 1.5px solid #e2e0dd;
+        }
+        .ml-vbtn.on {
+          background: linear-gradient(135deg,#ea580c,#f97316) !important;
+          box-shadow: 0 3px 10px rgba(234,88,12,0.4) !important;
+        }
+        @media (hover: hover) {
+          .ml-vbtn:not(.on):hover { background: rgba(255,255,255,0.85) !important; }
+          .ml-vbtn:hover { transform: scale(1.08); }
+        }
+        .ml-vbtn:active { transform: scale(0.9); }
+
+        /* Filter */
+        @media (hover: hover) {
+          .ml-fbtn:hover svg:first-child { transform: rotate(-12deg) scale(1.12); }
+        }
+        .ml-fbtn svg:first-child { transition: transform 260ms cubic-bezier(0.34,1.56,0.64,1); }
+        .ml-fbtn:active { transform: scale(0.95); }
+        .ml-fbtn.on {
+          background: linear-gradient(135deg,#ea580c,#f97316) !important;
+          border-color: transparent !important;
+          color: #fff !important;
+          box-shadow: 0 4px 14px rgba(234,88,12,0.42) !important;
+        }
+
+        /* "Showing all 3" — was 11.5px grey, invisible next to two solid
+           controls. Same treatment as the feed's section headings: an accent bar
+           and real weight, so the left side of the bar has something to hold. */
+        .ml-chip-idle {
+          display: inline-flex; align-items: center; gap: 8px;
+          font-size: 13px; font-weight: 900; letter-spacing: -0.03em;
+          color: var(--ink, #1a1a1a);
+        }
+        .ml-chip-idle::before {
+          content: '';
+          width: 4px; height: 16px; border-radius: 4px; flex-shrink: 0;
+          background: linear-gradient(180deg,#ea580c,#f97316);
+        }
+        .ml-chip-idle em {
+          font-style: normal; color: var(--ink-faint, #9ca3af); font-weight: 700;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .ml-vbtn, .ml-fbtn, .ml-fbtn svg { transition: none !important; }
+          .ml-vbtn:hover, .ml-vbtn:active, .ml-fbtn:active,
+          .ml-fbtn:hover svg:first-child { transform: none !important; }
+        }
       `}</style>
 
       {/*
@@ -431,7 +487,11 @@ export function MyListingsDashboard({ listings }: Props) {
         The toolbar and grid are plain siblings; the browser guarantees no overlap.
         ════════════════════════════════════════════════════════════════════
       */}
-      <div className="mx-auto max-w-[1400px] px-3 sm:px-6"
+      {/* Identical container to the home feed: max-w-[1600px] px-4 md:px-8.
+          This page was max-w-[1400px] px-3 sm:px-6 — 200px narrower with tighter
+          gutters, which is exactly the mismatched margin you could see when
+          flipping between the two pages. */}
+      <div className="mx-auto max-w-[1600px] px-4 md:px-8"
            style={{ paddingTop: 0, paddingBottom: 32, position: "relative" }}>
 
         {/* ── PAGE HEAD ──
@@ -530,14 +590,14 @@ export function MyListingsDashboard({ listings }: Props) {
               </button>
             ) : (
               <span className="ml-chip-idle">
-                Showing all {counts.total}
+                All ads <em>{counts.total}</em>
               </span>
             )}
           </div>
 
           {/* Right: view toggle + filter */}
-          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-            {counts.total > 0 && (["grid","list"] as const).map(m => (
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            {counts.total > 0 && <div className="ml-seg">{(["grid","list"] as const).map(m => (
               <button key={m} type="button"
                 className={`ml-vbtn${view===m?" on":""}`}
                 onClick={() => setView(m)}
@@ -559,7 +619,7 @@ export function MyListingsDashboard({ listings }: Props) {
                   </svg>
                 )}
               </button>
-            ))}
+            ))}</div>}
 
             <button ref={btnRef} type="button"
               className={`ml-fbtn${hasFilter?" on":""}`}
