@@ -83,9 +83,9 @@ export default function ContactPage() {
            ───────────────────────────────────────────────────────────── */
 
         .ct-page {
-          --ct-orange: #ea580c;
-          --ct-orange-light: #f97316;
-          --ct-tint: #fff7ed;
+          --ct-orange: #059669;
+          --ct-orange-light: #10b981;
+          --ct-tint: #ecfdf5;
           --ct-ink: #1a1a1a;
           --ct-muted: #6b7280;
           --ct-line: #f0f0f0;
@@ -103,7 +103,7 @@ export default function ContactPage() {
         .ct-hero {
           position: relative;
           overflow: hidden;
-          background: linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%);
+          background: linear-gradient(135deg, #022c22 0%, #065f46 45%, #059669 100%);
           padding: 40px 0 44px;
         }
         @media (min-width: 640px) { .ct-hero { padding: 64px 0 68px; border-radius: 0 0 32px 32px; } }
@@ -148,7 +148,7 @@ export default function ContactPage() {
         }
         @media (min-width: 640px)  { .ct-h1 { font-size: 52px; } }
         @media (min-width: 1024px) { .ct-h1 { font-size: 62px; } }
-        .ct-h1 em { font-style: normal; color: #fdba74; }
+        .ct-h1 em { font-style: normal; color: #6ee7b7; }
 
         .ct-sub {
           color: rgba(255,255,255,0.72);
@@ -200,7 +200,7 @@ export default function ContactPage() {
         .ct-card:active { transform: scale(0.985); }
         .ct-card:focus-visible { outline: 3px solid var(--ct-orange); outline-offset: 3px; }
         .ct-card--wa:hover { border-color: rgba(37,211,102,0.45); }
-        .ct-card--mail:hover { border-color: #fdba74; }
+        .ct-card--mail:hover { border-color: #6ee7b7; }
 
         .ct-icon {
           width: 50px; height: 50px; border-radius: 15px;
@@ -211,14 +211,19 @@ export default function ContactPage() {
         .ct-icon--wa   { background: linear-gradient(135deg, var(--ct-wa), var(--ct-wa-deep)); }
         .ct-icon--mail { background: linear-gradient(135deg, var(--ct-orange), var(--ct-orange-light)); }
 
-        .ct-card-body { flex: 1; min-width: 0; }
+        .ct-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
         .ct-card-kicker {
           font-size: 10px; font-weight: 800; letter-spacing: 0.09em;
           text-transform: uppercase; color: var(--ct-muted); margin: 0 0 3px;
         }
         .ct-card-title {
           font-size: 17px; font-weight: 800; letter-spacing: -0.025em;
-          color: var(--ct-ink); margin: 0 0 3px;
+          color: var(--ct-ink); margin: 0 0 4px;
+          /* Was a plain inline title with the badge crammed after it via
+             margin-left — on a narrow card the badge ran into the next line and
+             collided with the value below. Flex-wrap lets the badge drop to its
+             own line cleanly when there isn't room beside the title. */
+          display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px;
         }
         @media (min-width: 640px) { .ct-card-title { font-size: 19px; } }
         .ct-card-value {
@@ -231,10 +236,10 @@ export default function ContactPage() {
         }
 
         .ct-badge {
-          display: inline-block; font-size: 10px; font-weight: 800;
-          padding: 2px 7px; border-radius: 100px; margin-left: 6px;
-          background: rgba(37,211,102,0.13); color: #0f7a4a;
-          letter-spacing: 0.02em; vertical-align: middle;
+          display: inline-flex; align-items: center; font-size: 10px; font-weight: 800;
+          padding: 3px 8px; border-radius: 100px; margin-left: 0;
+          background: rgba(5,150,105,0.13); color: #047857;
+          letter-spacing: 0.02em; white-space: nowrap; flex-shrink: 0;
         }
 
         /* ── SECTION HEADINGS ───────────────────────────────────────── */
@@ -306,19 +311,103 @@ export default function ContactPage() {
           display: flex; gap: 13px; align-items: flex-start;
           margin-top: 40px; padding: 17px 18px;
           border-radius: 18px;
-          background: var(--ct-tint); border: 1.5px solid #fed7aa;
+          background: var(--ct-tint); border: 1.5px solid #a7f3d0;
         }
         .ct-safety-icon { flex-shrink: 0; color: var(--ct-orange); margin-top: 1px; }
         .ct-safety-title {
-          font-size: 14px; font-weight: 800; color: #9a3412;
+          font-size: 14px; font-weight: 800; color: #065f46;
           margin: 0 0 3px; letter-spacing: -0.02em;
         }
-        .ct-safety-text { font-size: 13px; line-height: 1.6; color: #9a3412; margin: 0; opacity: 0.85; }
+        .ct-safety-text { font-size: 13px; line-height: 1.6; color: #065f46; margin: 0; opacity: 0.85; }
 
         @media (prefers-reduced-motion: reduce) {
           .ct-card, .ct-chip, .ct-card-arrow { transition: none !important; }
           .ct-card:hover, .ct-chip:hover { transform: none !important; }
         }
+
+        /* ══════════════════════════════════════════════════════════
+           LIFE — ambient + scroll-reveal, all CSS (this page is force-static,
+           so no JS). Scroll reveals use animation-timeline: view(), which
+           degrades to "already visible" where unsupported.
+           ══════════════════════════════════════════════════════════ */
+
+        /* Ambient: the hero glow drifts and breathes on its own, forever */
+        .ct-hero-glow {
+          animation: ct-drift 14s ease-in-out infinite;
+        }
+        @keyframes ct-drift {
+          0%,100% { transform: translate(0,0) scale(1); opacity: 0.85; }
+          33%     { transform: translate(-24px, 14px) scale(1.12); opacity: 1; }
+          66%     { transform: translate(18px, -10px) scale(0.95); opacity: 0.9; }
+        }
+        /* A second, faint glow orb rising through the hero for depth */
+        .ct-hero::after {
+          content: ''; position: absolute; left: 8%; bottom: -60px;
+          width: 220px; height: 220px; border-radius: 50%;
+          background: radial-gradient(circle, rgba(16,185,129,0.35) 0%, transparent 70%);
+          pointer-events: none;
+          animation: ct-rise 18s ease-in-out infinite;
+        }
+        @keyframes ct-rise {
+          0%,100% { transform: translateY(20px) scale(1); opacity: 0.5; }
+          50%     { transform: translateY(-30px) scale(1.2); opacity: 0.8; }
+        }
+
+        /* The eyebrow dot pulses like a live "we're online" light */
+        .ct-dot { animation: ct-pulse 2s ease-in-out infinite; }
+        @keyframes ct-pulse {
+          0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+          50%     { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+        }
+
+        /* Scroll reveal — each major block rises + fades as it enters view */
+        @supports (animation-timeline: view()) {
+          .ct-methods, .ct-section, .ct-safety, .ct-faq-item {
+            animation: ct-reveal both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 42%;
+          }
+          @keyframes ct-reveal {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: none; }
+          }
+        }
+
+        /* Cards: sheen sweep on hover + arrow that travels */
+        .ct-card { position: relative; overflow: hidden; }
+        .ct-card::after {
+          content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+          transform: translateX(-120%) skewX(-18deg); pointer-events: none;
+        }
+        @media (hover: hover) {
+          .ct-card:hover::after { animation: ct-sheen 800ms ease both; }
+          .ct-card:hover .ct-card-arrow { transform: translateX(4px); }
+          .ct-card:hover .ct-icon { transform: scale(1.08) rotate(-5deg); }
+        }
+        @keyframes ct-sheen { to { transform: translateX(320%) skewX(-18deg); } }
+        .ct-card-arrow, .ct-icon { transition: transform 260ms cubic-bezier(0.34,1.56,0.64,1); }
+
+        /* Topic chips: lift + fill on hover */
+        .ct-chip { transition: transform 200ms cubic-bezier(0.34,1.56,0.64,1), background 200ms ease, border-color 200ms ease, color 200ms ease; }
+        @media (hover: hover) {
+          .ct-chip:hover { transform: translateY(-2px); background: #ecfdf5; border-color: #6ee7b7; color: #047857; }
+        }
+        .ct-chip:active { transform: scale(0.95); }
+
+        /* FAQ rows nudge on hover; the +/- icon rotates when open (if not already) */
+        @media (hover: hover) {
+          .ct-faq-q:hover { color: #059669; }
+          .ct-faq-item:hover { border-color: #a7f3d0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .ct-hero-glow, .ct-hero::after, .ct-dot,
+          .ct-methods, .ct-section, .ct-safety, .ct-faq-item { animation: none !important; opacity: 1 !important; transform: none !important; }
+          .ct-card::after { display: none; }
+          .ct-card, .ct-chip, .ct-card-arrow, .ct-icon { transition: none !important; }
+        }
+
       `}</style>
 
       <div className="ct-page">
