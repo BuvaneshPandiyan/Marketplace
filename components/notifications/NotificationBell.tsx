@@ -15,12 +15,12 @@ import type { AppNotification, NotificationType } from "@/types";
 // Emoji + color config per type
 const TYPE_CONFIG: Record<NotificationType, { emoji: string; label: string; color: string; bg: string }> = {
   new_message:       { emoji: "💬", label: "New message",      color: "#3b82f6", bg: "rgba(59,130,246,0.1)"  },
-  new_match:         { emoji: "🔍", label: "New match",        color: "#d97706", bg: "rgba(217,119,6,0.11)"  },
+  new_match:         { emoji: "🔍", label: "New match",        color: "#c026d3", bg: "rgba(192,38,211,0.12)"  },
   price_drop:        { emoji: "📉", label: "Price drop",       color: "#16a34a", bg: "rgba(22,163,74,0.1)"  },
   listing_sold:      { emoji: "🏷️", label: "Item sold",        color: "#16a34a", bg: "rgba(22,163,74,0.1)"  },
-  listing_expiring:  { emoji: "⏰", label: "Listing expiring", color: "#d97706", bg: "rgba(217,119,6,0.1)"  },
-  listing_published: { emoji: "🎉", label: "Listing live!",    color: "#d97706", bg: "rgba(217,119,6,0.11)"  },
-  welcome:           { emoji: "👋", label: "Welcome!",         color: "#d97706", bg: "rgba(217,119,6,0.11)"  },
+  listing_expiring:  { emoji: "⏰", label: "Listing expiring", color: "#c026d3", bg: "rgba(192,38,211,0.11)"  },
+  listing_published: { emoji: "🎉", label: "Listing live!",    color: "#c026d3", bg: "rgba(192,38,211,0.12)"  },
+  welcome:           { emoji: "👋", label: "Welcome!",         color: "#c026d3", bg: "rgba(192,38,211,0.12)"  },
 };
 
 function resolveLink(n: AppNotification): string {
@@ -153,7 +153,7 @@ export function NotificationBell() {
     <>
       {/* Header — same gradient style as drawer and location sheet */}
       <div style={{
-        background: "linear-gradient(135deg, #451a03 0%, #92400e 45%, #d97706 100%)",
+        background: "linear-gradient(135deg, #4a044e 0%, #86198f 45%, #c026d3 100%)",
         padding: isMobileSheet ? "14px 20px 18px" : "16px 20px 14px",
         flexShrink: 0,
         overflow: "hidden",
@@ -232,8 +232,8 @@ export function NotificationBell() {
 
               const inner = (
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 16px",
-                  background: isUnread ? "rgba(217,119,6,0.04)" : "transparent",
-                  borderLeft: isUnread ? "3px solid #d97706" : "3px solid transparent",
+                  background: isUnread ? "rgba(192,38,211,0.05)" : "transparent",
+                  borderLeft: isUnread ? "3px solid #c026d3" : "3px solid transparent",
                   opacity: 1,
                   animation: `notif-item-in 300ms ease ${i * 40}ms both`,
                 }}>
@@ -244,7 +244,7 @@ export function NotificationBell() {
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
                       <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: cfg.color }}>{cfg.label}</span>
-                      {isUnread && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#d97706", display: "inline-block", flexShrink: 0 }} />}
+                      {isUnread && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#c026d3", display: "inline-block", flexShrink: 0 }} />}
                     </div>
                     <p style={{ fontSize: 13, fontWeight: isUnread ? 600 : 400, color: isUnread ? "#111" : "#374151", margin: 0, lineHeight: 1.4 }}>{n.title}</p>
                     {n.body && <p style={{ fontSize: 12, color: "#6b7280", marginTop: 2, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>{n.body}</p>}
@@ -297,15 +297,15 @@ export function NotificationBell() {
         @keyframes pop-art-in { from { opacity: 0; transform: scale(1.1); } }
         .pop-art-scrim {
           position: absolute; inset: 0; pointer-events: none;
-          background: linear-gradient(90deg, rgba(69,26,3,0.85) 0%, rgba(69,26,3,0.35) 55%, transparent 100%);
+          background: linear-gradient(90deg, rgba(74,4,78,0.85) 0%, rgba(74,4,78,0.35) 55%, transparent 100%);
         }
 
         .pop-empty-badge {
           width: 60px; height: 60px; border-radius: 20px;
           display: flex; align-items: center; justify-content: center;
           font-size: 28px;
-          background: var(--brand-tint, #fffbeb);
-          border: 1.5px solid var(--brand-border, #fde68a);
+          background: #fdf4ff;
+          border: 1.5px solid #f5d0fe;
           animation: pop-empty-float 3.4s ease-in-out infinite;
         }
         @keyframes pop-empty-float { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(2deg); } }
@@ -325,11 +325,11 @@ export function NotificationBell() {
           80%     { transform: rotate(0); }
         }
         @keyframes badge-pulse {
-          0%,100%{ transform: scale(1); box-shadow: 0 0 0 0 rgba(217,119,6,0.42); }
-          50%    { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(217,119,6,0); }
+          0%,100%{ transform: scale(1); box-shadow: 0 0 0 0 rgba(192,38,211,0.44); }
+          50%    { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(192,38,211,0); }
         }
         .bell-btn { transition: transform 200ms ease, background 200ms ease; }
-        .bell-btn:hover { transform: scale(1.12); background: rgba(217,119,6,0.09) !important; }
+        .bell-btn:hover { transform: scale(1.12); background: rgba(192,38,211,0.1) !important; }
         .bell-btn:hover .bell-icon { animation: bell-ring 0.6s ease; }
         .bell-btn:active { transform: scale(0.92); }
         .badge-pulse { animation: badge-pulse 2s ease infinite; }
@@ -348,9 +348,9 @@ export function NotificationBell() {
         @keyframes notif-item-in { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
 
         /* Notification row hover */
-        .notif-item-link:hover > div { background: rgba(217,119,6,0.06) !important; }
-        .notif-item-link:hover svg[viewBox="0 0 24 24"]:last-child { stroke: #d97706; }
-        .notif-item-link:active > div { background: rgba(217,119,6,0.11) !important; transform: scale(0.99); }
+        .notif-item-link:hover > div { background: rgba(192,38,211,0.07) !important; }
+        .notif-item-link:hover svg[viewBox="0 0 24 24"]:last-child { stroke: #c026d3; }
+        .notif-item-link:active > div { background: rgba(192,38,211,0.12) !important; transform: scale(0.99); }
 
         @media (prefers-reduced-motion: reduce) {
           .pop-art { animation: none !important; opacity: 0.5 !important; transform: none !important; }
@@ -373,7 +373,7 @@ export function NotificationBell() {
             <span className="badge-pulse" style={{
               position: "absolute", top: 4, right: 4,
               minWidth: 18, height: 18, borderRadius: 100,
-              background: "linear-gradient(135deg,#d97706,#f59e0b)",
+              background: "linear-gradient(135deg,#c026d3,#d946ef)",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 10, fontWeight: 800, color: "white", padding: "0 4px",
             }}>
