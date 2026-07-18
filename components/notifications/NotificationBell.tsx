@@ -187,9 +187,9 @@ export function NotificationBell() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 20 }}>🔔</span>
             <div>
-              <p style={{ fontWeight: 700, fontSize: 15, color: "white", margin: 0 }}>Notifications</p>
-              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", margin: 0 }}>
-                {unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up ✓"}
+              <p style={{ fontWeight: 900, fontSize: 16, letterSpacing: "-0.035em", color: "white", margin: 0 }}>Notifications</p>
+              <p style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.62)", margin: "1px 0 0" }}>
+                {unreadCount > 0 ? `${unreadCount} new update${unreadCount > 1 ? "s" : ""}` : "You're all caught up"}
               </p>
             </div>
           </div>

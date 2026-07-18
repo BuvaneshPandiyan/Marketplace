@@ -901,10 +901,10 @@ export function Header() {
                     )}
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ fontSize:15, fontWeight:800, color:"white", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    <p style={{ fontSize:16, fontWeight:900, letterSpacing:"-0.035em", color:"white", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                       {profile?.name ?? "My Account"}
                     </p>
-                    <p style={{ fontSize:11, color:"rgba(255,255,255,0.6)", margin:0 }}>
+                    <p style={{ fontSize:11.5, fontWeight:600, color:"rgba(255,255,255,0.62)", margin:"1px 0 0" }}>
                       bazar.in member
                     </p>
                   </div>
@@ -916,7 +916,10 @@ export function Header() {
                 </div>
               ) : (
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                  <p style={{ fontSize:15, fontWeight:700, color:"white", margin:0 }}>Menu</p>
+                  <div>
+                    <p style={{ fontSize:16, fontWeight:900, letterSpacing:"-0.035em", color:"white", margin:0 }}>Menu</p>
+                    <p style={{ fontSize:11.5, fontWeight:600, color:"rgba(255,255,255,0.62)", margin:"1px 0 0" }}>Sign in to buy and sell</p>
+                  </div>
                   <button type="button" onClick={() => setDrawerOpen(false)} aria-label="Close menu"
                     style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5}><path d="M18 6L6 18M6 6l12 12"/></svg>
