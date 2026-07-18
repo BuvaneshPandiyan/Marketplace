@@ -30,12 +30,14 @@ export default function MyListingsLoading() {
         }
         .mls-band {
           position: absolute; top: 0; left: 0; right: 0;
-          height: 190px;
+          height: 300px;
           background: linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%);
           border-radius: 0 0 28px 28px;
           overflow: hidden;
+          -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
         }
-        @media (min-width: 640px) { .mls-band { height: 210px; } }
+        @media (min-width: 640px) { .mls-band { height: 340px; } }
         .mls-band-grid {
           position: absolute; inset: 0;
           background-image:
@@ -46,8 +48,11 @@ export default function MyListingsLoading() {
         .mls-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
         @media (min-width: 640px) { .mls-stats { grid-template-columns: repeat(4, 1fr); gap: 12px; } }
         .mls-stat {
-          padding: 12px 13px; border-radius: 16px;
-          border: 1.5px solid #f0f0f0; background: #fff;
+          padding: 13px 14px; border-radius: 18px;
+          border: 1px solid rgba(255,255,255,0.7);
+          background: rgba(255,255,255,0.82);
+          backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+          box-shadow: 0 10px 30px rgba(26,10,0,0.16);
         }
         .mls-grid {
           display: grid; gap: 12px;
@@ -101,13 +106,17 @@ export default function MyListingsLoading() {
           </div>
         </div>
 
-        {/* Toolbar */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0 12px" }}>
+        {/* Toolbar — white bar, matching the real one */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "11px 14px", borderRadius: 16, background: "#fff",
+          border: "1.5px solid #f0f0f0", boxShadow: "0 4px 16px rgba(0,0,0,0.05)",
+          margin: "14px 0 18px",
+        }}>
           <div className="mls" style={{ width: 96, height: 14, borderRadius: 6 }} />
-          <div style={{ display: "flex", gap: 6 }}>
-            <div className="mls" style={{ width: 34, height: 34, borderRadius: 9 }} />
-            <div className="mls" style={{ width: 34, height: 34, borderRadius: 9 }} />
-            <div className="mls" style={{ width: 84, height: 34, borderRadius: 100 }} />
+          <div style={{ display: "flex", gap: 8 }}>
+            <div className="mls" style={{ width: 74, height: 34, borderRadius: 100 }} />
+            <div className="mls" style={{ width: 96, height: 34, borderRadius: 100 }} />
           </div>
         </div>
 

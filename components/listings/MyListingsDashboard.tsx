@@ -199,13 +199,19 @@ export function MyListingsDashboard({ listings }: Props) {
         /* The band sits behind the head and bleeds edge to edge */
         .ml-band {
           position: absolute; top: 0; left: 0; right: 0;
-          height: 230px;
+          /* Tall enough to sit behind the full tile row (head + tiles ≈ 300/340px),
+             so the frosted glass has warm colour to sample top to bottom instead
+             of fading to plain over the grey page. */
+          height: 300px;
           overflow: hidden;
           background: linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%);
           border-radius: 0 0 28px 28px;
           pointer-events: none;
+          /* Soft bottom edge — no hard line where band meets page */
+          -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
         }
-        @media (min-width: 640px) { .ml-band { height: 264px; } }
+        @media (min-width: 640px) { .ml-band { height: 340px; } }
         .ml-band-art {
           position: absolute; inset: 0;
           /* Was 0.4 — too faint to read as a person. */
@@ -301,16 +307,23 @@ export function MyListingsDashboard({ listings }: Props) {
         .ml-stat {
           position: relative; overflow: hidden;
           display: flex; flex-direction: column;
-          padding: 12px 13px;
-          border-radius: 16px;
-          border: 1.5px solid var(--line, #f0f0f0);
-          background: #fff;
+          padding: 13px 14px;
+          border-radius: 18px;
+          /* Frosted glass, not solid white. The tiles straddle the dark band and
+             the grey page, so an opaque white slab reads as paper stuck onto a
+             photo. Translucent + blur lets the band's warmth bleed through — the
+             Zomato/Zepto treatment for cards that sit over imagery. */
+          background: rgba(255,255,255,0.82);
+          backdrop-filter: blur(16px) saturate(1.4);
+          -webkit-backdrop-filter: blur(16px) saturate(1.4);
+          border: 1px solid rgba(255,255,255,0.7);
+          box-shadow: 0 10px 30px rgba(26,10,0,0.16), inset 0 1px 0 rgba(255,255,255,0.6);
           animation: ml-stat-in 460ms cubic-bezier(0.22,1,0.36,1) both;
-          transition: transform 240ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 240ms ease, border-color 240ms ease;
+          transition: transform 240ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 240ms ease;
         }
         @keyframes ml-stat-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
         @media (hover: hover) {
-          .ml-stat:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(0,0,0,0.08); }
+          .ml-stat:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(26,10,0,0.24), inset 0 1px 0 rgba(255,255,255,0.6); }
           .ml-stat:hover .ml-stat-ico { transform: scale(1.12) rotate(-6deg); }
         }
 
@@ -329,8 +342,8 @@ export function MyListingsDashboard({ listings }: Props) {
            identical boxes with different numbers */
         .ml-stat::before {
           content: ''; position: absolute; top: -14px; right: -14px;
-          width: 56px; height: 56px; border-radius: 50%;
-          opacity: 0.07; pointer-events: none;
+          width: 60px; height: 60px; border-radius: 50%;
+          opacity: 0.12; pointer-events: none;
         }
         .ml-stat--orange::before { background: #ea580c; }
         .ml-stat--blue::before   { background: #2563eb; }
@@ -339,7 +352,7 @@ export function MyListingsDashboard({ listings }: Props) {
 
         .ml-stat-v {
           font-size: 22px; font-weight: 900; letter-spacing: -0.05em;
-          color: var(--ink, #1a1a1a); line-height: 1;
+          color: #1a0a00; line-height: 1;
           font-variant-numeric: tabular-nums;
         }
         @media (min-width: 640px) { .ml-stat-v { font-size: 26px; } }
