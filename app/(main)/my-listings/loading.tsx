@@ -109,9 +109,7 @@ export default function MyListingsLoading() {
         {/* Toolbar — white bar, matching the real one */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "11px 14px", borderRadius: 16, background: "#fff",
-          border: "1.5px solid #f0f0f0", boxShadow: "0 4px 16px rgba(0,0,0,0.05)",
-          margin: "14px 0 18px",
+          padding: "4px 0 14px", margin: "10px 0 4px",
         }}>
           <div className="mls" style={{ width: 96, height: 14, borderRadius: 6 }} />
           <div style={{ display: "flex", gap: 8 }}>

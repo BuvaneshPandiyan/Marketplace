@@ -446,12 +446,12 @@ export function MyListingsDashboard({ listings }: Props) {
         .ml-toolbar {
           display: flex; align-items: center; justify-content: space-between;
           gap: 12px;
-          padding: 11px 14px;
-          border-radius: 16px;
-          background: #fff;
-          border: 1.5px solid var(--line, #f0f0f0);
-          box-shadow: 0 4px 16px rgba(0,0,0,0.05);
-          margin-bottom: 18px;
+          /* No box. A white bar floating on the grey page looked like a panel
+             pasted on — the individual controls already read as buttons, so the
+             container around them was just an odd extra edge. This is a plain
+             row now, like the home feed's section headings. */
+          padding: 4px 0 14px;
+          margin-bottom: 4px;
         }
 
         /* Segmented control, not two loose buttons. Grid/list are one choice
@@ -597,8 +597,15 @@ export function MyListingsDashboard({ listings }: Props) {
             so the controls sit ON something instead of in a void. */}
         <div className="ml-sticky-bar" style={{
           position: "sticky", top: 76, zIndex: 30,
-          background: "#f5f4f2",
-          paddingTop: 14, paddingBottom: 10,
+          /* Transparent, not a #f5f4f2 block. The page wrapper is already that
+             colour, so the continuous background shows straight through — no
+             rectangle, no seam where the band's faded edge got covered over.
+             When the grid scrolls up under this row, the backdrop-blur keeps the
+             controls legible without needing an opaque slab. */
+          background: "transparent",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          paddingTop: 10, paddingBottom: 4,
         }}>
         <div className="ml-toolbar">
           {/*
