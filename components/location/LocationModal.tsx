@@ -308,7 +308,7 @@ export function LocationModal({ onClose }: LocationModalProps) {
           width: 100%; margin-top: 12px;
           display: flex; align-items: center; justify-content: center; gap: 8px;
           padding: 14px; border-radius: var(--r-pill, 100px); border: none;
-          background: var(--brand-grad, linear-gradient(135deg,#0284c7,#0ea5e9));
+          background: linear-gradient(135deg,#0284c7,#0ea5e9);
           color: #fff; font-size: 14.5px; font-weight: 900; letter-spacing: -0.025em;
           cursor: pointer;
           box-shadow: 0 6px 20px rgba(2,132,199,0.46);
@@ -333,8 +333,8 @@ export function LocationModal({ onClose }: LocationModalProps) {
           width: 100%;
           display: flex; align-items: center; gap: 11px;
           padding: 13px 15px; border-radius: var(--r-md, 16px);
-          border: 1.5px solid var(--brand-border, #bae6fd);
-          background: var(--brand-tint, #f0f9ff);
+          border: 1.5px solid #bae6fd;
+          background: #f0f9ff;
           cursor: pointer; text-align: left;
           transition: transform 220ms var(--spring), box-shadow 220ms ease, background 200ms ease;
         }
@@ -345,16 +345,16 @@ export function LocationModal({ onClose }: LocationModalProps) {
           }
         }
         .lm-detect:disabled { opacity: 0.65; cursor: default; }
-        .lm-detect:focus-visible { outline: 2px solid var(--brand, #0284c7); outline-offset: 2px; }
+        .lm-detect:focus-visible { outline: 2px solid #0284c7; outline-offset: 2px; }
         @media (hover: hover) {
           .lm-detect:not(:disabled):hover .lm-detect-ico { transform: scale(1.1) rotate(-8deg); }
-          .lm-detect:not(:disabled):hover .lm-detect-t   { color: var(--brand, #0284c7); }
+          .lm-detect:not(:disabled):hover .lm-detect-t   { color: #0284c7; }
         }
         .lm-detect-ico {
           position: relative;
           transition: transform 280ms var(--spring);
           width: 34px; height: 34px; border-radius: 11px; flex-shrink: 0;
-          background: var(--brand-grad, linear-gradient(135deg,#0284c7,#0ea5e9));
+          background: linear-gradient(135deg,#0284c7,#0ea5e9);
           color: #fff;
           display: flex; align-items: center; justify-content: center;
           box-shadow: 0 3px 10px rgba(2,132,199,0.4);
@@ -365,7 +365,7 @@ export function LocationModal({ onClose }: LocationModalProps) {
           animation: lm-ping 2.2s ease-out infinite;
           pointer-events: none;
         }
-        .lm-detect-t { transition: color 200ms ease; font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; color: var(--brand-dark, #075985); }
+        .lm-detect-t { transition: color 200ms ease; font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; color: #075985; }
         .lm-detect-s { font-size: 11px; color: #0369a1; margin-top: 1px; font-weight: 600; }
         @keyframes lm-spin { to { transform: rotate(360deg); } }
         .lm-spin { animation: lm-spin 700ms linear infinite; }
