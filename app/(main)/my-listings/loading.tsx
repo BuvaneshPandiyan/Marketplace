@@ -31,7 +31,7 @@ export default function MyListingsLoading() {
         .mls-band {
           position: absolute; top: 0; left: 0; right: 0;
           height: 300px;
-          background: linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%);
+          background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 45%, #6366f1 100%);
           border-radius: 0 0 28px 28px;
           overflow: hidden;
           -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
@@ -52,7 +52,7 @@ export default function MyListingsLoading() {
           border: 1px solid rgba(255,255,255,0.7);
           background: rgba(255,255,255,0.82);
           backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-          box-shadow: 0 10px 30px rgba(26,10,0,0.16);
+          box-shadow: 0 10px 30px rgba(30,27,75,0.18);
         }
         .mls-grid {
           display: grid; gap: 12px;

@@ -139,7 +139,7 @@ export function MyListingsDashboard({ listings }: Props) {
           cursor:pointer; transition:all 150ms ease;
           white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.05);
         }
-        .ml-fbtn:hover { border-color:#ea580c; color:#ea580c; box-shadow:0 2px 8px rgba(234,88,12,0.15); }
+        .ml-fbtn:hover { border-color:#6366f1; color:#4338ca; box-shadow:0 2px 8px rgba(99,102,241,0.18); }
 
         .ml-vbtn {
           width:34px; height:34px; border-radius:100px;
@@ -168,7 +168,7 @@ export function MyListingsDashboard({ listings }: Props) {
           transition:background 100ms;
         }
         .ml-drow:hover { background:#f5f4f2; }
-        .ml-drow.sel   { color:#ea580c; font-weight:700; background:rgba(234,88,12,.04); }
+        .ml-drow.sel   { color:#4338ca; font-weight:700; background:rgba(99,102,241,.06); }
         .ml-dlabel {
           padding:10px 16px 5px;
           font-size:10px; font-weight:700; letter-spacing:.1em;
@@ -204,7 +204,7 @@ export function MyListingsDashboard({ listings }: Props) {
              of fading to plain over the grey page. */
           height: 300px;
           overflow: hidden;
-          background: linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%);
+          background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 45%, #6366f1 100%);
           border-radius: 0 0 28px 28px;
           pointer-events: none;
           /* Soft bottom edge — no hard line where band meets page */
@@ -225,7 +225,7 @@ export function MyListingsDashboard({ listings }: Props) {
            their contrast now that the artwork is brighter */
         .ml-band-scrim {
           position: absolute; inset: 0; pointer-events: none;
-          background: linear-gradient(90deg, rgba(26,10,0,0.82) 0%, rgba(26,10,0,0.4) 42%, transparent 72%);
+          background: linear-gradient(90deg, rgba(30,27,75,0.82) 0%, rgba(30,27,75,0.42) 42%, transparent 72%);
         }
         .ml-band-grid {
           position: absolute; inset: 0;
@@ -237,7 +237,7 @@ export function MyListingsDashboard({ listings }: Props) {
         .ml-band-glow {
           position: absolute; top: -110px; right: -70px;
           width: 300px; height: 300px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(249,115,22,0.45) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(139,92,246,0.5) 0%, transparent 70%);
           animation: ml-breathe 9s ease-in-out infinite;
         }
         @keyframes ml-breathe {
@@ -260,11 +260,11 @@ export function MyListingsDashboard({ listings }: Props) {
         }
         @media (min-width: 640px)  { .ml-h1 { font-size: 30px; } }
         @media (min-width: 1024px) { .ml-h1 { font-size: 34px; } }
-        .ml-h1 em { font-style: normal; color: #fdba74; position: relative; }
+        .ml-h1 em { font-style: normal; color: #a5b4fc; position: relative; }
         .ml-h1 em::after {
           content: ''; position: absolute; left: 0; right: 0; bottom: -1px;
           height: 4px; border-radius: 4px;
-          background: rgba(253,186,116,0.45);
+          background: rgba(165,180,252,0.45);
           transform-origin: left;
           animation: ml-underline 620ms cubic-bezier(0.22,1,0.36,1) 220ms both;
         }
@@ -283,7 +283,7 @@ export function MyListingsDashboard({ listings }: Props) {
           padding: 11px 17px; border-radius: 100px;
           /* White on the band — an orange button on an orange band disappears */
           background: #fff;
-          color: #ea580c; text-decoration: none;
+          color: #4338ca; text-decoration: none;
           font-size: 13.5px; font-weight: 900; letter-spacing: -0.025em;
           box-shadow: 0 6px 20px rgba(0,0,0,0.25);
           transition: transform 240ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 240ms ease;
@@ -317,13 +317,13 @@ export function MyListingsDashboard({ listings }: Props) {
           backdrop-filter: blur(16px) saturate(1.4);
           -webkit-backdrop-filter: blur(16px) saturate(1.4);
           border: 1px solid rgba(255,255,255,0.7);
-          box-shadow: 0 10px 30px rgba(26,10,0,0.16), inset 0 1px 0 rgba(255,255,255,0.6);
+          box-shadow: 0 10px 30px rgba(30,27,75,0.18), inset 0 1px 0 rgba(255,255,255,0.6);
           animation: ml-stat-in 460ms cubic-bezier(0.22,1,0.36,1) both;
           transition: transform 240ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 240ms ease;
         }
         @keyframes ml-stat-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
         @media (hover: hover) {
-          .ml-stat:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(26,10,0,0.24), inset 0 1px 0 rgba(255,255,255,0.6); }
+          .ml-stat:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(30,27,75,0.26), inset 0 1px 0 rgba(255,255,255,0.6); }
           .ml-stat:hover .ml-stat-ico { transform: scale(1.12) rotate(-6deg); }
         }
 
@@ -333,7 +333,7 @@ export function MyListingsDashboard({ listings }: Props) {
           margin-bottom: 8px; color: #fff; flex-shrink: 0;
           transition: transform 260ms cubic-bezier(0.34,1.56,0.64,1);
         }
-        .ml-stat--orange .ml-stat-ico { background: linear-gradient(135deg,#ea580c,#f97316); box-shadow: 0 2px 8px rgba(234,88,12,0.35); }
+        .ml-stat--orange .ml-stat-ico { background: linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow: 0 2px 8px rgba(99,102,241,0.4); }
         .ml-stat--blue   .ml-stat-ico { background: linear-gradient(135deg,#2563eb,#3b82f6); box-shadow: 0 2px 8px rgba(37,99,235,0.35); }
         .ml-stat--green  .ml-stat-ico { background: linear-gradient(135deg,#16a34a,#22c55e); box-shadow: 0 2px 8px rgba(34,197,94,0.35); }
         .ml-stat--grey   .ml-stat-ico { background: linear-gradient(135deg,#57534e,#78716c); box-shadow: 0 2px 8px rgba(87,83,78,0.3); }
@@ -345,14 +345,14 @@ export function MyListingsDashboard({ listings }: Props) {
           width: 60px; height: 60px; border-radius: 50%;
           opacity: 0.12; pointer-events: none;
         }
-        .ml-stat--orange::before { background: #ea580c; }
+        .ml-stat--orange::before { background: #6366f1; }
         .ml-stat--blue::before   { background: #2563eb; }
         .ml-stat--green::before  { background: #16a34a; }
         .ml-stat--grey::before   { background: #57534e; }
 
         .ml-stat-v {
           font-size: 22px; font-weight: 900; letter-spacing: -0.05em;
-          color: #1a0a00; line-height: 1;
+          color: #1e1b4b; line-height: 1;
           font-variant-numeric: tabular-nums;
         }
         @media (min-width: 640px) { .ml-stat-v { font-size: 26px; } }
@@ -375,13 +375,13 @@ export function MyListingsDashboard({ listings }: Props) {
         .ml-chip-active {
           display: inline-flex; align-items: center; gap: 6px;
           padding: 5px 11px; border-radius: 100px; border: none;
-          background: linear-gradient(135deg,#ea580c,#f97316);
+          background: linear-gradient(135deg,#6366f1,#8b5cf6);
           color: #fff; cursor: pointer;
           font-size: 11.5px; font-weight: 800; letter-spacing: -0.02em;
-          box-shadow: 0 3px 10px rgba(234,88,12,0.35);
+          box-shadow: 0 3px 10px rgba(99,102,241,0.4);
           transition: transform 200ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 200ms ease;
         }
-        @media (hover: hover) { .ml-chip-active:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(234,88,12,0.45); } }
+        @media (hover: hover) { .ml-chip-active:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99,102,241,0.5); } }
         .ml-chip-active:active { transform: scale(0.95); }
         .ml-chip-n {
           background: rgba(255,255,255,0.28); border-radius: 100px;
@@ -413,8 +413,8 @@ export function MyListingsDashboard({ listings }: Props) {
         .ml-empty-perks li:nth-child(3) { animation-delay: 260ms; }
         .ml-empty-perk-i {
           width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
-          background: var(--brand-tint, #fff7ed);
-          border: 1.5px solid var(--brand-border, #fed7aa);
+          background: #eef2ff;
+          border: 1.5px solid #c7d2fe;
           display: flex; align-items: center; justify-content: center;
           font-size: 14px;
         }
@@ -464,8 +464,8 @@ export function MyListingsDashboard({ listings }: Props) {
           border: 1.5px solid #e2e0dd;
         }
         .ml-vbtn.on {
-          background: linear-gradient(135deg,#ea580c,#f97316) !important;
-          box-shadow: 0 3px 10px rgba(234,88,12,0.4) !important;
+          background: linear-gradient(135deg,#6366f1,#8b5cf6) !important;
+          box-shadow: 0 3px 10px rgba(99,102,241,0.45) !important;
         }
         @media (hover: hover) {
           .ml-vbtn:not(.on):hover { background: rgba(255,255,255,0.85) !important; }
@@ -480,10 +480,10 @@ export function MyListingsDashboard({ listings }: Props) {
         .ml-fbtn svg:first-child { transition: transform 260ms cubic-bezier(0.34,1.56,0.64,1); }
         .ml-fbtn:active { transform: scale(0.95); }
         .ml-fbtn.on {
-          background: linear-gradient(135deg,#ea580c,#f97316) !important;
+          background: linear-gradient(135deg,#6366f1,#8b5cf6) !important;
           border-color: transparent !important;
           color: #fff !important;
-          box-shadow: 0 4px 14px rgba(234,88,12,0.42) !important;
+          box-shadow: 0 4px 14px rgba(99,102,241,0.45) !important;
         }
 
         /* "Showing all 3" — was 11.5px grey, invisible next to two solid
@@ -497,7 +497,7 @@ export function MyListingsDashboard({ listings }: Props) {
         .ml-chip-idle::before {
           content: '';
           width: 4px; height: 16px; border-radius: 4px; flex-shrink: 0;
-          background: linear-gradient(180deg,#ea580c,#f97316);
+          background: linear-gradient(180deg,#6366f1,#8b5cf6);
         }
         .ml-chip-idle em {
           font-style: normal; color: var(--ink-faint, #9ca3af); font-weight: 700;
@@ -666,7 +666,7 @@ export function MyListingsDashboard({ listings }: Props) {
               Filter
               {hasFilter && (
                 <span style={{ width:6, height:6, borderRadius:"50%",
-                  background:"#ea580c", display:"inline-block" }}/>
+                  background:"#6366f1", display:"inline-block" }}/>
               )}
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"
@@ -684,9 +684,9 @@ export function MyListingsDashboard({ listings }: Props) {
         {counts.total === 0 ? (
           <div style={{ textAlign:"center", paddingTop:64 }}>
             <div style={{ position:"relative", width:88, height:88, margin:"0 auto 20px" }}>
-              <div className="ring-pulse" style={{ position:"absolute", inset:-18, borderRadius:"50%", border:"2px solid #ea580c", opacity:.2 }}/>
-              <div style={{ width:88, height:88, borderRadius:"50%", background:"linear-gradient(135deg,#fff7ed,#ffedd5)", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid rgba(234,88,12,.12)" }}>
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth={1.5} strokeLinecap="round">
+              <div className="ring-pulse" style={{ position:"absolute", inset:-18, borderRadius:"50%", border:"2px solid #6366f1", opacity:.2 }}/>
+              <div style={{ width:88, height:88, borderRadius:"50%", background:"linear-gradient(135deg,#eef2ff,#e0e7ff)", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid rgba(99,102,241,.15)" }}>
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth={1.5} strokeLinecap="round">
                   <rect x="2" y="7" width="20" height="14" rx="2"/>
                   <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
                   <line x1="12" y1="12" x2="12" y2="16"/>
@@ -730,7 +730,7 @@ export function MyListingsDashboard({ listings }: Props) {
               No {activeLabel.toLowerCase()} listings.
             </p>
             <button type="button" onClick={() => setTab(null)}
-              style={{ fontSize:13, color:"#ea580c", fontWeight:600, background:"none", border:"none", cursor:"pointer" }}>
+              style={{ fontSize:13, color:"#4338ca", fontWeight:600, background:"none", border:"none", cursor:"pointer" }}>
               Show all
             </button>
           </div>
@@ -773,13 +773,13 @@ export function MyListingsDashboard({ listings }: Props) {
                 onClick={() => { setTab(value); setDropOpen(false); }}>
                 <span style={{ display:"flex", alignItems:"center", gap:8 }}>
                   {sel
-                    ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth={2.5} strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth={2.5} strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
                     : <span style={{ width:13 }}/>}
                   {label}
                 </span>
                 <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:100,
-                  background: sel ? "rgba(234,88,12,0.1)" : "#f3f4f6",
-                  color:      sel ? "#ea580c" : "#6b7280" }}>
+                  background: sel ? "rgba(99,102,241,0.12)" : "#f3f4f6",
+                  color:      sel ? "#4338ca" : "#6b7280" }}>
                   {count(value)}
                 </span>
               </button>
@@ -796,7 +796,7 @@ export function MyListingsDashboard({ listings }: Props) {
                 onClick={() => { setSort(value); setDropOpen(false); }}>
                 <span style={{ display:"flex", alignItems:"center", gap:8 }}>
                   {sel
-                    ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth={2.5} strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth={2.5} strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
                     : <span style={{ width:13 }}/>}
                   {label}
                 </span>

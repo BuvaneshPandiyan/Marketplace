@@ -51,7 +51,7 @@ const FRESH_HOURS = 24;
 
 type Props = { listing: MyListingRow; index?: number; layout?: "grid" | "list" };
 
-export function MyListingCard({ listing, index = 0 }: Props) {
+export function MyListingCard({ listing, index = 0, layout = "grid" }: Props) {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
   const [justSold, setJustSold] = useState(false);
@@ -386,7 +386,25 @@ export function MyListingCard({ listing, index = 0 }: Props) {
         }
 
         /* ── Seller additions on top of the feed card ─────────────── */
-        .mlc { position: relative; }
+        /* Re-scope the feed card's brand vars to INDIGO here, so every accent it
+           draws (hover glow, condition pill, the rule that fills, price on hover)
+           turns indigo without touching the copied feed styles. Same technique the
+           wishlist card uses for teal. */
+        .mlc {
+          position: relative;
+          --brand: #6366f1;
+          --brand-tint: #eef2ff;
+          --brand-border: #c7d2fe;
+          --brand-grad: linear-gradient(135deg, #6366f1, #8b5cf6);
+        }
+        /* The feed card's hover glow uses an rgba orange literal a variable can't
+           reach — redeclare it in indigo. */
+        @media (hover: hover) {
+          .mlc:hover {
+            box-shadow: 0 16px 44px rgba(99,102,241,0.16), 0 0 0 1px rgba(99,102,241,0.14);
+          }
+          .mlc:hover .lc-price { color: #6366f1; }
+        }
         /* A sold listing reads as done: photo desaturates and dims so it recedes
            behind the live ones without disappearing from the grid. */
         .mlc--sold .lc-img { filter: grayscale(0.65) brightness(0.82); }
@@ -413,7 +431,7 @@ export function MyListingCard({ listing, index = 0 }: Props) {
           display: flex; align-items: center; justify-content: center;
           transition: transform 220ms var(--spring), background 200ms ease;
         }
-        @media (hover: hover) { .mlc-menu-btn:hover { background: var(--brand, #ea580c); transform: scale(1.1); } }
+        @media (hover: hover) { .mlc-menu-btn:hover { background: var(--brand, #6366f1); transform: scale(1.1); } }
         .mlc-menu-btn:active { transform: scale(0.9); }
         .mlc-menu-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
@@ -435,13 +453,68 @@ export function MyListingCard({ listing, index = 0 }: Props) {
           color: var(--ink-soft, #374151);
           transition: background 160ms ease, color 160ms ease, transform 160ms ease;
         }
-        @media (hover: hover) { .mlc-item:hover { background: var(--brand-tint, #fff7ed); color: var(--brand, #ea580c); transform: translateX(2px); } }
+        @media (hover: hover) { .mlc-item:hover { background: var(--brand-tint, #eef2ff); color: var(--brand, #6366f1); transform: translateX(2px); } }
         .mlc-item:disabled { opacity: 0.5; cursor: default; }
         .mlc-item svg { flex-shrink: 0; }
         .mlc-sep { height: 1px; background: var(--line, #f0f0f0); margin: 5px 4px; }
         .mlc-item--danger { color: #dc2626; }
         @media (hover: hover) { .mlc-item--danger:hover { background: #fef2f2; color: #dc2626; } }
         .mlc-item--confirm { background: #fef2f2; color: #dc2626; }
+
+        /* ── LIST MODE ──
+           The grid card's 5:4 photo has no fixed width — fine inside a grid cell,
+           but in the dashboard's list view the container is full-width flex, so the
+           photo stretched to fill the whole viewport. This is the bug you saw.
+           List mode swaps to a fixed horizontal row: a small square photo on the
+           left, details on the right, nothing that can expand unbounded. */
+        .mlc-list {
+          position: relative;
+          display: flex; align-items: stretch; gap: 12px;
+          width: 100%;
+          padding: 10px;
+          border-radius: 16px;
+          background: #fff;
+          border: 1px solid var(--line, #f0f0f0);
+          box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+          transition: transform 220ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 220ms ease, border-color 220ms ease;
+          animation: ml-stat-in 420ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @media (hover: hover) {
+          .mlc-list:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(99,102,241,0.14); border-color: #c7d2fe; }
+          .mlc-list:hover .mll-img { transform: scale(1.06); }
+          .mlc-list:hover .mll-title { color: #6366f1; }
+        }
+        .mll-photo {
+          position: relative; flex-shrink: 0;
+          width: 96px; height: 96px; border-radius: 12px; overflow: hidden;
+          background: #f3f4f6; text-decoration: none;
+          display: block;
+        }
+        @media (min-width: 640px) { .mll-photo { width: 116px; height: 116px; } }
+        .mll-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 320ms ease; }
+        .mll-noimg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        .mll-status {
+          position: absolute; top: 5px; left: 5px;
+          display: inline-flex; align-items: center; gap: 4px;
+          padding: 3px 7px; border-radius: 100px;
+          font-size: 8.5px; font-weight: 900; letter-spacing: 0.03em; text-transform: uppercase;
+          backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        }
+        .mll-status-dot { width: 4px; height: 4px; border-radius: 50%; }
+        .mll-sold .mll-img { filter: grayscale(0.6) brightness(0.84); }
+
+        .mll-body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; text-decoration: none; padding-right: 4px; }
+        .mll-price { font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--ink, #1a1a1a); font-variant-numeric: tabular-nums; line-height: 1; }
+        .mll-price em { font-style: normal; font-size: 0.62em; font-weight: 700; color: var(--ink-faint, #9ca3af); }
+        .mll-title { font-size: 13.5px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink, #1a1a1a); margin: 4px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 200ms ease; }
+        .mll-meta { font-size: 11px; font-weight: 600; color: var(--ink-faint, #9ca3af); margin-top: 5px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+        .mll-meta-dot { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+
+        .mll-actions { flex-shrink: 0; display: flex; align-items: center; }
+        @media (prefers-reduced-motion: reduce) {
+          .mlc-list, .mll-img { animation: none !important; transition: none !important; }
+          .mlc-list:hover { transform: none !important; }
+        }
 
         /* Sold stamp over the photo */
         .mlc-stamp {
@@ -461,6 +534,69 @@ export function MyListingCard({ listing, index = 0 }: Props) {
       `}</style>
 
 
+      {layout === "list" ? (
+        <div className={`mlc-list${isSold ? " mll-sold" : ""}`} style={{ animationDelay: `${(index % 12) * 40}ms` }}>
+          <Link href={href} className="mll-photo" aria-label={listing.title}>
+            {coverUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={coverUrl} alt={listing.title} className="mll-img" />
+            ) : (
+              <div className="mll-noimg">📦</div>
+            )}
+            <span className="mll-status" style={{ color: statusCfg.color, background: statusCfg.bg }}>
+              {statusCfg.dot && <span className="mll-status-dot" style={{ background: statusCfg.dot }} />}
+              {statusCfg.label}
+            </span>
+          </Link>
+          <Link href={href} className="mll-body">
+            <span className="mll-price">₹{listing.price.toLocaleString("en-IN")}</span>
+            <span className="mll-title">{listing.title}</span>
+            <span className="mll-meta">
+              <span>{isNew ? "New" : "Used"}</span>
+              <span className="mll-meta-dot" />
+              <span>{listing.locality ?? "Nearby"}</span>
+              <span className="mll-meta-dot" />
+              <span>{listing.view_count.toLocaleString("en-IN")} views</span>
+            </span>
+          </Link>
+          <div className="mll-actions">
+            <div className="mlc-menu-wrap" ref={menuRef} style={{ position: "relative", top: "auto", right: "auto" }}>
+              <button type="button" className="mlc-menu-btn" style={{ background: "#f3f4f6", color: "#57534e" }}
+                aria-label="Listing options" aria-expanded={menuOpen}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenuOpen((o) => !o); setIsConfirmingDelete(false); }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg>
+              </button>
+              {menuOpen && (
+                <div className="mlc-menu" role="menu">
+                  <button type="button" className="mlc-item" role="menuitem" disabled={isUpdating}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenuOpen(false); setIsEditOpen(true); }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></svg>
+                    Edit
+                  </button>
+                  {!isSold && (
+                    <button type="button" className="mlc-item" role="menuitem" disabled={isUpdating}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleMarkAsSold(); }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                      Mark as sold
+                    </button>
+                  )}
+                  <div className="mlc-sep" />
+                  <button type="button" className={`mlc-item mlc-item--danger${isConfirmingDelete ? " mlc-item--confirm" : ""}`} role="menuitem" disabled={isUpdating}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(); }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /></svg>
+                    {isConfirmingDelete ? "Tap again to delete" : "Delete"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          {(justSold || isSold) && (
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }} aria-hidden="true">
+              <SoldStamp variant={justSold ? "slam" : "static"} />
+            </div>
+          )}
+        </div>
+      ) : (
       <div className={`lc mlc${isSold ? " mlc--sold" : ""}`} style={{ animationDelay: `${(index % 12) * 40}ms` }}>
         <Link href={href} className="lc-photo" aria-label={listing.title}>
           {coverUrl ? (
@@ -556,6 +692,7 @@ export function MyListingCard({ listing, index = 0 }: Props) {
           </span>
         </Link>
       </div>
+      )}
 
       {isEditOpen && (
         <EditListingModal

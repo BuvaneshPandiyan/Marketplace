@@ -250,7 +250,7 @@ export function ChatsPopover() {
       {/* Header — same gradient as the bell, drawer and location sheet */}
       <div
         style={{
-          background: "linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%)",
+          background: "linear-gradient(135deg, #4c0519 0%, #9f1239 45%, #e11d48 100%)",
           padding: isMobileSheet ? "14px 20px 18px" : "16px 20px 14px",
           flexShrink: 0,
           borderRadius: isMobileSheet ? 0 : "16px 16px 0 0",
@@ -367,8 +367,8 @@ export function ChatsPopover() {
                     alignItems: "flex-start",
                     gap: 12,
                     padding: "14px 16px",
-                    background: isUnread ? "rgba(234,88,12,0.03)" : "transparent",
-                    borderLeft: isUnread ? "3px solid #ea580c" : "3px solid transparent",
+                    background: isUnread ? "rgba(225,29,72,0.04)" : "transparent",
+                    borderLeft: isUnread ? "3px solid #e11d48" : "3px solid transparent",
                     animation: `chat-item-in 300ms ease ${i * 40}ms both`,
                   }}
                 >
@@ -404,7 +404,7 @@ export function ChatsPopover() {
                         borderRadius: "50%",
                         overflow: "hidden",
                         border: "2px solid white",
-                        background: "#fed7aa",
+                        background: "#fecdd3",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -430,7 +430,7 @@ export function ChatsPopover() {
                           fontWeight: 700,
                           textTransform: "uppercase",
                           letterSpacing: "0.06em",
-                          color: "#ea580c",
+                          color: "#e11d48",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
@@ -494,7 +494,7 @@ export function ChatsPopover() {
                         height: 18,
                         borderRadius: 100,
                         padding: "0 5px",
-                        background: "linear-gradient(135deg,#ea580c,#f97316)",
+                        background: "linear-gradient(135deg,#e11d48,#f43f5e)",
                         color: "white",
                         fontSize: 10,
                         fontWeight: 800,
@@ -581,7 +581,7 @@ export function ChatsPopover() {
         @keyframes pop-art-in { from { opacity: 0; transform: scale(1.1); } }
         .pop-art-scrim {
           position: absolute; inset: 0; pointer-events: none;
-          background: linear-gradient(90deg, rgba(26,10,0,0.85) 0%, rgba(26,10,0,0.35) 55%, transparent 100%);
+          background: linear-gradient(90deg, rgba(76,5,25,0.85) 0%, rgba(76,5,25,0.35) 55%, transparent 100%);
         }
 
         /* ── Shared popover empty state ────────────────────────────
@@ -598,8 +598,8 @@ export function ChatsPopover() {
           width: 60px; height: 60px; border-radius: 20px;
           display: flex; align-items: center; justify-content: center;
           font-size: 28px; margin-bottom: 14px;
-          background: var(--brand-tint, #fff7ed);
-          border: 1.5px solid var(--brand-border, #fed7aa);
+          background: var(--brand-tint, #fff1f2);
+          border: 1.5px solid var(--brand-border, #fecdd3);
           animation: pop-empty-float 3.4s ease-in-out infinite;
         }
         @keyframes pop-empty-float { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(2deg); } }
@@ -626,11 +626,11 @@ export function ChatsPopover() {
           75%    { transform: rotate(-4deg); }
         }
         @keyframes chat-badge-pulse {
-          0%,100%{ transform: scale(1); box-shadow: 0 0 0 0 rgba(234,88,12,0.4); }
-          50%    { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(234,88,12,0); }
+          0%,100%{ transform: scale(1); box-shadow: 0 0 0 0 rgba(225,29,72,0.42); }
+          50%    { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(225,29,72,0); }
         }
         .chatpop-btn { transition: transform 200ms ease, background 200ms ease; }
-        .chatpop-btn:hover { transform: scale(1.12); background: rgba(234,88,12,0.08) !important; }
+        .chatpop-btn:hover { transform: scale(1.12); background: rgba(225,29,72,0.09) !important; }
         .chatpop-btn:hover .chatpop-icon { animation: chat-wiggle 0.6s ease; }
         .chatpop-btn:active { transform: scale(0.92); }
         .chatpop-badge { animation: chat-badge-pulse 2s ease infinite; }
@@ -647,8 +647,8 @@ export function ChatsPopover() {
 
         @keyframes chat-item-in { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
 
-        .chat-item-link:hover > div { background: rgba(234,88,12,0.05) !important; }
-        .chat-item-link:active > div { background: rgba(234,88,12,0.1) !important; }
+        .chat-item-link:hover > div { background: rgba(225,29,72,0.06) !important; }
+        .chat-item-link:active > div { background: rgba(225,29,72,0.11) !important; }
 
         @media (prefers-reduced-motion: reduce) {
           .chatpop-btn,.chatpop-btn:hover,.chat-dropdown,.chat-sheet,.chat-backdrop,.pop-art { animation:none!important; transition-duration:0ms!important; }
@@ -671,13 +671,13 @@ export function ChatsPopover() {
             height: 44,
             borderRadius: "50%",
             border: "none",
-            background: isOpen ? "rgba(234,88,12,0.1)" : "transparent",
+            background: isOpen ? "rgba(225,29,72,0.11)" : "transparent",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             cursor: "pointer",
             position: "relative",
-            color: isOpen ? "#ea580c" : "#374151",
+            color: isOpen ? "#e11d48" : "#374151",
           }}
         >
           <svg
@@ -703,7 +703,7 @@ export function ChatsPopover() {
                 minWidth: 18,
                 height: 18,
                 borderRadius: 100,
-                background: "linear-gradient(135deg,#ea580c,#f97316)",
+                background: "linear-gradient(135deg,#e11d48,#f43f5e)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
