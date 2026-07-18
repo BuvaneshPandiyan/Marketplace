@@ -40,6 +40,60 @@ export function SearchBar({ autoFocus = false, onCollapse }: { autoFocus?: boole
   }
 
   return (
+    <>
+      <style>{`
+        .sb-field { position: relative; display: flex; align-items: center; }
+
+        .sb-lens {
+          position: absolute; left: 15px; z-index: 1;
+          color: var(--ink-faint, #9ca3af); pointer-events: none;
+          transition: color 200ms ease, transform 260ms cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        .sb-input {
+          width: 100%;
+          height: 44px;
+          padding: 0 46px 0 42px;
+          border-radius: var(--r-pill, 100px);
+          border: 1.5px solid #ececea;
+          background: #f6f5f3;
+          font-size: 13.5px; font-weight: 600; letter-spacing: -0.02em;
+          color: var(--ink, #1a1a1a);
+          outline: none;
+          transition: border-color 200ms ease, background 200ms ease, box-shadow 200ms ease;
+        }
+        .sb-input::placeholder { color: var(--ink-faint, #9ca3af); font-weight: 500; }
+        .sb-input:focus {
+          border-color: var(--brand, #ea580c);
+          background: #fff;
+          box-shadow: 0 0 0 3.5px rgba(234,88,12,0.12);
+        }
+        /* Lens wakes up with the field */
+        .sb-field:focus-within .sb-lens { color: var(--brand, #ea580c); transform: scale(1.08); }
+
+        .sb-go {
+          position: absolute; right: 5px;
+          width: 34px; height: 34px; border-radius: 50%; border: none;
+          background: linear-gradient(135deg,#ea580c,#f97316);
+          color: #fff; cursor: pointer; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 3px 10px rgba(234,88,12,0.4);
+          transition: transform 220ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 220ms ease;
+        }
+        @media (hover: hover) {
+          .sb-go:hover { transform: scale(1.1); box-shadow: 0 6px 18px rgba(234,88,12,0.55); }
+          .sb-go:hover svg { transform: translateX(2px); }
+        }
+        .sb-go:active { transform: scale(0.9); }
+        .sb-go:focus-visible { outline: 2px solid var(--brand, #ea580c); outline-offset: 2px; }
+        .sb-go svg { transition: transform 220ms cubic-bezier(0.34,1.56,0.64,1); }
+
+        @media (prefers-reduced-motion: reduce) {
+          .sb-lens, .sb-input, .sb-go, .sb-go svg { transition: none !important; }
+          .sb-field:focus-within .sb-lens, .sb-go:hover, .sb-go:active, .sb-go:hover svg { transform: none !important; }
+        }
+      `}</style>
+
     <div ref={wrapperRef} className="relative flex-1">
       <form onSubmit={(e) => { e.preventDefault(); if (query.trim()) goToResults(query); }}>
         {/* Input + submit button wrapper */}
@@ -118,5 +172,6 @@ export function SearchBar({ autoFocus = false, onCollapse }: { autoFocus?: boole
         </ul>
       )}
     </div>
+    </>
   );
 }

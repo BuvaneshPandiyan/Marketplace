@@ -219,9 +219,9 @@ export function NotificationBell() {
           </div>
         ) : notifications.length === 0 ? (
           <div style={{ padding: "48px 20px", textAlign: "center" }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🔕</div>
-            <p style={{ fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 4 }}>Nothing yet</p>
-            <p style={{ fontSize: 12, color: "#9ca3af" }}>Notifications will appear here</p>
+            <div className="pop-empty-badge" aria-hidden="true" style={{ margin: "0 auto 14px" }}>🔔</div>
+            <p className="pop-empty-h">You&apos;re all caught up</p>
+            <p className="pop-empty-s" style={{ maxWidth: "30ch", margin: "0 auto" }}>New offers, messages and updates on your listings will show up here.</p>
           </div>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
@@ -299,6 +299,19 @@ export function NotificationBell() {
           position: absolute; inset: 0; pointer-events: none;
           background: linear-gradient(90deg, rgba(26,10,0,0.85) 0%, rgba(26,10,0,0.35) 55%, transparent 100%);
         }
+
+        .pop-empty-badge {
+          width: 60px; height: 60px; border-radius: 20px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 28px;
+          background: var(--brand-tint, #fff7ed);
+          border: 1.5px solid var(--brand-border, #fed7aa);
+          animation: pop-empty-float 3.4s ease-in-out infinite;
+        }
+        @keyframes pop-empty-float { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(2deg); } }
+        .pop-empty-h { font-size: 15px; font-weight: 900; letter-spacing: -0.035em; color: var(--ink, #1a1a1a); margin: 0 0 5px; }
+        .pop-empty-s { font-size: 12px; font-weight: 500; line-height: 1.5; color: var(--ink-muted, #6b7280); }
+        @media (prefers-reduced-motion: reduce) { .pop-empty-badge { animation: none !important; } }
 
         @keyframes bell-ring {
           0%,100%{ transform: rotate(0); }

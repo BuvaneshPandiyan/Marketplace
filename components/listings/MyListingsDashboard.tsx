@@ -199,21 +199,28 @@ export function MyListingsDashboard({ listings }: Props) {
         /* The band sits behind the head and bleeds edge to edge */
         .ml-band {
           position: absolute; top: 0; left: 0; right: 0;
-          height: 190px;
+          height: 230px;
           overflow: hidden;
           background: linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%);
           border-radius: 0 0 28px 28px;
           pointer-events: none;
         }
-        @media (min-width: 640px) { .ml-band { height: 210px; } }
+        @media (min-width: 640px) { .ml-band { height: 264px; } }
         .ml-band-art {
           position: absolute; inset: 0;
-          opacity: 0.4;
-          -webkit-mask-image: linear-gradient(90deg, transparent 2%, rgba(0,0,0,0.55) 40%, #000 85%);
-          mask-image: linear-gradient(90deg, transparent 2%, rgba(0,0,0,0.55) 40%, #000 85%);
+          /* Was 0.4 — too faint to read as a person. */
+          opacity: 0.72;
+          -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.5) 34%, #000 72%);
+          mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.5) 34%, #000 72%);
           animation: ml-band-in 900ms cubic-bezier(0.22,1,0.36,1) both;
         }
         @keyframes ml-band-in { from { opacity: 0; transform: scale(1.08); } }
+        /* Left-to-right darkening so "Your listings" and the stat line keep
+           their contrast now that the artwork is brighter */
+        .ml-band-scrim {
+          position: absolute; inset: 0; pointer-events: none;
+          background: linear-gradient(90deg, rgba(26,10,0,0.82) 0%, rgba(26,10,0,0.4) 42%, transparent 72%);
+        }
         .ml-band-grid {
           position: absolute; inset: 0;
           background-image:
@@ -423,6 +430,16 @@ export function MyListingsDashboard({ listings }: Props) {
         /* ══════════════════════════════════════════════════════════
            TOOLBAR
            ══════════════════════════════════════════════════════════ */
+        .ml-toolbar {
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 12px;
+          padding: 11px 14px;
+          border-radius: 16px;
+          background: #fff;
+          border: 1.5px solid var(--line, #f0f0f0);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+          margin-bottom: 18px;
+        }
 
         /* Segmented control, not two loose buttons. Grid/list are one choice
            with two states — a shared track says that; two bordered boxes side by
@@ -512,11 +529,12 @@ export function MyListingsDashboard({ listings }: Props) {
                 alt=""
                 fill
                 sizes="100vw"
-                style={{ objectFit: "cover", objectPosition: "center right" }}
+                style={{ objectFit: "cover", objectPosition: "top right" }}
                 onError={() => setArtFailed(true)}
               />
             </div>
           )}
+          <div className="ml-band-scrim" aria-hidden="true" />
           <div className="ml-band-grid" aria-hidden="true" />
           <div className="ml-band-glow" aria-hidden="true" />
         </div>
@@ -560,19 +578,16 @@ export function MyListingsDashboard({ listings }: Props) {
           )}
         </div>
 
-        {/* ── TOOLBAR — clean sticky bar, no box ── */}
+        {/* ── TOOLBAR ──
+            Was a bare row floating on grey with a hairline under it — the emptiest
+            band on the page. Now a real bar: white, rounded, its own soft shadow,
+            so the controls sit ON something instead of in a void. */}
         <div className="ml-sticky-bar" style={{
           position: "sticky", top: 76, zIndex: 30,
           background: "#f5f4f2",
           paddingTop: 14, paddingBottom: 10,
         }}>
-        <div style={{
-          display: "flex", alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          paddingBottom: 12,
-          borderBottom: "2px solid #ebebeb",
-        }}>
+        <div className="ml-toolbar">
           {/*
             Left side used to read "▍My Listings · 3 total" — directly under a page
             head already saying "Your listings · 2 live · 1 sold · 0 views". Two
@@ -714,6 +729,7 @@ export function MyListingsDashboard({ listings }: Props) {
                   transition={{ duration: 0.18, delay: Math.min(i * 0.025, 0.15) }}>
                   <MyListingCard
                     listing={listing as Parameters<typeof MyListingCard>[0]["listing"]}
+                    index={i}
                     layout={view}
                   />
                 </motion.div>
