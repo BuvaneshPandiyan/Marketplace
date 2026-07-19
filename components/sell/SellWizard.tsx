@@ -182,12 +182,13 @@ export function SellWizard() {
         @keyframes swh-breathe { 0%,100%{transform:scale(1);opacity:0.85} 50%{transform:scale(1.14);opacity:1} }
         .swh-inner {
           position: relative; z-index: 1;
-          max-width:1200px; margin:0 auto; padding:0 20px;
-          display:flex; align-items:center; justify-content:space-between; gap:12px;
+          max-width:1600px; margin:0 auto; padding:0 16px;
+          display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap;
         }
         .swh-title { font-size:clamp(20px,3vw,30px); font-weight:900; color:#fff; margin:0; letter-spacing:-0.04em; line-height:1.1; }
         .swh-title em { font-style:normal; color:#67e8f9; }
         .swh-sub   { font-size:12.5px; font-weight:700; letter-spacing:-0.02em; color:rgba(255,255,255,0.75); margin:5px 0 0; }
+        .swh-title-wrap { flex:1; min-width:0; }
 
         /* ─── Step bubbles ───────────────────────────── */
         .sw-steps { display:flex; align-items:center; gap:4px; flex-shrink:0; }
@@ -209,7 +210,7 @@ export function SellWizard() {
         .sw-side-tip  { animation: sw-rise 500ms cubic-bezier(0.22,1,0.36,1) 80ms both; }
         .sw-side-why  { animation: sw-rise 500ms cubic-bezier(0.22,1,0.36,1) 160ms both; }
         @keyframes sw-rise { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
-        .sw-grid    { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:24px; align-items:start; }
+        .sw-grid    { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:28px; align-items:start; }
 
         /* ─── Main card ──────────────────────────────── */
         .sw-card {
@@ -222,13 +223,29 @@ export function SellWizard() {
         /* ─── Sidebar ────────────────────────────────── */
         .sw-side { display:flex; flex-direction:column; gap:16px; }
         .sw-side-tip {
-          background:white; border-radius:14px; border:1px solid #ebebeb;
-          padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.04);
+          background:white; border-radius:14px;
+          border:1.5px solid #a5f3fc;
+          padding:18px;
+          box-shadow:0 4px 18px rgba(8,145,178,0.1);
+          transition:transform 260ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 260ms ease;
         }
+        .sw-side-tip:hover { transform:translateY(-2px); box-shadow:0 10px 30px rgba(8,145,178,0.2); }
         .sw-side-why {
-          background:linear-gradient(135deg,#ecfeff,#ffedd5);
-          border-radius:14px; border:1px solid rgba(8,145,178,0.16); padding:18px;
+          background:linear-gradient(135deg,#ecfeff,#f0fdff);
+          border-radius:14px; border:1.5px solid #a5f3fc; padding:18px;
+          box-shadow:0 4px 18px rgba(8,145,178,0.1);
+          transition:transform 260ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 260ms ease;
         }
+        .sw-side-why:hover { transform:translateY(-2px); box-shadow:0 10px 30px rgba(8,145,178,0.2); }
+        .sw-progress-card {
+          background:white; border-radius:14px; border:1.5px solid #a5f3fc; padding:18px;
+          box-shadow:0 4px 18px rgba(8,145,178,0.1);
+          transition:transform 260ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 260ms ease;
+        }
+        .sw-progress-card:hover { transform:translateY(-2px); box-shadow:0 10px 30px rgba(8,145,178,0.2); }
+        /* Zomato-ish: the perk rows nudge on hover */
+        .sw-side-why > div { transition:transform 200ms ease; }
+        .sw-side-why > div:hover { transform:translateX(3px); }
 
         /* ─── Mobile ─────────────────────────────────── */
         @media(max-width:860px){
@@ -267,9 +284,10 @@ export function SellWizard() {
         <div className="swh-band-glow" aria-hidden="true" />
         <div className="swh-inner">
           {/* Title */}
-          <div>
+          <div className="swh-title-wrap">
             <h1 className="swh-title">Sell something <em>brilliant</em></h1>
             <p className="swh-sub">Step {step} of 5 · {STEPS[step-1].label}</p>
+
           </div>
 
           {/* Step bubbles */}
@@ -392,7 +410,7 @@ export function SellWizard() {
             </div>
 
             {/* Step progress mini-card */}
-            <div style={{ background:"white", borderRadius:14, border:"1px solid #ebebeb", padding:18 }}>
+            <div className="sw-progress-card">
               <p style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.08em", color:"#9ca3af", margin:"0 0 12px" }}>
                 Progress
               </p>

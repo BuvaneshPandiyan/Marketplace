@@ -239,12 +239,14 @@ export function ProductTypeStep({ onSelect }: Props) {
            Home-page chip look (gradient rounded icon tile + label), laid out in
            TWO ROWS that scroll horizontally together. Contained so it can't widen
            the card (that was the earlier bug). */
-        .pt-cat-scroll { position: relative; width:100%; min-width:0; max-width:100%; overflow:hidden; }
-        .pt-cat-scroll::after {
-          content:''; position:absolute; top:0; right:0; bottom:12px; width:40px;
-          background:linear-gradient(90deg, transparent, #fff);
+        .pt-cat-scroll { position: relative; width:100%; min-width:0; max-width:100%; }
+        /* Fade on BOTH edges now (was right-only) */
+        .pt-cat-scroll::before, .pt-cat-scroll::after {
+          content:''; position:absolute; top:0; bottom:12px; width:36px;
           pointer-events:none; z-index:2;
         }
+        .pt-cat-scroll::before { left:0;  background:linear-gradient(90deg, #fff, transparent); }
+        .pt-cat-scroll::after  { right:0; background:linear-gradient(90deg, transparent, #fff); }
         .pt-cat-grid {
           display:grid;
           grid-auto-flow:column;
@@ -254,7 +256,7 @@ export function ProductTypeStep({ onSelect }: Props) {
           scroll-snap-type:x proximity;
           -webkit-overflow-scrolling:touch;
           overscroll-behavior-x:contain;
-          padding:4px 40px 10px 2px;
+          padding:16px 40px 16px 36px;
           scrollbar-width:none;
         }
         .pt-cat-grid::-webkit-scrollbar { display:none; }
@@ -267,7 +269,7 @@ export function ProductTypeStep({ onSelect }: Props) {
           display:flex; flex-direction:column; align-items:center; gap:8px;
           background:none !important; border:none !important; padding:0 !important;
           cursor:pointer; position:relative;
-          animation:cat-in 380ms cubic-bezier(0.34,1.56,0.64,1) both;
+          animation:bz-pop 420ms cubic-bezier(0.34,1.56,0.64,1) both;
         }
         .pt-cat-icon {
           position:relative;
@@ -283,6 +285,24 @@ export function ProductTypeStep({ onSelect }: Props) {
           background:linear-gradient(160deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.06) 46%, transparent 60%);
           pointer-events:none;
         }
+        /* Shine sweep across the icon on hover (same as home chips) */
+        .pt-cat-icon::after {
+          content:''; position:absolute; top:-50%; bottom:-50%; left:-70%;
+          width:45%;
+          background:linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+          transform:translateX(-140%) skewX(-20deg);
+          pointer-events:none;
+        }
+        /* Soft colour bloom behind the tile — the glow. Blooms on hover. */
+        .pt-cat-card::before {
+          content:''; position:absolute; top:4px; left:50%;
+          width:58px; height:58px; border-radius:50%;
+          transform:translateX(-50%) scale(0.6);
+          background:var(--cc);
+          filter:blur(18px); opacity:0;
+          transition:opacity 340ms ease, transform 340ms cubic-bezier(0.34,1.56,0.64,1);
+          pointer-events:none; z-index:-1;
+        }
         .pt-cat-label {
           font-size:11px; font-weight:700; letter-spacing:-0.02em; line-height:1.25;
           color:#374151; text-align:center;
@@ -290,11 +310,14 @@ export function ProductTypeStep({ onSelect }: Props) {
           transition:color 200ms ease;
         }
         @media (hover:hover) {
-          .pt-cat-card:hover .pt-cat-icon { transform:translateY(-3px) scale(1.06); box-shadow:0 10px 24px var(--cs, rgba(0,0,0,0.18)); }
+          .pt-cat-card:hover::before { opacity:0.55; transform:translateX(-50%) scale(1.5); }
+          .pt-cat-card:hover .pt-cat-icon { transform:translateY(-6px) scale(1.1) rotate(-5deg); box-shadow:0 16px 34px var(--cs, rgba(0,0,0,0.22)); }
+          .pt-cat-card:hover .pt-cat-icon::after { animation:bz-shine 700ms ease both; }
           .pt-cat-card:hover .pt-cat-label { color:var(--cc); }
         }
         .pt-cat-card:active .pt-cat-icon { transform:scale(0.93); }
-        .pt-cat-card.sel .pt-cat-icon { outline:3px solid var(--cc); outline-offset:2px; }
+        .pt-cat-card.sel::before { opacity:0.4; transform:translateX(-50%) scale(1.3); }
+        .pt-cat-card.sel .pt-cat-icon { outline:3px solid var(--cc); outline-offset:2px; box-shadow:0 12px 28px var(--cs, rgba(0,0,0,0.2)); }
         .pt-cat-card.sel .pt-cat-label { color:var(--cc); font-weight:800; }
 
         /* ── Results grid ── */
