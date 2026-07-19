@@ -25,14 +25,21 @@ export default function MainLayout({ children }: { children: ReactNode }) {
           @media(max-width:639px){
             main {
               padding-top: 0 !important;
-              padding-bottom: calc(88px + env(safe-area-inset-bottom));
               overflow-x: hidden;
             }
+          }
+          /* Clearance for the floating bottom nav pill on mobile. This lives
+             AFTER the footer — not on <main> — so it doesn't open a big gap
+             between the page content and the footer. */
+          .bz-nav-clearance { display: none; }
+          @media(max-width:639px){
+            .bz-nav-clearance { display: block; height: calc(88px + env(safe-area-inset-bottom)); }
           }
         `}</style>
         {children}
       </main>
       <Footer />
+      <div className="bz-nav-clearance" aria-hidden="true" />
     </div>
     </AuthGateProvider>
   );

@@ -54,7 +54,7 @@ export function Footer() {
       <style>{`
         .bzf {
           position: relative;
-          margin-top: 48px;
+          margin-top: 32px;
           background: linear-gradient(160deg, #052e21 0%, #064e3b 55%, #0b5d43 100%);
           color: #9fb3a9;
           overflow: hidden;
