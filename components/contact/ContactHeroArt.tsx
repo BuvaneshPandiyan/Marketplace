@@ -23,7 +23,8 @@ export function ContactHeroArt() {
         alt=""
         fill
         sizes="100vw"
-        style={{ objectFit: "cover", objectPosition: "center right" }}
+        className="ct-hero-img"
+        style={{ objectFit: "cover" }}
         onError={() => setFailed(true)}
       />
     </div>

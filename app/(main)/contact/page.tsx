@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { FloatingSocials } from "@/components/contact/FloatingSocials";
 import { ContactHeroArt } from "@/components/contact/ContactHeroArt";
-
 import {
   SUPPORT_EMAIL,
   SUPPORT_WHATSAPP,
@@ -120,6 +119,17 @@ export default function ContactPage() {
         /* Optional hero artwork — masked so it fades out toward the left where
            the headline sits, then a scrim over that for guaranteed contrast.
            Identical treatment to the wishlist / my-listings / popover headers. */
+        /* next/image with fill renders an <img>; target it for object-position */
+        .ct-hero-art img.ct-hero-img {
+          /* Mobile: the hero is narrow, so cover crops to a thin strip. center-right
+             pushed the headset off the visible area entirely. Frame from a bit left
+             of center so the subject sits inside the crop. */
+          object-position: 72% center !important;
+        }
+        @media (min-width: 640px) {
+          /* Wider hero shows more of the image — keep the subject on the right */
+          .ct-hero-art img.ct-hero-img { object-position: center right !important; }
+        }
         .ct-hero-art {
           position: absolute; inset: 0; pointer-events: none;
           opacity: 0.4;

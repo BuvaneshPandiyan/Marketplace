@@ -859,7 +859,7 @@ export function Header() {
 
             {/* ── GRADIENT HEADER — matches notification bell style ── */}
             <div style={{
-              background:"linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%)",
+              background:"linear-gradient(135deg, #0f172a 0%, #334155 45%, #475569 100%)",
               overflow:"hidden",
               padding:"14px 20px 16px", flexShrink:0,
               position:"relative",
@@ -931,10 +931,10 @@ export function Header() {
             {/* Nav links */}
             <nav style={{ overflowY:"auto", flex:1, padding:"8px 0" }}>
               {drawerLinks.map(({ href, label, icon, action }) => {
-                const linkStyle = { display:"flex", alignItems:"center", gap:14, padding:"14px 20px", textDecoration:"none", fontSize:14, fontWeight:500, color:pathname===href?"#ea580c":"#374151", background:pathname===href?"rgba(234,88,12,0.06)":"transparent", borderLeft:`3px solid ${pathname===href?"#ea580c":"transparent"}` } as const;
+                const linkStyle = { display:"flex", alignItems:"center", gap:14, padding:"14px 20px", textDecoration:"none", fontSize:14, fontWeight:500, color:pathname===href?"#334155":"#374151", background:pathname===href?"rgba(71,85,105,0.09)":"transparent", borderLeft:`3px solid ${pathname===href?"#475569":"transparent"}` } as const;
                 const inner = (
                   <>
-                    <span style={{ color:pathname===href?"#ea580c":"#6b7280" }}>{icon}</span>
+                    <span style={{ color:pathname===href?"#475569":"#6b7280" }}>{icon}</span>
                     {label}
                   </>
                 );
@@ -966,7 +966,7 @@ export function Header() {
                 </button>
               ) : (
                 <Link href="/login" onClick={() => setDrawerOpen(false)}
-                  style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"12px", borderRadius:100, background:"linear-gradient(135deg,#ea580c,#f97316)", color:"white", fontWeight:700, textDecoration:"none", fontSize:14, gap:8 }}>
+                  style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"12px", borderRadius:100, background:"linear-gradient(135deg,#334155,#475569)", color:"white", fontWeight:700, textDecoration:"none", fontSize:14, gap:8 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
                   Sign in / Login
                 </Link>
