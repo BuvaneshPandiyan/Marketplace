@@ -107,14 +107,45 @@ export function SellWizard() {
     router.push("/my-listings");
   }
 
-  /* ── Loading state ─────────────────────────────────────────────────────── */
+  /* ── Loading state — skeleton, not a spinner ───────────────────────────── */
   if (!user) {
     return (
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"60vh" }}>
-        <style>{`@keyframes sw-spin{to{transform:rotate(360deg)}}`}</style>
-        <div style={{ textAlign:"center" }}>
-          <div style={{ width:44, height:44, borderRadius:"50%", border:"3px solid #0891b2", borderTopColor:"transparent", margin:"0 auto 12px", animation:"sw-spin 0.8s linear infinite" }} />
-          <p style={{ fontSize:14, color:"#9ca3af" }}>Loading...</p>
+      <div style={{ background:"#f5f4f2", minHeight:"100vh" }}>
+        <style>{`
+          @keyframes swk-shim { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+          .swk { background:linear-gradient(90deg,#e8e7e5 25%,#f0efed 37%,#e8e7e5 63%); background-size:200% 100%; animation:swk-shim 1.5s ease-in-out infinite; border-radius:10px; }
+          .swk-b { background:linear-gradient(90deg,rgba(255,255,255,0.13) 25%,rgba(255,255,255,0.22) 37%,rgba(255,255,255,0.13) 63%); background-size:200% 100%; animation:swk-shim 1.5s ease-in-out infinite; border-radius:10px; }
+          .swk-band { position:absolute; top:0; left:0; right:0; height:150px; background:linear-gradient(135deg,#083344 0%,#155e75 45%,#0891b2 100%); -webkit-mask-image:linear-gradient(180deg,#000 84%,transparent 100%); mask-image:linear-gradient(180deg,#000 84%,transparent 100%); }
+          @media(max-width:860px){ .swk-grid{ grid-template-columns:1fr !important; } }
+          @media(prefers-reduced-motion:reduce){ .swk,.swk-b{ animation:none; background:#e8e7e5; } }
+        `}</style>
+        <div style={{ position:"relative", maxWidth:1600, margin:"0 auto", padding:"0 16px 100px" }}>
+          <div className="swk-band" />
+          {/* Band heading shimmer */}
+          <div style={{ position:"relative", zIndex:1, padding:"26px 0 42px" }}>
+            <div className="swk-b" style={{ width:300, height:30 }} />
+            <div className="swk-b" style={{ width:150, height:13, marginTop:9 }} />
+          </div>
+          {/* Content grid: card + sidebar */}
+          <div style={{ display:"grid", gridTemplateColumns:"minmax(0,1fr) 320px", gap:28, marginTop:-18 }} className="swk-grid">
+            <div style={{ background:"#fff", borderRadius:16, border:"1px solid #ebebeb", padding:28 }}>
+              <div className="swk" style={{ width:"100%", height:52, borderRadius:12 }} />
+              <div className="swk" style={{ width:140, height:12, margin:"22px 0 14px" }} />
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,74px)", gap:14 }}>
+                {Array.from({length:12}).map((_,i)=>(
+                  <div key={i} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
+                    <div className="swk" style={{ width:58, height:58, borderRadius:19 }} />
+                    <div className="swk" style={{ width:52, height:9 }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+              {[92,150,240].map((h,i)=>(
+                <div key={i} className="swk" style={{ width:"100%", height:h, borderRadius:14, background:"#eeede9" }} />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
