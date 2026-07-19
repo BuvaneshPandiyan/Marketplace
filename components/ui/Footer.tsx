@@ -118,7 +118,7 @@ export function Footer() {
           padding-bottom: 32px;
         }
         @media(max-width:820px){ .bzf-top { grid-template-columns: 1fr 1fr; gap: 40px 28px; } }
-        @media(max-width:520px){ .bzf-top { grid-template-columns: 1fr; gap: 36px; } }
+        @media(max-width:520px){ .bzf-top { grid-template-columns: 1fr 1fr; gap: 28px; } }
 
         .bzf-brand { max-width: 360px; }
         @media(max-width:820px){ .bzf-brand { grid-column: 1 / -1; max-width: none; } }
@@ -201,6 +201,13 @@ export function Footer() {
         @media(max-width:900px){
           .bzf-meta-row { flex-direction: column; gap: 20px; }
           .bzf-meta-row .bzf-trust { justify-content: center; }
+        }
+        /* Mobile: hide the trust badges entirely; show socials first, then app badges */
+        @media(max-width:640px){
+          .bzf-trust { display: none !important; }
+          .bzf-meta-row { flex-direction: column; align-items: center; gap: 18px; }
+          .bzf-socials { order: 1; }
+          .bzf-app-row { order: 2; justify-content: center; }
         }
         .bzf-trust {
           display: flex; flex-wrap: wrap; gap: 10px;
