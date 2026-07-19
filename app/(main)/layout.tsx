@@ -1,6 +1,7 @@
 "use client";
 import type { ReactNode } from "react";
 import { Header } from "@/components/ui/Header";
+import { Footer } from "@/components/ui/Footer";
 import { AuthGateProvider } from "@/components/auth/AuthGateContext";
 import { useUser } from "@/lib/hooks/useUser";
 
@@ -31,6 +32,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         `}</style>
         {children}
       </main>
+      <Footer />
     </div>
     </AuthGateProvider>
   );

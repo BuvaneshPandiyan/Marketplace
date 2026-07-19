@@ -107,43 +107,81 @@ export function SellWizard() {
     router.push("/my-listings");
   }
 
-  /* ── Loading state — skeleton, not a spinner ───────────────────────────── */
+  /* ── Loading state — skeleton matching the route loader ────────────────── */
   if (!user) {
     return (
       <div style={{ background:"#f5f4f2", minHeight:"100vh" }}>
         <style>{`
           @keyframes swk-shim { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-          .swk { background:linear-gradient(90deg,#e8e7e5 25%,#f0efed 37%,#e8e7e5 63%); background-size:200% 100%; animation:swk-shim 1.5s ease-in-out infinite; border-radius:10px; }
-          .swk-b { background:linear-gradient(90deg,rgba(255,255,255,0.13) 25%,rgba(255,255,255,0.22) 37%,rgba(255,255,255,0.13) 63%); background-size:200% 100%; animation:swk-shim 1.5s ease-in-out infinite; border-radius:10px; }
-          .swk-band { position:absolute; top:0; left:0; right:0; height:150px; background:linear-gradient(135deg,#083344 0%,#155e75 45%,#0891b2 100%); -webkit-mask-image:linear-gradient(180deg,#000 84%,transparent 100%); mask-image:linear-gradient(180deg,#000 84%,transparent 100%); }
-          @media(max-width:860px){ .swk-grid{ grid-template-columns:1fr !important; } }
-          @media(prefers-reduced-motion:reduce){ .swk,.swk-b{ animation:none; background:#e8e7e5; } }
+          .swk  { background:linear-gradient(90deg,#e6e5e2 25%,#efeeeb 37%,#e6e5e2 63%); background-size:200% 100%; animation:swk-shim 1.5s ease-in-out infinite; border-radius:10px; }
+          .swk-b{ background:linear-gradient(90deg,rgba(255,255,255,0.14) 25%,rgba(255,255,255,0.26) 37%,rgba(255,255,255,0.14) 63%); background-size:200% 100%; animation:swk-shim 1.5s ease-in-out infinite; border-radius:10px; }
+          .swk-band { position:absolute; top:0; left:0; right:0; height:230px; overflow:hidden; background:linear-gradient(135deg,#083344 0%,#155e75 45%,#0891b2 100%); -webkit-mask-image:linear-gradient(180deg,#000 84%,transparent 100%); mask-image:linear-gradient(180deg,#000 84%,transparent 100%); }
+          .swk-band-grid { position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.05) 1px,transparent 1px); background-size:28px 28px; }
+          .swk-band-glow { position:absolute; top:-90px; right:-60px; width:260px; height:260px; border-radius:50%; background:radial-gradient(circle,rgba(6,182,212,0.45) 0%,transparent 70%); }
+          .swk-wrap { position:relative; max-width:1600px; margin:0 auto; padding:0 16px 100px; }
+          @media(min-width:768px){ .swk-wrap { padding:0 32px 100px; } }
+          .swk-grid { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:28px; margin-top:-18px; }
+          @media(max-width:860px){ .swk-grid { grid-template-columns:1fr; } .swk-side { display:none; } }
+          .swk-card { background:#fff; border-radius:16px; border:1px solid #ececea; box-shadow:0 2px 12px rgba(0,0,0,0.05); padding:28px; }
+          .swk-chips { display:grid; grid-template-rows:repeat(2,auto); grid-auto-flow:column; gap:16px 14px; overflow:hidden; padding:6px 2px; }
+          .swk-tile { display:flex; flex-direction:column; align-items:center; gap:8px; }
+          .swk-side-card { border-radius:14px; border:1.5px solid #cffafe; padding:18px; background:linear-gradient(135deg,#f6feff,#fbffff); box-shadow:0 4px 18px rgba(8,145,178,0.08); }
+          @media(prefers-reduced-motion:reduce){ .swk,.swk-b { animation:none; background:#e6e5e2; } }
         `}</style>
-        <div style={{ position:"relative", maxWidth:1600, margin:"0 auto", padding:"0 16px 100px" }}>
-          <div className="swk-band" />
-          {/* Band heading shimmer */}
-          <div style={{ position:"relative", zIndex:1, padding:"26px 0 42px" }}>
-            <div className="swk-b" style={{ width:300, height:30 }} />
-            <div className="swk-b" style={{ width:150, height:13, marginTop:9 }} />
+        <div className="swk-wrap">
+          <div className="swk-band" aria-hidden="true"><div className="swk-band-grid" /><div className="swk-band-glow" /></div>
+          <div style={{ position:"relative", zIndex:1, padding:"26px 0 44px", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+            <div>
+              <div className="swk-b" style={{ width:320, height:32, borderRadius:12 }} />
+              <div className="swk-b" style={{ width:160, height:13, marginTop:10 }} />
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              {Array.from({length:5}).map((_,i)=>(
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <div className="swk-b" style={{ width:30, height:30, borderRadius:"50%" }} />
+                  {i<4 && <div className="swk-b" style={{ width:26, height:3, borderRadius:2 }} />}
+                </div>
+              ))}
+            </div>
           </div>
-          {/* Content grid: card + sidebar */}
-          <div style={{ display:"grid", gridTemplateColumns:"minmax(0,1fr) 320px", gap:28, marginTop:-18 }} className="swk-grid">
-            <div style={{ background:"#fff", borderRadius:16, border:"1px solid #ebebeb", padding:28 }}>
-              <div className="swk" style={{ width:"100%", height:52, borderRadius:12 }} />
-              <div className="swk" style={{ width:140, height:12, margin:"22px 0 14px" }} />
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,74px)", gap:14 }}>
-                {Array.from({length:12}).map((_,i)=>(
-                  <div key={i} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
+          <div className="swk-grid">
+            <div className="swk-card">
+              <div className="swk" style={{ width:"100%", height:54, borderRadius:14 }} />
+              <div className="swk" style={{ width:150, height:11, margin:"24px 0 16px" }} />
+              <div className="swk-chips">
+                {Array.from({length:18}).map((_,i)=>(
+                  <div key={i} className="swk-tile">
                     <div className="swk" style={{ width:58, height:58, borderRadius:19 }} />
-                    <div className="swk" style={{ width:52, height:9 }} />
+                    <div className="swk" style={{ width:50, height:9 }} />
                   </div>
                 ))}
               </div>
+              <div className="swk" style={{ width:"100%", height:52, borderRadius:12, marginTop:28 }} />
             </div>
-            <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-              {[92,150,240].map((h,i)=>(
-                <div key={i} className="swk" style={{ width:"100%", height:h, borderRadius:14, background:"#eeede9" }} />
-              ))}
+            <div className="swk-side" style={{ display:"flex", flexDirection:"column", gap:16 }}>
+              <div className="swk-side-card">
+                <div className="swk" style={{ width:90, height:10, marginBottom:12 }} />
+                <div className="swk" style={{ width:"100%", height:10 }} />
+                <div className="swk" style={{ width:"80%", height:10, marginTop:7 }} />
+              </div>
+              <div className="swk-side-card">
+                <div className="swk" style={{ width:100, height:10, marginBottom:14 }} />
+                {[0,1,2,3].map(i=>(
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                    <div className="swk" style={{ width:16, height:16, borderRadius:5, flexShrink:0 }} />
+                    <div className="swk" style={{ width:`${72-i*8}%`, height:9 }} />
+                  </div>
+                ))}
+              </div>
+              <div className="swk-side-card">
+                <div className="swk" style={{ width:80, height:10, marginBottom:14 }} />
+                {[0,1,2,3,4].map(i=>(
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                    <div className="swk" style={{ width:20, height:20, borderRadius:"50%", flexShrink:0 }} />
+                    <div className="swk" style={{ width:`${60-i*6}%`, height:9 }} />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

@@ -1,36 +1,16 @@
-// Home feed loading skeleton — matches the TieredFeed layout
-export default function HomeLoading() {
-  return (
-    <div className="mx-auto max-w-[1600px] px-4 py-6 md:px-8">
-      <style>{`
-        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-        .sk { background: linear-gradient(90deg,#e5e7eb 25%,#f3f4f6 37%,#e5e7eb 63%); background-size: 200% 100%; animation: shimmer 1.6s ease-in-out infinite; border-radius: 8px; }
-        @media (prefers-reduced-motion: reduce) { .sk { animation: none; background: #e5e7eb; } }
-      `}</style>
-
-      {/* Category chips row */}
-      <div className="mb-6 flex gap-2 overflow-hidden">
-        {[80,110,90,120,95,100,85].map((w, i) => (
-          <div key={i} className="sk shrink-0 h-8" style={{ width: w, borderRadius: 100 }} />
-        ))}
-      </div>
-
-      {/* Tier heading + grid */}
-      {[7, 7].map((cols, t) => (
-        <div key={t} className="mb-10">
-          <div className="sk h-6 w-48 mb-4" />
-          <div className={`grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-${cols} lg:gap-6`}>
-            {Array.from({ length: cols }).map((_, i) => (
-              <div key={i}>
-                <div className="sk aspect-square w-full mb-2" style={{ borderRadius: 12 }} />
-                <div className="sk h-3 w-3/4 mb-1.5" />
-                <div className="sk h-3 w-1/2 mb-1" />
-                <div className="sk h-3 w-1/3" />
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+/**
+ * Group-level loading fallback for the (main) route group.
+ *
+ * IMPORTANT: this shows for ANY (main) route during navigation until that route's
+ * own loading.tsx resolves. It used to be the full home-feed skeleton (category
+ * pills + product grid), which meant navigating to /sell, /wishlist, etc. flashed
+ * the home skeleton for a split second before the correct one appeared.
+ *
+ * Every real page here (home renders instantly; sell, wishlist, search, my-listings,
+ * messages, listing all have their own loading.tsx) provides its own skeleton, so
+ * this fallback only needs to be a neutral page-coloured surface — no page-specific
+ * shapes to flash wrongly.
+ */
+export default function MainLoading() {
+  return <div style={{ background: "#f5f4f2", minHeight: "100vh" }} aria-hidden="true" />;
 }
