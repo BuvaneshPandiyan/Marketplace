@@ -33,7 +33,8 @@ export function PhotosStep({ photos, onPhotosChange, userId, onNext, onBack }: P
     // A vertical stack containing the heading, camera capture UI, and navigation buttons
     <div className="space-y-4">
       {/* Heading for this step */}
-      <h2 className="text-lg font-semibold text-neutral-900">Take some photos</h2>
+      <h2 className="text-2xl font-black tracking-tight text-neutral-900">Show it <span className="text-cyan-600">off</span></h2>
+      <p className="mb-4 mt-1 text-sm font-medium text-neutral-500">Great photos are your #1 selling tool — use natural light.</p>
       {/* A short explanation of why this has to be a live camera, not an upload */}
       <p className="text-xs text-neutral-500">
         Photos must be taken live through your camera right now — this helps keep listings honest
@@ -58,7 +59,7 @@ export function PhotosStep({ photos, onPhotosChange, userId, onNext, onBack }: P
           type="button"
           onClick={onNext}
           disabled={!isValid}
-          className="flex-1 rounded-lg bg-orange-600 py-2.5 text-sm font-medium text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex-1 rounded-lg bg-cyan-600 py-2.5 text-sm font-medium text-white hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Next
         </button>

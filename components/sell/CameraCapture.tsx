@@ -186,7 +186,7 @@ export function CameraCapture({ photos, onPhotosChange, minPhotos, maxPhotos, us
       <div className="relative overflow-hidden rounded-xl bg-black">
         {/* Show a loading message while the camera is still starting up */}
         {isCameraLoading && (
-          <div className="flex h-64 items-center justify-center text-sm text-white">Starting camera...</div>
+          <div className="flex h-[60vh] max-h-[560px] min-h-[340px] items-center justify-center text-sm font-medium text-white">Starting camera…</div>
         )}
         {/* The actual live video feed — muted/autoplay/playsInline are required for iOS Safari to autoplay */}
         <video
@@ -194,7 +194,7 @@ export function CameraCapture({ photos, onPhotosChange, minPhotos, maxPhotos, us
           autoPlay
           playsInline
           muted
-          className={isCameraLoading ? "hidden" : "h-64 w-full object-cover"}
+          className={isCameraLoading ? "hidden" : "h-[60vh] max-h-[560px] min-h-[340px] w-full rounded-xl object-cover"}
         />
       </div>
 
@@ -206,7 +206,7 @@ export function CameraCapture({ photos, onPhotosChange, minPhotos, maxPhotos, us
         type="button"
         onClick={handleCapture}
         disabled={isCapturing || isCameraLoading || photos.length >= maxPhotos}
-        className="w-full rounded-lg bg-orange-600 py-2.5 text-sm font-medium text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-lg bg-cyan-600 py-2.5 text-sm font-medium text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {/* Swap the label depending on state */}
         {isCapturing

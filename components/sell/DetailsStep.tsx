@@ -43,7 +43,8 @@ export function DetailsStep({
     // A vertical stack containing every field plus the navigation buttons
     <div className="space-y-4">
       {/* Heading for this step */}
-      <h2 className="text-lg font-semibold text-neutral-900">Title, price & description</h2>
+      <h2 className="text-2xl font-black tracking-tight text-neutral-900">Make it <span className="text-cyan-600">shine</span></h2>
+      <p className="mb-4 mt-1 text-sm font-medium text-neutral-500">A clear title and fair price sell up to 3× faster.</p>
 
       {/* The title field */}
       <div>
@@ -55,7 +56,7 @@ export function DetailsStep({
           value={title}
           onChange={(e) => onChange("title", e.target.value)}
           placeholder="e.g., Honda Activa 2019, well maintained"
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+          className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200"
         />
         {/* Only show the suggestion if we have one and the seller hasn't already typed a title */}
         {suggestedTitle && !title && (
@@ -64,7 +65,7 @@ export function DetailsStep({
             <button
               type="button"
               onClick={() => onChange("title", suggestedTitle)}
-              className="font-medium text-orange-600 hover:text-orange-700"
+              className="font-medium text-cyan-600 hover:text-cyan-700"
             >
               Use this
             </button>
@@ -80,7 +81,7 @@ export function DetailsStep({
           onChange={(e) => onChange("description", e.target.value)}
           placeholder="Add any extra details a buyer might want to know..."
           rows={4}
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+          className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200"
         />
       </div>
 
@@ -95,7 +96,7 @@ export function DetailsStep({
           value={price}
           onChange={(e) => onChange("price", e.target.value)}
           placeholder="0"
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+          className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200"
         />
       </div>
 
@@ -108,7 +109,7 @@ export function DetailsStep({
             type="button"
             onClick={() => onChange("listingType", "sale")}
             className={`flex-1 rounded-lg border py-2 text-sm ${
-              listingType === "sale" ? "border-orange-500 bg-orange-50 text-orange-700" : "border-neutral-300 text-neutral-600"
+              listingType === "sale" ? "border-cyan-500 bg-cyan-50 text-cyan-700" : "border-neutral-300 text-neutral-600"
             }`}
           >
             For Sale
@@ -118,7 +119,7 @@ export function DetailsStep({
             type="button"
             onClick={() => onChange("listingType", "rent")}
             className={`flex-1 rounded-lg border py-2 text-sm ${
-              listingType === "rent" ? "border-orange-500 bg-orange-50 text-orange-700" : "border-neutral-300 text-neutral-600"
+              listingType === "rent" ? "border-cyan-500 bg-cyan-50 text-cyan-700" : "border-neutral-300 text-neutral-600"
             }`}
           >
             For Rent
@@ -135,7 +136,7 @@ export function DetailsStep({
             type="button"
             onClick={() => onChange("condition", "used")}
             className={`flex-1 rounded-lg border py-2 text-sm ${
-              condition === "used" ? "border-orange-500 bg-orange-50 text-orange-700" : "border-neutral-300 text-neutral-600"
+              condition === "used" ? "border-cyan-500 bg-cyan-50 text-cyan-700" : "border-neutral-300 text-neutral-600"
             }`}
           >
             Used
@@ -145,7 +146,7 @@ export function DetailsStep({
             type="button"
             onClick={() => onChange("condition", "new")}
             className={`flex-1 rounded-lg border py-2 text-sm ${
-              condition === "new" ? "border-orange-500 bg-orange-50 text-orange-700" : "border-neutral-300 text-neutral-600"
+              condition === "new" ? "border-cyan-500 bg-cyan-50 text-cyan-700" : "border-neutral-300 text-neutral-600"
             }`}
           >
             New
@@ -168,7 +169,7 @@ export function DetailsStep({
           type="button"
           onClick={onNext}
           disabled={!isValid}
-          className="flex-1 rounded-lg bg-orange-600 py-2.5 text-sm font-medium text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex-1 rounded-lg bg-cyan-600 py-2.5 text-sm font-medium text-white hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Next
         </button>

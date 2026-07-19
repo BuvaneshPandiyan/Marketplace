@@ -29,7 +29,8 @@ export function LocationStep({ locality, onLocationChange, onSubmit, onBack, isS
     // A vertical stack containing the heading, current location, search box, and submit button
     <div className="space-y-4">
       {/* Heading for this step */}
-      <h2 className="text-lg font-semibold text-neutral-900">Confirm location</h2>
+      <h2 className="text-2xl font-black tracking-tight text-neutral-900">Where&apos;s it <span className="text-cyan-600">at?</span></h2>
+      <p className="mb-4 mt-1 text-sm font-medium text-neutral-500">Nearby buyers discover your listing first.</p>
 
       {/* Show the currently selected locality, pre-filled from the seller's active browsing location */}
       <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-700">
@@ -61,7 +62,7 @@ export function LocationStep({ locality, onLocationChange, onSubmit, onBack, isS
           type="button"
           onClick={onSubmit}
           disabled={isSubmitting || !locality}
-          className="flex-1 rounded-lg bg-orange-600 py-2.5 text-sm font-medium text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex-1 rounded-lg bg-cyan-600 py-2.5 text-sm font-medium text-white hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {/* Swap the label while submitting */}
           {isSubmitting ? "Posting..." : "Post listing"}

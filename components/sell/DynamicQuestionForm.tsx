@@ -49,7 +49,8 @@ export function DynamicQuestionForm({ schema, values, onChange, onNext, onBack }
     // A vertical stack containing every field plus the navigation buttons
     <div className="space-y-4">
       {/* Heading for this step */}
-      <h2 className="text-lg font-semibold text-neutral-900">Tell us more</h2>
+      <h2 className="text-2xl font-black tracking-tight text-neutral-900">Tell us <span className="text-cyan-600">more</span></h2>
+      <p className="mb-4 mt-1 text-sm font-medium text-neutral-500">A few details help buyers find exactly what you&apos;re selling.</p>
 
       {/* Loop over every field defined in this product type's schema */}
       {schema.fields.map((field) => {
@@ -76,7 +77,7 @@ export function DynamicQuestionForm({ schema, values, onChange, onNext, onBack }
                 className={`w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 ${
                   showError
                     ? "border-red-400 focus:ring-red-200"
-                    : "border-neutral-300 focus:border-orange-500 focus:ring-orange-200"
+                    : "border-neutral-300 focus:border-cyan-500 focus:ring-cyan-200"
                 }`}
               />
             )}
@@ -90,7 +91,7 @@ export function DynamicQuestionForm({ schema, values, onChange, onNext, onBack }
                 className={`w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 ${
                   showError
                     ? "border-red-400 focus:ring-red-200"
-                    : "border-neutral-300 focus:border-orange-500 focus:ring-orange-200"
+                    : "border-neutral-300 focus:border-cyan-500 focus:ring-cyan-200"
                 }`}
               />
             )}
@@ -103,7 +104,7 @@ export function DynamicQuestionForm({ schema, values, onChange, onNext, onBack }
                 className={`w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 ${
                   showError
                     ? "border-red-400 focus:ring-red-200"
-                    : "border-neutral-300 focus:border-orange-500 focus:ring-orange-200"
+                    : "border-neutral-300 focus:border-cyan-500 focus:ring-cyan-200"
                 }`}
               >
                 {/* A blank default option so nothing is pre-selected by accident */}
@@ -126,7 +127,7 @@ export function DynamicQuestionForm({ schema, values, onChange, onNext, onBack }
                 className={`w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 ${
                   showError
                     ? "border-red-400 focus:ring-red-200"
-                    : "border-neutral-300 focus:border-orange-500 focus:ring-orange-200"
+                    : "border-neutral-300 focus:border-cyan-500 focus:ring-cyan-200"
                 }`}
               />
             )}
@@ -140,7 +141,7 @@ export function DynamicQuestionForm({ schema, values, onChange, onNext, onBack }
                   onClick={() => onChange(field.key, "true")}
                   className={`flex-1 rounded-lg border py-2 text-sm ${
                     values[field.key] === "true"
-                      ? "border-orange-500 bg-orange-50 text-orange-700"
+                      ? "border-cyan-500 bg-cyan-50 text-cyan-700"
                       : "border-neutral-300 text-neutral-600"
                   }`}
                 >
@@ -152,7 +153,7 @@ export function DynamicQuestionForm({ schema, values, onChange, onNext, onBack }
                   onClick={() => onChange(field.key, "false")}
                   className={`flex-1 rounded-lg border py-2 text-sm ${
                     values[field.key] === "false"
-                      ? "border-orange-500 bg-orange-50 text-orange-700"
+                      ? "border-cyan-500 bg-cyan-50 text-cyan-700"
                       : "border-neutral-300 text-neutral-600"
                   }`}
                 >
@@ -181,7 +182,7 @@ export function DynamicQuestionForm({ schema, values, onChange, onNext, onBack }
         <button
           type="button"
           onClick={handleNext}
-          className="flex-1 rounded-lg bg-orange-600 py-2.5 text-sm font-medium text-white hover:bg-orange-700"
+          className="flex-1 rounded-lg bg-cyan-600 py-2.5 text-sm font-medium text-white hover:bg-cyan-700"
         >
           Next
         </button>

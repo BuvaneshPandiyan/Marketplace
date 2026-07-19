@@ -204,7 +204,8 @@ export function SellWizard() {
         .sw-line { width:16px; height:2px; border-radius:2px; flex-shrink:0; transition:background 280ms ease; }
 
         /* ─── Content grid ───────────────────────────── */
-        .sw-content { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:0 16px 100px; margin-top:-18px; }
+        .sw-content { position:relative; z-index:1; max-width:1600px; margin:0 auto; padding:0 16px 100px; margin-top:-18px; }
+        @media(min-width:768px){ .sw-content { padding:0 32px 100px; } .swh-inner { padding:0 32px; } }
         /* Card + sidebar rise in on mount */
         .sw-card { min-width:0; max-width:100%; animation: sw-rise 500ms cubic-bezier(0.22,1,0.36,1) both; }
         .sw-side-tip  { animation: sw-rise 500ms cubic-bezier(0.22,1,0.36,1) 80ms both; }
