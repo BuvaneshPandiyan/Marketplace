@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { FloatingSocials } from "@/components/contact/FloatingSocials";
+import { ContactHeroArt } from "@/components/contact/ContactHeroArt";
+
 import {
   SUPPORT_EMAIL,
   SUPPORT_WHATSAPP,
@@ -104,10 +106,32 @@ export default function ContactPage() {
           position: relative;
           overflow: hidden;
           background: linear-gradient(135deg, #022c22 0%, #065f46 45%, #059669 100%);
-          padding: 40px 0 44px;
+          padding: 40px 0 64px;
+          /* Dissolve the bottom edge into the page, same as the wishlist band.
+             The hero used to stop at a hard rounded edge; this fades the last
+             ~18% to transparent so the emerald melts into the cream behind the
+             cards below, instead of ending in a line. */
+          -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
         }
-        @media (min-width: 640px) { .ct-hero { padding: 64px 0 68px; border-radius: 0 0 32px 32px; } }
-        @media (min-width: 1024px) { .ct-hero { padding: 80px 0 84px; } }
+        @media (min-width: 640px) { .ct-hero { padding: 64px 0 92px; } }
+        @media (min-width: 1024px) { .ct-hero { padding: 80px 0 108px; } }
+
+        /* Optional hero artwork — masked so it fades out toward the left where
+           the headline sits, then a scrim over that for guaranteed contrast.
+           Identical treatment to the wishlist / my-listings / popover headers. */
+        .ct-hero-art {
+          position: absolute; inset: 0; pointer-events: none;
+          opacity: 0.4;
+          -webkit-mask-image: linear-gradient(90deg, transparent 2%, rgba(0,0,0,0.55) 40%, #000 85%);
+          mask-image: linear-gradient(90deg, transparent 2%, rgba(0,0,0,0.55) 40%, #000 85%);
+          animation: ct-art-in 900ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes ct-art-in { from { opacity: 0; transform: scale(1.08); } }
+        .ct-hero-scrim {
+          position: absolute; inset: 0; pointer-events: none;
+          background: linear-gradient(90deg, rgba(2,44,34,0.85) 0%, rgba(2,44,34,0.4) 45%, transparent 78%);
+        }
 
         .ct-hero-grid {
           position: absolute; inset: 0; pointer-events: none;
@@ -120,7 +144,7 @@ export default function ContactPage() {
         .ct-hero-glow {
           position: absolute; top: -120px; right: -80px;
           width: 380px; height: 380px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(249,115,22,0.5) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(16,185,129,0.5) 0%, transparent 70%);
           pointer-events: none;
         }
         .ct-hero-inner { position: relative; }
@@ -160,10 +184,10 @@ export default function ContactPage() {
         /* ── METHOD CARDS ───────────────────────────────────────────── */
         .ct-methods {
           display: grid; grid-template-columns: 1fr; gap: 14px;
-          margin-top: -28px; position: relative; z-index: 2;
+          margin-top: -40px; position: relative; z-index: 2;
         }
         @media (min-width: 768px) {
-          .ct-methods { grid-template-columns: 1fr 1fr; gap: 18px; margin-top: -40px; }
+          .ct-methods { grid-template-columns: 1fr 1fr; gap: 18px; margin-top: -52px; }
         }
 
         /* ── WIDE LAYOUT ──────────────────────────────────────────────
@@ -402,8 +426,9 @@ export default function ContactPage() {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .ct-hero-glow, .ct-hero::after, .ct-dot,
+          .ct-hero-art, .ct-hero-glow, .ct-hero::after, .ct-dot,
           .ct-methods, .ct-section, .ct-safety, .ct-faq-item { animation: none !important; opacity: 1 !important; transform: none !important; }
+          .ct-hero-art { opacity: 0.4 !important; }
           .ct-card::after { display: none; }
           .ct-card, .ct-chip, .ct-card-arrow, .ct-icon { transition: none !important; }
         }
@@ -413,6 +438,8 @@ export default function ContactPage() {
       <div className="ct-page">
         {/* ══ HERO ══════════════════════════════════════════════════ */}
         <section className="ct-hero">
+          <ContactHeroArt />
+          <div className="ct-hero-scrim" aria-hidden="true" />
           <div className="ct-hero-grid" aria-hidden="true" />
           <div className="ct-hero-glow" aria-hidden="true" />
           <div className="ct-wrap ct-hero-inner">
