@@ -235,7 +235,7 @@ export function ProductTypeStep({ onSelect }: Props) {
           display:flex; align-items:center; justify-content:space-between; gap:8px;
         }
         .pt-type-btn:hover {
-          border-color:var(--cc,#ea580c); color:var(--cc,#ea580c);
+          border-color:var(--cc,#0891b2); color:var(--cc,#0891b2);
           background:var(--cbg,rgba(234,88,12,0.05));
           transform:translateX(4px);
           box-shadow:0 4px 16px rgba(0,0,0,0.08);
@@ -250,16 +250,40 @@ export function ProductTypeStep({ onSelect }: Props) {
           border-radius:10px; border:1.5px solid #e5e7eb; font-size:14px;
           outline:none; box-sizing:border-box; color:#111; transition:border-color 150ms ease;
         }
-        .pt-search:focus { border-color:#ea580c; box-shadow:0 0 0 3px rgba(234,88,12,0.08); }
+        .pt-search:focus { border-color:#0891b2; box-shadow:0 0 0 3px rgba(8,145,178,0.1); }
 
         /* ── Category grid — responsive ── */
-        .pt-cat-grid {
-          display:grid;
-          grid-template-columns:repeat(4,1fr);
-          gap:10px;
+        /* Horizontal sliding row (was a 4-col grid). Same scroll-snap feel as the
+           mobile category pills on the home feed — swipe/scroll left→right, each
+           card snaps into place. Edge fade hints there's more off-screen. */
+        .pt-cat-scroll {
+          position: relative;
+          width: 100%;
+          min-width: 0;
+          max-width: 100%;
+          overflow: hidden;   /* contain the inner scroll so it can't widen the card */
         }
-        @media(max-width:600px){ .pt-cat-grid { grid-template-columns:repeat(3,1fr); gap:8px; } }
-        @media(max-width:380px){ .pt-cat-grid { grid-template-columns:repeat(2,1fr); } }
+        .pt-cat-scroll::after {
+          content:''; position:absolute; top:0; right:0; bottom:12px; width:44px;
+          background:linear-gradient(90deg, transparent, #fff);
+          pointer-events:none; z-index:2;
+        }
+        .pt-cat-grid {
+          display:flex; gap:10px;
+          width: 100%; min-width: 0; max-width: 100%;
+          overflow-x:auto; overflow-y:hidden;
+          scroll-snap-type:x mandatory;
+          -webkit-overflow-scrolling:touch;
+          padding:4px 44px 12px 2px;
+          scrollbar-width:none;
+        }
+        .pt-cat-grid::-webkit-scrollbar { display:none; }
+        .pt-cat-card {
+          scroll-snap-align:start;
+          flex:0 0 auto;
+          width:118px;
+        }
+        @media(max-width:600px){ .pt-cat-card { width:104px; } }
 
         /* ── Results grid ── */
         .pt-type-grid {
@@ -304,7 +328,8 @@ export function ProductTypeStep({ onSelect }: Props) {
           <p style={{ fontSize:11, fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", color:"#9ca3af", marginBottom:12 }}>
             Choose a category
           </p>
-          <div className="pt-cat-grid" style={{ marginBottom:20 }}>
+          <div className="pt-cat-scroll" style={{ marginBottom:20 }}>
+          <div className="pt-cat-grid">
             {topCats.map((cat, i) => {
               const acc = CAT_ACCENT[cat.slug] ?? DEFAULT_ACCENT;
               const isSel = selectedCatId === cat.id;
@@ -320,6 +345,7 @@ export function ProductTypeStep({ onSelect }: Props) {
                 </button>
               );
             })}
+          </div>
           </div>
         </>
       )}
@@ -383,7 +409,7 @@ export function ProductTypeStep({ onSelect }: Props) {
             <div style={{ textAlign:"center", padding:"24px 0" }}>
               <p style={{ fontSize:14, color:"#9ca3af", marginBottom:8 }}>No exact match found.</p>
               <button type="button" onClick={() => { setOtherOpen(true); setQuery(""); }}
-                style={{ fontSize:13, color:"#ea580c", fontWeight:600, background:"none", border:"none", cursor:"pointer" }}>
+                style={{ fontSize:13, color:"#0891b2", fontWeight:600, background:"none", border:"none", cursor:"pointer" }}>
                 List it under &ldquo;Other&rdquo; →
               </button>
             </div>
@@ -396,7 +422,7 @@ export function ProductTypeStep({ onSelect }: Props) {
         {!otherOpen ? (
           <button type="button" onClick={() => setOtherOpen(true)}
             style={{ width:"100%", padding:"11px", borderRadius:10, border:"1.5px dashed #d1d5db", background:"white", fontSize:13, fontWeight:500, color:"#6b7280", cursor:"pointer", transition:"all 150ms ease" }}
-            onMouseEnter={e => { (e.target as HTMLButtonElement).style.borderColor="#ea580c"; (e.target as HTMLButtonElement).style.color="#ea580c"; }}
+            onMouseEnter={e => { (e.target as HTMLButtonElement).style.borderColor="#0891b2"; (e.target as HTMLButtonElement).style.color="#0891b2"; }}
             onMouseLeave={e => { (e.target as HTMLButtonElement).style.borderColor="#d1d5db"; (e.target as HTMLButtonElement).style.color="#6b7280"; }}>
             Can&apos;t find it? Describe what you&apos;re selling →
           </button>
@@ -408,7 +434,7 @@ export function ProductTypeStep({ onSelect }: Props) {
               <input type="text" value={customName} onChange={e => setCustomName(e.target.value)}
                 placeholder="e.g. Antique wooden mirror"
                 style={{ width:"100%", padding:"9px 12px", borderRadius:8, border:"1.5px solid #e5e7eb", fontSize:13, outline:"none", boxSizing:"border-box" }}
-                onFocus={e => (e.target.style.borderColor="#ea580c")} onBlur={e => (e.target.style.borderColor="#e5e7eb")} />
+                onFocus={e => (e.target.style.borderColor="#0891b2")} onBlur={e => (e.target.style.borderColor="#e5e7eb")} />
             </div>
             <div style={{ marginBottom:12 }}>
               <label style={{ fontSize:11, fontWeight:600, color:"#6b7280", display:"block", marginBottom:4 }}>Closest category</label>
@@ -425,7 +451,7 @@ export function ProductTypeStep({ onSelect }: Props) {
                 Cancel
               </button>
               <button type="button" onClick={handleSaveCustom} disabled={saving}
-                style={{ flex:2, padding:"9px", borderRadius:8, background:"linear-gradient(135deg,#ea580c,#f97316)", color:"white", border:"none", fontSize:13, fontWeight:600, cursor:"pointer", opacity:saving?0.7:1 }}>
+                style={{ flex:2, padding:"9px", borderRadius:8, background:"linear-gradient(135deg,#0891b2,#06b6d4)", color:"white", border:"none", fontSize:13, fontWeight:600, cursor:"pointer", opacity:saving?0.7:1 }}>
                 {saving ? "Saving..." : "Continue →"}
               </button>
             </div>

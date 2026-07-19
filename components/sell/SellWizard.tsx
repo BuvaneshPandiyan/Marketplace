@@ -110,7 +110,7 @@ export function SellWizard() {
       <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"60vh" }}>
         <style>{`@keyframes sw-spin{to{transform:rotate(360deg)}}`}</style>
         <div style={{ textAlign:"center" }}>
-          <div style={{ width:44, height:44, borderRadius:"50%", border:"3px solid #ea580c", borderTopColor:"transparent", margin:"0 auto 12px", animation:"sw-spin 0.8s linear infinite" }} />
+          <div style={{ width:44, height:44, borderRadius:"50%", border:"3px solid #0891b2", borderTopColor:"transparent", margin:"0 auto 12px", animation:"sw-spin 0.8s linear infinite" }} />
           <p style={{ fontSize:14, color:"#9ca3af" }}>Loading...</p>
         </div>
       </div>
@@ -142,13 +142,38 @@ export function SellWizard() {
         @keyframes sw-done  { 0%{transform:scale(1)} 40%{transform:scale(1.25)} 100%{transform:scale(1)} }
 
         /* ─── Header ─────────────────────────────────── */
-        .swh { background:white; border-bottom:1px solid #ebebeb; padding:12px 0; }
+        .swh {
+          position: relative;
+          background: linear-gradient(135deg, #083344 0%, #155e75 45%, #0891b2 100%);
+          padding: 26px 0 42px;
+          overflow: hidden;
+          /* Same masked bottom fade as every other page's band */
+          -webkit-mask-image: linear-gradient(180deg, #000 84%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 84%, transparent 100%);
+        }
+        .swh-band-grid {
+          position: absolute; inset: 0; pointer-events: none;
+          background-image:
+            linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+          background-size: 28px 28px;
+        }
+        .swh-band-glow {
+          position: absolute; top: -100px; right: -60px;
+          width: 280px; height: 280px; border-radius: 50%;
+          background: radial-gradient(circle, rgba(6,182,212,0.5) 0%, transparent 70%);
+          animation: swh-breathe 9s ease-in-out infinite;
+          pointer-events: none;
+        }
+        @keyframes swh-breathe { 0%,100%{transform:scale(1);opacity:0.85} 50%{transform:scale(1.14);opacity:1} }
         .swh-inner {
+          position: relative; z-index: 1;
           max-width:1200px; margin:0 auto; padding:0 20px;
           display:flex; align-items:center; justify-content:space-between; gap:12px;
         }
-        .swh-title { font-size:clamp(14px,2.5vw,20px); font-weight:800; color:#111; margin:0; letter-spacing:-0.02em; }
-        .swh-sub   { font-size:11px; color:#9ca3af; margin:0; margin-top:2px; }
+        .swh-title { font-size:clamp(20px,3vw,30px); font-weight:900; color:#fff; margin:0; letter-spacing:-0.04em; line-height:1.1; }
+        .swh-title em { font-style:normal; color:#67e8f9; }
+        .swh-sub   { font-size:12.5px; font-weight:700; letter-spacing:-0.02em; color:rgba(255,255,255,0.75); margin:5px 0 0; }
 
         /* ─── Step bubbles ───────────────────────────── */
         .sw-steps { display:flex; align-items:center; gap:4px; flex-shrink:0; }
@@ -159,18 +184,24 @@ export function SellWizard() {
           transition:background 280ms ease, color 280ms ease, transform 280ms ease;
         }
         .sw-bubble-done   { background:#22c55e; color:white; animation:sw-done 360ms cubic-bezier(0.34,1.56,0.64,1); }
-        .sw-bubble-active { background:#ea580c; color:white; }
+        .sw-bubble-active { background:#0891b2; color:white; }
         .sw-bubble-idle   { background:#f3f4f6; color:#b0b0b0; }
         .sw-line { width:16px; height:2px; border-radius:2px; flex-shrink:0; transition:background 280ms ease; }
 
         /* ─── Content grid ───────────────────────────── */
-        .sw-content { max-width:1200px; margin:0 auto; padding:20px 16px 100px; }
-        .sw-grid    { display:grid; grid-template-columns:1fr 300px; gap:24px; align-items:start; }
+        .sw-content { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:0 16px 100px; margin-top:-18px; }
+        /* Card + sidebar rise in on mount */
+        .sw-card { min-width:0; max-width:100%; animation: sw-rise 500ms cubic-bezier(0.22,1,0.36,1) both; }
+        .sw-side-tip  { animation: sw-rise 500ms cubic-bezier(0.22,1,0.36,1) 80ms both; }
+        .sw-side-why  { animation: sw-rise 500ms cubic-bezier(0.22,1,0.36,1) 160ms both; }
+        @keyframes sw-rise { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+        .sw-grid    { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:24px; align-items:start; }
 
         /* ─── Main card ──────────────────────────────── */
         .sw-card {
           background:white; border-radius:16px; border:1px solid #ebebeb;
           box-shadow:0 2px 12px rgba(0,0,0,0.05); padding:28px;
+          min-width:0; max-width:100%; overflow:hidden;
           animation:sw-in 260ms cubic-bezier(0.22,1,0.36,1) both;
         }
 
@@ -181,8 +212,8 @@ export function SellWizard() {
           padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.04);
         }
         .sw-side-why {
-          background:linear-gradient(135deg,#fff7ed,#ffedd5);
-          border-radius:14px; border:1px solid rgba(234,88,12,0.15); padding:18px;
+          background:linear-gradient(135deg,#ecfeff,#ffedd5);
+          border-radius:14px; border:1px solid rgba(8,145,178,0.16); padding:18px;
         }
 
         /* ─── Mobile ─────────────────────────────────── */
@@ -203,11 +234,13 @@ export function SellWizard() {
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div className="swh">
+        <div className="swh-band-grid" aria-hidden="true" />
+        <div className="swh-band-glow" aria-hidden="true" />
         <div className="swh-inner">
           {/* Title */}
           <div>
-            <h1 className="swh-title">Post your listing</h1>
-            <p className="swh-sub">Step {step} of 5 — {STEPS[step-1].label}</p>
+            <h1 className="swh-title">Sell something <em>brilliant</em></h1>
+            <p className="swh-sub">Step {step} of 5 · {STEPS[step-1].label}</p>
           </div>
 
           {/* Step bubbles */}
@@ -303,7 +336,7 @@ export function SellWizard() {
           <div className="sw-side">
             {/* Contextual tip */}
             <div className="sw-side-tip">
-              <p style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.08em", color:"#ea580c", margin:"0 0 10px" }}>
+              <p style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.08em", color:"#0891b2", margin:"0 0 10px" }}>
                 {STEPS[step-1].icon} {STEPS[step-1].label}
               </p>
               <p style={{ fontSize:13, color:"#6b7280", lineHeight:1.6, margin:0 }}>
@@ -313,7 +346,7 @@ export function SellWizard() {
 
             {/* Why bazar.in */}
             <div className="sw-side-why">
-              <p style={{ fontSize:11, fontWeight:800, color:"#ea580c", margin:"0 0 12px", textTransform:"uppercase", letterSpacing:"0.08em" }}>
+              <p style={{ fontSize:11, fontWeight:800, color:"#0891b2", margin:"0 0 12px", textTransform:"uppercase", letterSpacing:"0.08em" }}>
                 Why bazar.in?
               </p>
               {[
@@ -340,14 +373,14 @@ export function SellWizard() {
                 const active = step === n;
                 return (
                   <div key={n} style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-                    <div style={{ width:20, height:20, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, fontWeight:700, background: done?"#22c55e":active?"#ea580c":"#f3f4f6", color: done||active?"white":"#b0b0b0" }}>
+                    <div style={{ width:20, height:20, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, fontWeight:700, background: done?"#22c55e":active?"#0891b2":"#f3f4f6", color: done||active?"white":"#b0b0b0" }}>
                       {done?"✓":n}
                     </div>
                     <span style={{ fontSize:12, fontWeight:active?700:400, color:active?"#111":done?"#22c55e":"#9ca3af" }}>
                       {s.label}
                     </span>
                     {active && (
-                      <span style={{ marginLeft:"auto", fontSize:10, color:"#ea580c", fontWeight:600 }}>
+                      <span style={{ marginLeft:"auto", fontSize:10, color:"#0891b2", fontWeight:600 }}>
                         Current
                       </span>
                     )}

@@ -144,8 +144,8 @@ export function Header() {
         @keyframes fade-in    { from{opacity:0} to{opacity:1} }
         @keyframes tip-in     { from{opacity:0;transform:translateX(-50%) translateY(-4px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
         @keyframes nav-restore-pulse {
-          0%,100% { box-shadow:0 0 0 0 rgba(234,88,12,0.5),0 4px 18px rgba(234,88,12,0.4); }
-          50%     { box-shadow:0 0 0 10px rgba(234,88,12,0),0 4px 18px rgba(234,88,12,0.4); }
+          0%,100% { box-shadow:0 0 0 0 rgba(8,145,178,0.5),0 4px 18px rgba(8,145,178,0.4); }
+          50%     { box-shadow:0 0 0 10px rgba(8,145,178,0),0 4px 18px rgba(8,145,178,0.4); }
         }
         @keyframes loc-success-in {
           0%   { opacity:0; transform:scale(0.92) translateY(-4px); }
@@ -287,9 +287,9 @@ export function Header() {
         .sell-circle {
           height:44px; padding:0 20px 0 15px; border-radius:100px;
           display:flex; align-items:center; justify-content:center; gap:6px;
-          background:linear-gradient(135deg,#ea580c,#f97316);
+          background:linear-gradient(135deg,#0891b2,#06b6d4);
           color:#fff; font-size:14px; font-weight:900; letter-spacing:-0.03em;
-          box-shadow:0 3px 12px rgba(234,88,12,0.4);
+          box-shadow:0 3px 12px rgba(8,145,178,0.4);
           border:none; cursor:pointer; text-decoration:none; flex-shrink:0;
           white-space:nowrap;
           transition:transform 260ms cubic-bezier(0.34,1.56,0.64,1),box-shadow 260ms ease;
@@ -299,16 +299,16 @@ export function Header() {
           .sell-circle { width:44px; padding:0; gap:0; }
           .sell-circle-label { display:none; }
         }
-        .sell-circle:hover  { transform:scale(1.12); box-shadow:0 5px 20px rgba(234,88,12,0.55); }
+        .sell-circle:hover  { transform:scale(1.12); box-shadow:0 5px 20px rgba(8,145,178,0.55); }
         .sell-circle:active { transform:scale(0.9); }
 
         /* Mobile sell FAB stays bigger */
-        .sell-fab { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#ea580c,#f97316); box-shadow:0 4px 18px rgba(234,88,12,0.45); border:none; cursor:pointer; text-decoration:none; flex-shrink:0; transition:transform 280ms cubic-bezier(0.34,1.56,0.64,1),box-shadow 280ms ease; }
-        .sell-fab:hover  { transform:scale(1.1); box-shadow:0 6px 28px rgba(234,88,12,0.55); }
+        .sell-fab { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0891b2,#06b6d4); box-shadow:0 4px 18px rgba(234,88,12,0.45); border:none; cursor:pointer; text-decoration:none; flex-shrink:0; transition:transform 280ms cubic-bezier(0.34,1.56,0.64,1),box-shadow 280ms ease; }
+        .sell-fab:hover  { transform:scale(1.1); box-shadow:0 6px 28px rgba(8,145,178,0.55); }
         .sell-fab:active { transform:scale(0.9); }
 
         .sell-btn { position:relative; overflow:hidden; transition:transform 300ms cubic-bezier(0.34,1.56,0.64,1),box-shadow 300ms ease; }
-        .sell-btn:hover  { transform:scale(1.06); box-shadow:0 6px 24px rgba(234,88,12,0.5); }
+        .sell-btn:hover  { transform:scale(1.06); box-shadow:0 6px 24px rgba(8,145,178,0.5); }
         .sell-btn:active { transform:scale(0.94); }
 
         .heart-pop { animation:heart-pop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
@@ -904,10 +904,10 @@ export function Header() {
           style={{
             position:"fixed", bottom:20, left:"50%", transform:"translateX(-50%)",
             zIndex:61, width:40, height:40, borderRadius:"50%",
-            background:"linear-gradient(135deg,#ea580c,#f97316)",
+            background:"linear-gradient(135deg,#0891b2,#06b6d4)",
             border:"none", cursor:"pointer", display:"flex",
             alignItems:"center", justifyContent:"center",
-            boxShadow:"0 0 0 0 rgba(234,88,12,0.5)",
+            boxShadow:"0 0 0 0 rgba(8,145,178,0.5)",
             animation:"nav-restore-pulse 1.8s ease infinite",
           }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round">
