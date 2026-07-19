@@ -105,8 +105,11 @@ export function SearchBar({ autoFocus = false, onCollapse }: { autoFocus?: boole
             onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
             onFocus={() => setIsOpen(true)}
             placeholder="Search for cars, mobiles, furniture and more..."
-            className="w-full rounded-full border border-neutral-300 bg-neutral-50 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-orange-500 focus:bg-white focus:outline-none"
+            className="w-full rounded-full border-[1.5px] bg-neutral-50 text-sm text-neutral-900 placeholder:text-neutral-400 focus:bg-white focus:outline-none"
+            onFocusCapture={e => { (e.currentTarget as HTMLInputElement).style.borderColor = "#22c55e"; (e.currentTarget as HTMLInputElement).style.boxShadow = "0 0 0 3.5px rgba(34,197,94,0.16)"; }}
+            onBlurCapture={e => { (e.currentTarget as HTMLInputElement).style.borderColor = "#bbf7d0"; (e.currentTarget as HTMLInputElement).style.boxShadow = "none"; }}
             style={{
+              borderColor: "#bbf7d0",
               paddingTop: 8, paddingBottom: 8,
               paddingLeft: 16,
               // Extra right padding so text never slides under the button

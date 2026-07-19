@@ -523,8 +523,17 @@ export function Header() {
         /* ── Mobile pill ──────────────────────────────────────────
            Same warm treatment as desktop, so the two don't read as two
            different apps at the 640px boundary. */
-        .mob-pill .hdr-icon { color: #57534e; }
-        .mob-pill .hdr-icon.active { color: #ea580c; }
+        /* Mobile pill previously forced every icon grey (#57534e) and active→orange,
+           which overrode the per-surface colours. Removed so mobile shows the same
+           coloured icons as desktop. Per-label colour rules below re-assert on mobile. */
+        .mob-pill .hdr-icon[aria-label="My Listings"] { color:#6366f1 !important; }
+        .mob-pill .hdr-icon[aria-label="Wishlist"]    { color:#0d9488 !important; }
+        .mob-pill .hdr-icon[aria-label="Contact Us"]  { color:#059669 !important; }
+        .mob-pill .hdr-icon[aria-label="Search"]      { color:#ca8a04 !important; }
+        .mob-pill .hdr-icon[aria-label="Menu"]        { color:#be123c !important; }
+        .mob-pill .hdr-icon[aria-label="Set location"]{ color:#0284c7 !important; }
+        .mob-pill .chatpop-btn svg, .mob-pill .chatpop-btn svg * { color:#e11d48 !important; stroke:#e11d48 !important; }
+        .mob-pill .bell-btn svg, .mob-pill .bell-btn svg *       { color:#c026d3 !important; stroke:#c026d3 !important; }
 
         /* The Sell FAB gets a white ring so it reads as lifted off the pill
            rather than pasted onto it */
