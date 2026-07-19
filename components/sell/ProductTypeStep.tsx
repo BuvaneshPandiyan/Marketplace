@@ -208,24 +208,6 @@ export function ProductTypeStep({ onSelect }: Props) {
     <div>
       <style>{`
         /* ── Category card ── */
-        .pt-cat-card {
-          display:flex; flex-direction:column; align-items:center; justify-content:center;
-          gap:7px; padding:14px 8px; border-radius:14px; cursor:pointer;
-          border:2px solid #f0efed; transition:all 220ms cubic-bezier(0.34,1.56,0.64,1);
-          text-align:center; background:white; position:relative; overflow:hidden;
-        }
-        .pt-cat-card::before {
-          content:''; position:absolute; inset:0; border-radius:12px;
-          background:var(--cbg,rgba(234,88,12,0.06)); opacity:0; transition:opacity 200ms ease;
-        }
-        .pt-cat-card:hover { transform:translateY(-4px) scale(1.03); box-shadow:0 8px 24px rgba(0,0,0,0.10); border-color:var(--cc,#e5e7eb); }
-        .pt-cat-card:hover::before { opacity:1; }
-        .pt-cat-card:hover .pt-cat-icon { transform:scale(1.18) rotate(-6deg); }
-        .pt-cat-card:active { transform:scale(0.95); transition-duration:80ms; }
-        .pt-cat-card.sel { border-color:var(--cc); background:var(--cbg); box-shadow:0 4px 20px rgba(0,0,0,0.10); transform:translateY(-2px); }
-        .pt-cat-card.sel::before { opacity:1; }
-        .pt-cat-icon { display:block; font-size:28px; line-height:1; transition:transform 300ms cubic-bezier(0.34,1.56,0.64,1); }
-        .pt-cat-label { font-size:11px; font-weight:600; line-height:1.3; word-break:break-word; position:relative; z-index:1; }
 
         /* ── Product type button ── */
         .pt-type-btn {
@@ -253,37 +235,67 @@ export function ProductTypeStep({ onSelect }: Props) {
         .pt-search:focus { border-color:#0891b2; box-shadow:0 0 0 3px rgba(8,145,178,0.1); }
 
         /* ── Category grid — responsive ── */
-        /* Horizontal sliding row (was a 4-col grid). Same scroll-snap feel as the
-           mobile category pills on the home feed — swipe/scroll left→right, each
-           card snaps into place. Edge fade hints there's more off-screen. */
-        .pt-cat-scroll {
-          position: relative;
-          width: 100%;
-          min-width: 0;
-          max-width: 100%;
-          overflow: hidden;   /* contain the inner scroll so it can't widen the card */
-        }
+        /* ── Category chips — ported from the home feed's CategoryChips ──
+           Home-page chip look (gradient rounded icon tile + label), laid out in
+           TWO ROWS that scroll horizontally together. Contained so it can't widen
+           the card (that was the earlier bug). */
+        .pt-cat-scroll { position: relative; width:100%; min-width:0; max-width:100%; overflow:hidden; }
         .pt-cat-scroll::after {
-          content:''; position:absolute; top:0; right:0; bottom:12px; width:44px;
+          content:''; position:absolute; top:0; right:0; bottom:12px; width:40px;
           background:linear-gradient(90deg, transparent, #fff);
           pointer-events:none; z-index:2;
         }
         .pt-cat-grid {
-          display:flex; gap:10px;
-          width: 100%; min-width: 0; max-width: 100%;
+          display:grid;
+          grid-auto-flow:column;
+          grid-template-rows:repeat(2, auto);   /* TWO ROWS */
+          gap:14px 12px;
           overflow-x:auto; overflow-y:hidden;
-          scroll-snap-type:x mandatory;
+          scroll-snap-type:x proximity;
           -webkit-overflow-scrolling:touch;
-          padding:4px 44px 12px 2px;
+          overscroll-behavior-x:contain;
+          padding:4px 40px 10px 2px;
           scrollbar-width:none;
         }
         .pt-cat-grid::-webkit-scrollbar { display:none; }
+
+        /* Tile: gradient rounded icon + label, exactly like the home chips */
         .pt-cat-card {
           scroll-snap-align:start;
           flex:0 0 auto;
-          width:118px;
+          width:74px;
+          display:flex; flex-direction:column; align-items:center; gap:8px;
+          background:none !important; border:none !important; padding:0 !important;
+          cursor:pointer; position:relative;
+          animation:cat-in 380ms cubic-bezier(0.34,1.56,0.64,1) both;
         }
-        @media(max-width:600px){ .pt-cat-card { width:104px; } }
+        .pt-cat-icon {
+          position:relative;
+          width:58px; height:58px; border-radius:19px;
+          display:flex; align-items:center; justify-content:center;
+          font-size:25px; overflow:hidden;
+          background:linear-gradient(145deg, var(--cc), color-mix(in srgb, var(--cc) 78%, #000 22%));
+          box-shadow:0 6px 16px var(--cs, rgba(0,0,0,0.12));
+          transition:transform 320ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 320ms ease;
+        }
+        .pt-cat-icon::before {
+          content:''; position:absolute; inset:0;
+          background:linear-gradient(160deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.06) 46%, transparent 60%);
+          pointer-events:none;
+        }
+        .pt-cat-label {
+          font-size:11px; font-weight:700; letter-spacing:-0.02em; line-height:1.25;
+          color:#374151; text-align:center;
+          display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+          transition:color 200ms ease;
+        }
+        @media (hover:hover) {
+          .pt-cat-card:hover .pt-cat-icon { transform:translateY(-3px) scale(1.06); box-shadow:0 10px 24px var(--cs, rgba(0,0,0,0.18)); }
+          .pt-cat-card:hover .pt-cat-label { color:var(--cc); }
+        }
+        .pt-cat-card:active .pt-cat-icon { transform:scale(0.93); }
+        .pt-cat-card.sel .pt-cat-icon { outline:3px solid var(--cc); outline-offset:2px; }
+        .pt-cat-card.sel .pt-cat-label { color:var(--cc); font-weight:800; }
 
         /* ── Results grid ── */
         .pt-type-grid {
@@ -337,11 +349,9 @@ export function ProductTypeStep({ onSelect }: Props) {
                 <button key={cat.id} type="button"
                   className={`pt-cat-card${isSel?" sel":""}`}
                   onClick={() => handleCategoryClick(cat)}
-                  style={{ '--cc': acc.color, '--cbg': acc.bg, animationDelay:`${i*30}ms` } as React.CSSProperties}>
-                  <span className="pt-cat-icon">{cat.icon || acc.icon}</span>
-                  <span className="pt-cat-label" style={{ color: isSel ? acc.color : "#374151" }}>
-                    {cat.name}
-                  </span>
+                  style={{ '--cc': acc.color, '--cs': `${acc.color}55`, animationDelay:`${i*30}ms` } as React.CSSProperties}>
+                  <span className="pt-cat-icon" aria-hidden="true">{cat.icon || acc.icon}</span>
+                  <span className="pt-cat-label">{cat.name}</span>
                 </button>
               );
             })}

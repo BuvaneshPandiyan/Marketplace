@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -24,6 +26,7 @@ export function SellWizard() {
 
   const [step,             setStep]             = useState(1);
   const [productType,      setProductType]      = useState<ProductType | null>(null);
+  const [bandArtFailed,    setBandArtFailed]    = useState(false);
   const [attributeAnswers, setAttributeAnswers] = useState<Record<string, string>>({});
   const [title,            setTitle]            = useState("");
   const [description,      setDescription]      = useState("");
@@ -151,6 +154,17 @@ export function SellWizard() {
           -webkit-mask-image: linear-gradient(180deg, #000 84%, transparent 100%);
           mask-image: linear-gradient(180deg, #000 84%, transparent 100%);
         }
+        .swh-band-art {
+          position:absolute; inset:0; opacity:0.42; pointer-events:none;
+          -webkit-mask-image: linear-gradient(90deg, transparent 2%, rgba(0,0,0,0.55) 40%, #000 85%);
+          mask-image: linear-gradient(90deg, transparent 2%, rgba(0,0,0,0.55) 40%, #000 85%);
+          animation: swh-art-in 900ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes swh-art-in { from{opacity:0;transform:scale(1.08)} }
+        .swh-band-scrim {
+          position:absolute; inset:0; pointer-events:none;
+          background: linear-gradient(90deg, rgba(8,51,68,0.82) 0%, rgba(8,51,68,0.4) 45%, transparent 78%);
+        }
         .swh-band-grid {
           position: absolute; inset: 0; pointer-events: none;
           background-image:
@@ -219,7 +233,9 @@ export function SellWizard() {
         /* ─── Mobile ─────────────────────────────────── */
         @media(max-width:860px){
           .sw-grid   { grid-template-columns:1fr !important; }
-          .sw-side   { display:none !important; }
+          /* Sidebar now shows on mobile, stacked below the card (was display:none).
+             This is the Category tip / Why bazar.in / Progress content. */
+          .sw-side   { display:flex !important; }
           .sw-card   { padding:18px 16px; border-radius:12px; }
           .swh-inner { flex-wrap:wrap; }
           .sw-steps  { gap:3px; }
@@ -234,6 +250,19 @@ export function SellWizard() {
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div className="swh">
+        {!bandArtFailed && (
+          <div className="swh-band-art" aria-hidden="true">
+            <Image
+              src="/images/sell-header.png"
+              alt=""
+              fill
+              sizes="100vw"
+              style={{ objectFit: "cover", objectPosition: "center right" }}
+              onError={() => setBandArtFailed(true)}
+            />
+          </div>
+        )}
+        <div className="swh-band-scrim" aria-hidden="true" />
         <div className="swh-band-grid" aria-hidden="true" />
         <div className="swh-band-glow" aria-hidden="true" />
         <div className="swh-inner">

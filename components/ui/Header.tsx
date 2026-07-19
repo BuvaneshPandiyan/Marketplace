@@ -267,7 +267,7 @@ export function Header() {
           content:'';
           position:absolute; inset:-3px;
           border-radius:50%;
-          border:1.5px solid rgba(234,88,12,0.35);
+          border:1.5px solid rgba(8,145,178,0.35);
           animation: icon-glow 2s ease infinite;
           pointer-events:none;
         }
@@ -303,7 +303,7 @@ export function Header() {
         .sell-circle:active { transform:scale(0.9); }
 
         /* Mobile sell FAB stays bigger */
-        .sell-fab { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0891b2,#06b6d4); box-shadow:0 4px 18px rgba(234,88,12,0.45); border:none; cursor:pointer; text-decoration:none; flex-shrink:0; transition:transform 280ms cubic-bezier(0.34,1.56,0.64,1),box-shadow 280ms ease; }
+        .sell-fab { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0891b2,#06b6d4); box-shadow:0 4px 18px rgba(8,145,178,0.45); border:none; cursor:pointer; text-decoration:none; flex-shrink:0; transition:transform 280ms cubic-bezier(0.34,1.56,0.64,1),box-shadow 280ms ease; }
         .sell-fab:hover  { transform:scale(1.1); box-shadow:0 6px 28px rgba(8,145,178,0.55); }
         .sell-fab:active { transform:scale(0.9); }
 
@@ -342,8 +342,8 @@ export function Header() {
         }
         /* A soft halo that breathes — makes Sell the obvious primary action */
         @keyframes sell-halo {
-          0%,100% { box-shadow: 0 3px 12px rgba(234,88,12,0.4), 0 0 0 0 rgba(234,88,12,0.35); }
-          50%     { box-shadow: 0 3px 12px rgba(234,88,12,0.4), 0 0 0 9px rgba(234,88,12,0); }
+          0%,100% { box-shadow: 0 3px 12px rgba(8,145,178,0.4), 0 0 0 0 rgba(8,145,178,0.4); }
+          50%     { box-shadow: 0 3px 12px rgba(8,145,178,0.4), 0 0 0 9px rgba(8,145,178,0); }
         }
         .sell-circle { animation: sell-halo 3.4s ease-out 2s infinite; }
         .sell-fab    { animation: sell-halo 3.4s ease-out 2s infinite; }
@@ -420,11 +420,11 @@ export function Header() {
           border-radius: inherit;
           padding: 1px;
           background: linear-gradient(120deg,
-            rgba(234,88,12,0.5) 0%,
+            rgba(8,145,178,0.5) 0%,
             rgba(249,115,22,0.12) 30%,
-            rgba(234,88,12,0.06) 50%,
+            rgba(8,145,178,0.06) 50%,
             rgba(249,115,22,0.12) 70%,
-            rgba(234,88,12,0.5) 100%);
+            rgba(8,145,178,0.5) 100%);
           background-size: 220% 100%;
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           -webkit-mask-composite: xor;
