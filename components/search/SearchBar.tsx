@@ -55,7 +55,7 @@ export function SearchBar({ autoFocus = false, onCollapse }: { autoFocus?: boole
           height: 44px;
           padding: 0 46px 0 42px;
           border-radius: var(--r-pill, 100px);
-          border: 1.5px solid #ececea;
+          border: 1.5px solid #bbf7d0;
           background: #f6f5f3;
           font-size: 13.5px; font-weight: 600; letter-spacing: -0.02em;
           color: var(--ink, #1a1a1a);
@@ -64,28 +64,28 @@ export function SearchBar({ autoFocus = false, onCollapse }: { autoFocus?: boole
         }
         .sb-input::placeholder { color: var(--ink-faint, #9ca3af); font-weight: 500; }
         .sb-input:focus {
-          border-color: var(--brand, #ea580c);
+          border-color: #22c55e;
           background: #fff;
-          box-shadow: 0 0 0 3.5px rgba(234,88,12,0.12);
+          box-shadow: 0 0 0 3.5px rgba(34,197,94,0.16);
         }
         /* Lens wakes up with the field */
-        .sb-field:focus-within .sb-lens { color: var(--brand, #ea580c); transform: scale(1.08); }
+        .sb-field:focus-within .sb-lens { color: #ca8a04; transform: scale(1.08); }
 
         .sb-go {
           position: absolute; right: 5px;
           width: 34px; height: 34px; border-radius: 50%; border: none;
-          background: linear-gradient(135deg,#ea580c,#f97316);
+          background: linear-gradient(135deg,#eab308,#facc15);
           color: #fff; cursor: pointer; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 3px 10px rgba(234,88,12,0.4);
+          box-shadow: 0 3px 10px rgba(234,179,8,0.42);
           transition: transform 220ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 220ms ease;
         }
         @media (hover: hover) {
-          .sb-go:hover { transform: scale(1.1); box-shadow: 0 6px 18px rgba(234,88,12,0.55); }
+          .sb-go:hover { transform: scale(1.1); box-shadow: 0 6px 18px rgba(234,179,8,0.55); }
           .sb-go:hover svg { transform: translateX(2px); }
         }
         .sb-go:active { transform: scale(0.9); }
-        .sb-go:focus-visible { outline: 2px solid var(--brand, #ea580c); outline-offset: 2px; }
+        .sb-go:focus-visible { outline: 2px solid #eab308; outline-offset: 2px; }
         .sb-go svg { transition: transform 220ms cubic-bezier(0.34,1.56,0.64,1); }
 
         @media (prefers-reduced-motion: reduce) {
@@ -125,7 +125,7 @@ export function SearchBar({ autoFocus = false, onCollapse }: { autoFocus?: boole
               height: 32,
               borderRadius: "50%",
               border: "none",
-              background: "linear-gradient(135deg, #ea580c, #f97316)",
+              background: "linear-gradient(135deg, #eab308, #facc15)",
               color: "white",
               display: "flex",
               alignItems: "center",
@@ -133,15 +133,15 @@ export function SearchBar({ autoFocus = false, onCollapse }: { autoFocus?: boole
               cursor: "pointer",
               flexShrink: 0,
               transition: "transform 200ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 200ms ease",
-              boxShadow: "0 2px 8px rgba(234,88,12,0.35)",
+              boxShadow: "0 2px 8px rgba(234,179,8,0.4)",
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.1)";
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 16px rgba(234,88,12,0.5)";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 16px rgba(234,179,8,0.5)";
             }}
             onMouseLeave={e => {
               (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 2px 8px rgba(234,88,12,0.35)";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 2px 8px rgba(234,179,8,0.4)";
             }}
             onMouseDown={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.92)"; }}
             onMouseUp={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}

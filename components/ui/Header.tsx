@@ -129,11 +129,11 @@ export function Header() {
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // ── Mobile drawer links ────────────────────────────────────────────
-  const drawerLinks: { href: string; label: string; action?: string; icon: React.ReactNode }[] = [
-    { href: "/",            label: "Home",       icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
-    { href: "/my-listings", label: "My Listings", action: "manage your listings", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
-    { href: "/wishlist",    label: "Wishlist",   action: "save items to your wishlist", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
-    { href: "/contact",     label: "Contact Us", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.5 2 2 0 0 1 3.6 1.32h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> },
+  const drawerLinks: { href: string; label: string; action?: string; tint: string; icon: React.ReactNode }[] = [
+    { href: "/",            label: "Home",       tint: "#ea580c", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
+    { href: "/my-listings", label: "My Listings", action: "manage your listings", tint: "#6366f1", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
+    { href: "/wishlist",    label: "Wishlist",   action: "save items to your wishlist", tint: "#0d9488", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
+    { href: "/contact",     label: "Contact Us", tint: "#059669", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.5 2 2 0 0 1 3.6 1.32h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> },
   ];
 
   return (
@@ -161,6 +161,75 @@ export function Header() {
         .hdr-icon:hover  { background:rgba(234,88,12,0.09); color:#ea580c; transform:scale(1.08); }
         .hdr-icon:active { transform:scale(0.88); }
         .hdr-icon.active { color:#ea580c; background:rgba(234,88,12,0.1); }
+
+        /* ══════════════════════════════════════════════════════════
+           PER-SURFACE NAV ICONS
+           Each icon is tinted to match the page/popover it opens, and carries a
+           gentle idle animation that plays on its own (no hover needed) so the bar
+           feels alive. Hover deepens the tint + lifts; the idle loop is subtle and
+           slow so it reads as "alive", not "busy".
+           Colour map: My Listings=indigo, Wishlist=teal, Chats=rose,
+           Notifications=magenta, Contact=emerald, Search=orange, Menu=cherry,
+           Location=blue.
+           ══════════════════════════════════════════════════════════ */
+
+        /* --- My Listings (indigo) --- */
+        .hdr-icon[aria-label="My Listings"],
+        .hdr-icon[aria-label="My Listings"].active { color:#6366f1 !important; }
+        .hdr-icon[aria-label="My Listings"] svg { animation: nav-listings 6s ease-in-out infinite; }
+        .hdr-icon[aria-label="My Listings"]:hover { background:rgba(99,102,241,0.1); color:#6366f1; }
+        .hdr-icon[aria-label="My Listings"].active { background:rgba(99,102,241,0.11) !important; }
+        @keyframes nav-listings { 0%,92%,100%{transform:translateY(0)} 96%{transform:translateY(-2px)} }
+
+        /* --- Wishlist (teal) — heart beat --- */
+        .hdr-icon[aria-label="Wishlist"] { color:#0d9488; }
+        .hdr-icon[aria-label="Wishlist"] svg { animation: nav-heart 5s ease-in-out infinite; transform-origin:center; }
+        .hdr-icon[aria-label="Wishlist"]:hover { background:rgba(13,148,136,0.1); color:#0d9488; }
+        .hdr-icon[aria-label="Wishlist"].active { color:#0d9488; background:rgba(13,148,136,0.11); }
+        @keyframes nav-heart { 0%,88%,100%{transform:scale(1)} 92%{transform:scale(1.18)} 96%{transform:scale(1.05)} }
+
+        /* --- Chats (rose) — bubble wobble (button uses .chatpop-btn) --- */
+        .chatpop-btn svg, .chatpop-btn svg * { color:#e11d48; stroke:#e11d48 !important; }
+        .chatpop-btn svg { animation: nav-wobble 5.5s ease-in-out infinite; transform-origin:center bottom; }
+        .chatpop-btn:hover svg { color:#e11d48; stroke:#e11d48; }
+        @keyframes nav-wobble { 0%,90%,100%{transform:rotate(0)} 93%{transform:rotate(-8deg)} 96%{transform:rotate(6deg)} }
+
+        /* --- Notifications (magenta) — bell shake (button uses .bell-btn) --- */
+        .bell-btn svg, .bell-btn svg * { color:#c026d3; stroke:#c026d3 !important; }
+        .bell-btn svg { animation: nav-bell 4.5s ease-in-out infinite; transform-origin:center top; }
+        .bell-btn:hover svg { color:#c026d3; stroke:#c026d3; }
+        @keyframes nav-bell { 0%,86%,100%{transform:rotate(0)} 89%{transform:rotate(12deg)} 92%{transform:rotate(-10deg)} 95%{transform:rotate(6deg)} 98%{transform:rotate(-3deg)} }
+
+        /* --- Contact (emerald) — headset/phone tilt --- */
+        .hdr-icon[aria-label="Contact Us"] { color:#059669; }
+        .hdr-icon[aria-label="Contact Us"] svg { animation: nav-tilt 6s ease-in-out infinite; transform-origin:center; }
+        .hdr-icon[aria-label="Contact Us"]:hover { background:rgba(5,150,105,0.1); color:#059669; }
+        @keyframes nav-tilt { 0%,90%,100%{transform:rotate(0)} 94%{transform:rotate(-12deg)} 97%{transform:rotate(8deg)} }
+
+        /* --- Search (orange) — lens pulse --- */
+        .hdr-icon[aria-label="Search"] { color:#ca8a04; }
+        .hdr-icon[aria-label="Search"] svg { animation: nav-pulse 5s ease-in-out infinite; transform-origin:center; }
+        .hdr-icon[aria-label="Search"]:hover { background:rgba(234,179,8,0.14); color:#ca8a04; }
+        @keyframes nav-pulse { 0%,88%,100%{transform:scale(1)} 94%{transform:scale(1.16)} }
+
+        /* --- Menu (cherry) — bars shift --- */
+        .hdr-icon[aria-label="Menu"] { color:#be123c; }
+        .hdr-icon[aria-label="Menu"] svg { animation: nav-menu 5.5s ease-in-out infinite; }
+        .hdr-icon[aria-label="Menu"]:hover { background:rgba(190,18,60,0.09); color:#be123c; }
+        @keyframes nav-menu { 0%,90%,100%{transform:translateX(0)} 94%{transform:translateX(2px)} 97%{transform:translateX(-1px)} }
+
+        /* --- Location (blue) — pin drop --- */
+        .hdr-icon[aria-label="Set location"],
+        .hdr-icon[aria-label="Set location"].active { color:#0284c7 !important; }
+        .hdr-icon[aria-label="Set location"] svg { animation: nav-pin 5s ease-in-out infinite; transform-origin:center bottom; }
+        .hdr-icon[aria-label="Set location"]:hover { background:rgba(2,132,199,0.1) !important; color:#0284c7 !important; }
+        .hdr-icon[aria-label="Set location"].active { background:rgba(2,132,199,0.11) !important; }
+        @keyframes nav-pin { 0%,88%,100%{transform:translateY(0)} 92%{transform:translateY(-3px)} 96%{transform:translateY(1px)} }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hdr-icon svg { animation: none !important; }
+        }
+
 
           /* ── Mobile icon overrides — smaller so all items fit comfortably ── */
         @media(max-width:639px){
@@ -930,11 +999,16 @@ export function Header() {
 
             {/* Nav links */}
             <nav style={{ overflowY:"auto", flex:1, padding:"8px 0" }}>
-              {drawerLinks.map(({ href, label, icon, action }) => {
-                const linkStyle = { display:"flex", alignItems:"center", gap:14, padding:"14px 20px", textDecoration:"none", fontSize:14, fontWeight:500, color:pathname===href?"#be123c":"#374151", background:pathname===href?"rgba(190,18,60,0.08)":"transparent", borderLeft:`3px solid ${pathname===href?"#be123c":"transparent"}` } as const;
+              {drawerLinks.map(({ href, label, icon, action, tint }) => {
+                const isActive = pathname === href;
+                // Hex → rgba helper for the faint active background in each link's own colour
+                const r = parseInt(tint.slice(1,3),16), g = parseInt(tint.slice(3,5),16), b = parseInt(tint.slice(5,7),16);
+                const linkStyle = { display:"flex", alignItems:"center", gap:14, padding:"14px 20px", textDecoration:"none", fontSize:14, fontWeight:isActive?700:500, color:isActive?tint:"#374151", background:isActive?`rgba(${r},${g},${b},0.09)`:"transparent", borderLeft:`3px solid ${isActive?tint:"transparent"}` } as const;
                 const inner = (
                   <>
-                    <span style={{ color:pathname===href?"#be123c":"#6b7280" }}>{icon}</span>
+                    {/* Icon always carries the link's own surface colour, so each
+                        row reads as its destination even when not active. */}
+                    <span style={{ color: tint }}>{icon}</span>
                     {label}
                   </>
                 );
