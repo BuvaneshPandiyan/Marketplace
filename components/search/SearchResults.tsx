@@ -412,7 +412,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.12 }}
               onClick={() => setMobileFiltersOpen(false)}
               style={{
                 position: "fixed", inset: 0, zIndex: 200,
@@ -432,7 +432,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 280, mass: 0.8 }}
+              transition={{ type: "tween", duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
               style={{
                 position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 201,
                 background: "#fff",
@@ -466,11 +466,11 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
                   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23cf1338' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
                   background-repeat: no-repeat; background-position: right 14px center;
                 }
-                .msf-group { margin-bottom: 18px; animation: msf-in 400ms cubic-bezier(0.22,1,0.36,1) both; }
-                .msf-group:nth-child(2){ animation-delay: 40ms; }
-                .msf-group:nth-child(3){ animation-delay: 80ms; }
-                .msf-group:nth-child(4){ animation-delay: 120ms; }
-                .msf-group:nth-child(5){ animation-delay: 160ms; }
+                .msf-group { margin-bottom: 18px; animation: msf-in 220ms cubic-bezier(0.22,1,0.36,1) both; }
+                .msf-group:nth-child(2){ animation-delay: 20ms; }
+                .msf-group:nth-child(3){ animation-delay: 40ms; }
+                .msf-group:nth-child(4){ animation-delay: 60ms; }
+                .msf-group:nth-child(5){ animation-delay: 80ms; }
                 @keyframes msf-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
                 .msf-apply {
                   width: 100%; padding: 15px; border-radius: 999px; border: none; cursor: pointer;
