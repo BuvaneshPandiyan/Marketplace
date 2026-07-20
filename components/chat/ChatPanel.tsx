@@ -445,10 +445,14 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
             <div style={{ flex: 1, minWidth: 0 }}>
               {/* Clickable username → seller profile */}
               <Link href={`/seller/${otherUserId}`}
-                style={{ fontSize: 15, fontWeight: 700, color: "white", textDecoration: "none", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", transition: "opacity 150ms ease" }}
+                style={{ fontSize: 15, fontWeight: 800, letterSpacing: "-0.02em", color: "white", textDecoration: "none", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", transition: "opacity 150ms ease" }}
                 className="hover:opacity-80">
                 {otherUserProfile?.name ?? "Unknown"}
               </Link>
+              <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 600, color: "rgba(255,255,255,0.6)", margin: "1px 0 2px" }}>
+                <span className="chat-online-dot" style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#22c55e" }} />
+                Active now
+              </span>
               {/* Clickable listing title → listing page */}
               <Link href={`/listing/${conversation.listing_id}`}
                 style={{ fontSize: 11.5, fontWeight: 600, color: "#f5d9c4", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 5, marginTop: 3, padding: "3px 9px", borderRadius: 100, background: "rgba(216,144,88,0.18)", border: "1px solid rgba(216,144,88,0.35)", maxWidth: "100%", transition: "background 150ms ease" }}

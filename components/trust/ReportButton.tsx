@@ -1,14 +1,11 @@
 // Mark as Client Component since it manages open/close state and a Supabase insert
 "use client";
 
-// Import React's state hook
-import { useState } from "react";
-// Import our browser Supabase client creator
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
-// Import the report-related types
 import type { ReportTargetType, ReportReason } from "@/types";
 
-// The human-readable labels for each report reason, shown in the dropdown
 const REASON_LABELS: Record<ReportReason, string> = {
   fake_listing: "Fake or misleading listing",
   scam: "Scam or fraud",
@@ -17,34 +14,53 @@ const REASON_LABELS: Record<ReportReason, string> = {
   other: "Other",
 };
 
-// Define the props this component accepts
 type ReportButtonProps = {
-  // What kind of thing is being reported
   targetType: ReportTargetType;
-  // The ID of the thing being reported (listing ID, user ID, or message ID)
   targetId: string;
-  // Whether the current user is logged in — show a nudge if not
   isLoggedIn: boolean;
 };
 
-// Define and export the ReportButton component
 export function ReportButton({ targetType, targetId, isLoggedIn }: ReportButtonProps) {
-  // Create one browser Supabase client for this component's lifetime
   const [supabase] = useState(() => createClient());
-  // Whether the report form modal is currently open
   const [isOpen, setIsOpen] = useState(false);
-  // The currently selected reason from the dropdown
   const [reason, setReason] = useState<ReportReason>("fake_listing");
-  // The optional freeform comment
   const [comment, setComment] = useState("");
-  // Whether the submit call is in flight
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Whether the report was successfully submitted (swaps button to a thank-you message)
   const [isSubmitted, setIsSubmitted] = useState(false);
-  // Any error from the submission
   const [error, setError] = useState<string | null>(null);
 
-  // After a successful report, show a small thank-you message instead of the button
+  // Portal needs the document — guard against SSR.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  // Lock body scroll + close on Escape while the modal is open.
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setIsOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; document.removeEventListener("keydown", onKey); };
+  }, [isOpen]);
+
+  async function submit() {
+    setError(null);
+    setIsSubmitting(true);
+    const { error: insertError } = await supabase.from("reports").insert({
+      reporter_id: (await supabase.auth.getUser()).data.user?.id,
+      target_type: targetType,
+      target_id: targetId,
+      reason,
+      comment: comment.trim() || null,
+    });
+    setIsSubmitting(false);
+    if (insertError) {
+      setError(insertError.code === "23505" ? "You've already reported this." : insertError.message);
+      return;
+    }
+    setIsSubmitted(true);
+  }
+
   if (isSubmitted) {
     return (
       <p className="text-xs text-neutral-500">
@@ -53,108 +69,117 @@ export function ReportButton({ targetType, targetId, isLoggedIn }: ReportButtonP
     );
   }
 
-  // The report form modal (shown only when isOpen is true)
-  if (isOpen) {
-    return (
-      // An inline card that replaces the button when open — keeping it inline avoids the z-index
-      // issues of an overlay modal and keeps the form accessible on small screens
-      <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-md">
-        {/* Modal heading */}
-        <p className="mb-3 text-sm font-semibold text-neutral-900">Report this {targetType}</p>
+  const modal = isOpen && (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Report this ${targetType}`}
+      onClick={() => setIsOpen(false)}
+      style={{
+        position: "fixed", inset: 0, zIndex: 9999,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 16,
+        background: "rgba(15,10,20,0.55)",
+        backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+        animation: "rpt-fade 160ms ease both",
+      }}
+    >
+      <style>{`
+        @keyframes rpt-fade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes rpt-pop { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: none; } }
+        .rpt-card { animation: rpt-pop 220ms cubic-bezier(0.22,1,0.36,1) both; }
+        .rpt-field { transition: border-color 180ms ease, box-shadow 180ms ease; }
+        .rpt-field:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.13); outline: none; }
+        .rpt-submit { transition: background 180ms ease, transform 160ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 180ms ease; }
+        .rpt-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(220,38,38,0.4); }
+        .rpt-cancel { transition: background 160ms ease, border-color 160ms ease; }
+        @media(prefers-reduced-motion:reduce){ .rpt-card, .rpt-submit:hover { animation: none; transform: none; } }
+      `}</style>
 
-        {/* Reason dropdown */}
+      <div
+        className="rpt-card"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%", maxWidth: 400, background: "#fff", borderRadius: 20,
+          padding: 24, boxShadow: "0 24px 70px rgba(0,0,0,0.35)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+          <span style={{
+            width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "linear-gradient(135deg,#dc2626,#f87171)", boxShadow: "0 4px 12px rgba(220,38,38,0.35)",
+          }}>
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+          </span>
+          <div>
+            <p style={{ fontSize: 16, fontWeight: 900, letterSpacing: "-0.02em", color: "#111827", margin: 0 }}>
+              Report this {targetType}
+            </p>
+            <p style={{ fontSize: 12, color: "#6b7280", margin: "1px 0 0" }}>Help us keep bazar.in safe.</p>
+          </div>
+        </div>
+
+        <label style={{ display: "block", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", margin: "16px 0 6px" }}>Reason</label>
         <select
           value={reason}
           onChange={(e) => setReason(e.target.value as ReportReason)}
-          className="mb-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none"
+          className="rpt-field"
+          style={{ width: "100%", borderRadius: 12, border: "1.5px solid #e5e7eb", padding: "11px 13px", fontSize: 14, fontWeight: 600, color: "#111827", background: "#fff" }}
         >
-          {/* Render one option per reason */}
           {(Object.keys(REASON_LABELS) as ReportReason[]).map((key) => (
-            <option key={key} value={key}>
-              {REASON_LABELS[key]}
-            </option>
+            <option key={key} value={key}>{REASON_LABELS[key]}</option>
           ))}
         </select>
 
-        {/* Optional comment textarea */}
+        <label style={{ display: "block", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", margin: "14px 0 6px" }}>Details (optional)</label>
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Optional: add more detail"
-          rows={2}
-          className="mb-3 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none"
+          placeholder="Add more detail…"
+          rows={3}
+          className="rpt-field"
+          style={{ width: "100%", borderRadius: 12, border: "1.5px solid #e5e7eb", padding: "11px 13px", fontSize: 14, resize: "none", color: "#111827" }}
         />
 
-        {/* Show any submission error */}
-        {error && <p className="mb-2 text-xs text-red-600">{error}</p>}
+        {error && <p style={{ fontSize: 12.5, color: "#dc2626", fontWeight: 600, margin: "10px 0 0" }}>{error}</p>}
 
-        {/* Cancel / Submit row */}
-        <div className="flex gap-2">
-          {/* Cancel button — closes the form without submitting */}
+        <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="flex-1 rounded-lg border border-neutral-300 py-2 text-sm text-neutral-600 hover:bg-neutral-50"
+            className="rpt-cancel"
+            style={{ flex: 1, borderRadius: 100, border: "1.5px solid #e5e7eb", padding: "11px", fontSize: 14, fontWeight: 700, color: "#6b7280", background: "#fff", cursor: "pointer" }}
           >
             Cancel
           </button>
-          {/* Submit button */}
           <button
             type="button"
             disabled={isSubmitting}
-            onClick={async () => {
-              // Clear previous error
-              setError(null);
-              // Mark as submitting
-              setIsSubmitting(true);
-              // Insert the report row — the unique constraint will reject a duplicate
-              const { error: insertError } = await supabase.from("reports").insert({
-                // reporter_id is set server-side by RLS; still pass it for the INSERT policy check
-                reporter_id: (await supabase.auth.getUser()).data.user?.id,
-                target_type: targetType,
-                target_id: targetId,
-                reason,
-                // Only include the comment if the user actually typed something
-                comment: comment.trim() || null,
-              });
-              setIsSubmitting(false);
-              if (insertError) {
-                // The unique constraint gives a specific error code we can show a nicer message for
-                setError(
-                  insertError.code === "23505"
-                    ? "You've already reported this."
-                    : insertError.message
-                );
-                return;
-              }
-              // Success — swap to the thank-you state
-              setIsSubmitted(true);
-            }}
-            className="flex-1 rounded-lg bg-red-600 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
+            onClick={submit}
+            className="rpt-submit"
+            style={{ flex: 1, borderRadius: 100, border: "none", padding: "11px", fontSize: 14, fontWeight: 800, color: "#fff", cursor: "pointer", background: "linear-gradient(135deg,#dc2626,#ef4444)", opacity: isSubmitting ? 0.65 : 1 }}
           >
             {isSubmitting ? "Submitting…" : "Submit report"}
           </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // Default state: the small "Report" trigger button
   return (
-    <button
-      type="button"
-      onClick={() => {
-        // If not logged in, nudge them to login instead of opening the form
-        if (!isLoggedIn) {
-          window.location.href = "/login";
-          return;
-        }
-        // Open the form
-        setIsOpen(true);
-      }}
-      className="text-xs text-neutral-400 hover:text-red-600"
-    >
-      Report
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          if (!isLoggedIn) { window.location.href = "/login"; return; }
+          setIsOpen(true);
+        }}
+        className="text-xs text-neutral-400 hover:text-red-600"
+      >
+        Report
+      </button>
+      {mounted && modal && createPortal(modal, document.body)}
+    </>
   );
 }
