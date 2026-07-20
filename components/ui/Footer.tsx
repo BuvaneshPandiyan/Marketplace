@@ -38,9 +38,9 @@ export function Footer() {
   ];
   const legal = [
     { label: "Privacy Policy", href: "/privacy" },
-    { label: "Terms of Service", href: "#" },
-    { label: "Cookie Policy", href: "#" },
-    { label: "Safety & trust", href: "#" },
+    { label: "Terms of Service", href: "/terms" },
+    { label: "Cookie Policy", href: "/cookies" },
+    { label: "Safety & trust", href: "/safety" },
   ];
   const trust = [
     { icon: "🔒", label: "Secure & verified sellers" },
@@ -100,6 +100,12 @@ export function Footer() {
           padding: 44px 24px 24px;
         }
         @media(min-width:768px){ .bzf-inner { padding: 52px 40px 26px; } }
+        /* On mobile the floating nav pill overlaps the bottom — add just enough
+           bottom padding so the copyright clears it, and the pill sits over the
+           footer's own green (no empty spacer band below). */
+        @media(max-width:639px){
+          .bzf-inner { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+        }
 
         /* ── Type primitives ─────────────────────────────── */
         .bzf a { text-decoration: none; }
