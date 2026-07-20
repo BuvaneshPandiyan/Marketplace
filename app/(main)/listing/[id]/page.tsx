@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 // Import all the sub-components this page assembles
 import { PhotoCarousel } from "@/components/listing/PhotoCarousel";
 import { ListingAttributesDisplay } from "@/components/listing/ListingAttributesDisplay";
-import { SellerMiniProfile, VerifiedBadge } from "@/components/listing/SellerMiniProfile";
+import { SellerMiniProfile } from "@/components/listing/SellerMiniProfile";
 import { MapPreview } from "@/components/listing/MapPreview";
 import { ShowNumberButton } from "@/components/listing/ShowNumberButton";
 import { ChatWithSellerButton } from "@/components/listing/ChatWithSellerButton";
@@ -126,8 +126,17 @@ export default async function ListingDetailPage({
           background: linear-gradient(135deg, #2a0a2e 0%, #5b1a5e 52%, #9333a8 100%);
           -webkit-mask-image: linear-gradient(180deg, #000 84%, transparent 100%);
           mask-image: linear-gradient(180deg, #000 84%, transparent 100%);
-          padding: 30px 0 52px;
+          padding: 26px 0 44px;
         }
+        @media(max-width:640px){ .lst-banner { padding: 20px 0 34px; } }
+        /* Slow shine sweep across the banner */
+        .lst-banner::before {
+          content: ""; position: absolute; top: 0; bottom: 0; left: -30%; width: 30%;
+          background: linear-gradient(100deg, transparent, rgba(255,255,255,0.08), transparent);
+          transform: skewX(-18deg);
+          animation: lst-shine 7s ease-in-out infinite; pointer-events: none; z-index: 1;
+        }
+        @keyframes lst-shine { 0%{left:-30%} 55%,100%{left:130%} }
         .lst-banner-grid {
           position: absolute; inset: 0; pointer-events: none;
           background-image:
@@ -162,21 +171,35 @@ export default async function ListingDetailPage({
         }
         @keyframes lst-rise { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
         .lst-banner-meta {
-          display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-          margin-top: 14px; animation: lst-rise 550ms cubic-bezier(0.22,1,0.36,1) 100ms both;
+          display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+          margin-top: 12px; animation: lst-rise 550ms cubic-bezier(0.22,1,0.36,1) 100ms both;
         }
         .lst-banner-price {
-          font-size: clamp(20px, 3vw, 28px); font-weight: 900; letter-spacing: -0.03em;
-          color: #f0c4f5;
+          font-size: clamp(19px, 2.6vw, 26px); font-weight: 900; letter-spacing: -0.03em;
+          color: #f0c4f5; white-space: nowrap;
         }
-        .lst-banner-price small { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.7); }
+        .lst-banner-price small { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); }
         .lst-chip {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-size: 12px; font-weight: 700; letter-spacing: -0.01em;
-          color: #fff; padding: 5px 12px; border-radius: 999px;
+          display: inline-flex; align-items: center; gap: 4px;
+          font-size: 11.5px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap;
+          color: #fff; padding: 4px 10px; border-radius: 999px;
           background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22);
           backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+          animation: lst-chip-in 500ms cubic-bezier(0.34,1.56,0.64,1) both;
         }
+        .lst-chip:nth-of-type(1){ animation-delay: 160ms; }
+        .lst-chip:nth-of-type(2){ animation-delay: 240ms; }
+        .lst-chip:nth-of-type(3){ animation-delay: 320ms; }
+        @keyframes lst-chip-in { from{opacity:0;transform:scale(0.7)} to{opacity:1;transform:scale(1)} }
+        /* On phones keep the meta on ONE row that scrolls sideways instead of wrapping tall */
+        @media(max-width:640px){
+          .lst-banner-meta { flex-wrap: nowrap; overflow-x: auto; gap: 8px; scrollbar-width: none; }
+          .lst-banner-meta::-webkit-scrollbar { display: none; }
+          .lst-chip { font-size: 11px; padding: 4px 9px; }
+        }
+        /* Map fills its column height on desktop */
+        .lst-map-fill { min-height: 220px; }
+        .lst-map-fill > * { height: 100%; }
         .lst-body {
           max-width: 1600px; margin: -24px auto 0; padding: 0 16px 40px;
           position: relative; z-index: 1;
@@ -214,6 +237,17 @@ export default async function ListingDetailPage({
         }
         /* Attribute chips / labels tinted plum on the detail side */
         .lst-card .lst-attr-key { color: #9333a8; font-weight: 700; }
+
+        /* Zomato section headings + panels inside the content */
+        .lst-h2 {
+          font-size: 17px; font-weight: 900; letter-spacing: -0.03em; color: #1c1917;
+          margin: 0 0 12px;
+        }
+        .lst-panel {
+          border-radius: 16px; border: 1px solid #eee8f0; background: #fdfcfe; padding: 18px 20px;
+          transition: border-color 220ms ease, box-shadow 220ms ease;
+        }
+        @media(hover:hover){ .lst-panel:hover { border-color: #e4d3ee; box-shadow: 0 6px 20px rgba(147,51,168,0.08); } }
 
         /* Compact seller pill — desktop title area */
         .seller-mini-link {
@@ -290,91 +324,44 @@ export default async function ListingDetailPage({
       <div className="lst-body">
         <div className="lst-card">
 
-      {/* ── HERO GRID ── photo left, desktop-right-column right ── */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[640px_minmax(0,1fr)] lg:gap-10">
+      {/* ══ DESKTOP: two equal-height columns ══
+          LEFT  = photo carousel (thumbnails below, inside the component)
+          RIGHT = actions · seller · details · description · map
+          Title / price / location live in the banner only — not repeated here. */}
+      <div className="hidden lg:grid lg:grid-cols-[500px_minmax(0,1fr)] lg:gap-8 lg:items-start">
 
-        {/* Left: sticky photo gallery — single unified carousel for all breakpoints */}
-        <div className="lg:sticky lg:top-20 lg:self-start">
+        {/* LEFT: photo carousel + map filling the remaining height */}
+        <div className="flex flex-col gap-5">
           <PhotoCarousel photoUrls={photoUrls} />
+
+          {/* Location map — fills the space below the thumbnails */}
+          <div className="flex flex-1 flex-col">
+            <h2 className="lst-h2">Location</h2>
+            <div className="lst-map-fill flex-1">
+              <MapPreview lat={listing.lat} lng={listing.lng} listingId={listing.id} />
+            </div>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${listing.lat},${listing.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 py-2.5 text-sm font-semibold text-neutral-700"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                <circle cx="12" cy="9" r="2.5" />
+              </svg>
+              View exact location
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path d="M7 17L17 7M7 7h10v10" />
+              </svg>
+            </a>
+          </div>
         </div>
 
-        {/* ══ DESKTOP RIGHT COLUMN — hidden on mobile ══
-            Fix 1: only compact seller card (top-right, labeled "Seller") — no duplicate below
-            Fix 4: Description moved here, immediately after Details
-            Fix 5: compact horizontal button row
-        ══════════════════════════════════════════════ */}
-        <div className="hidden flex-col gap-5 lg:flex">
+        {/* RIGHT: stacked details */}
+        <div className="flex flex-col gap-5">
 
-          {/* Title row: title left, "Seller" label + compact pill right */}
-          <div>
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-bold leading-tight text-neutral-900">{listing.title}</h1>
-              </div>
-
-              {/* Fix 3: "Seller" label aligned over the seller's name (not the avatar) */}
-              {seller && (
-                <div className="hidden lg:flex lg:flex-col lg:items-start" style={{ width: "fit-content" }}>
-                  <span
-                    className="mb-1 text-[11px] font-medium uppercase tracking-wide text-neutral-400"
-                    style={{ paddingLeft: 44 }}
-                  >
-                    Seller
-                  </span>
-                  <Link
-                    href={`/seller/${listing.seller_id}`}
-                    className="seller-mini-link flex shrink-0 items-center gap-2.5 rounded-full border border-neutral-200 py-1.5 pl-1.5 pr-4"
-                  >
-                    {seller.profile_photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={seller.profile_photo_url} alt={seller.name ?? "Seller"} className="h-9 w-9 rounded-full object-cover" />
-                    ) : (
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 text-sm font-semibold text-purple-700">
-                        {seller.name?.[0]?.toUpperCase() ?? "?"}
-                      </div>
-                    )}
-                    <div className="text-left">
-                      <p className="flex items-center gap-1 text-sm font-medium text-neutral-900">
-                        {seller.name ?? "Seller"}
-                        {(seller.is_verified_seller ?? false) && <VerifiedBadge className="h-3.5 w-3.5" />}
-                      </p>
-                      <p className="text-xs text-neutral-500">
-                        {(seller.rating_count ?? 0) > 0
-                          ? `★ ${(seller.rating_avg ?? 0).toFixed(1)} (${seller.rating_count})`
-                          : "No ratings yet"}
-                      </p>
-                    </div>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="text-neutral-400">
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
-                  </Link>
-                </div>
-              )}
-            </div>
-            <p className="mt-2 text-2xl font-extrabold text-neutral-900">
-              {priceFormatted}
-              {listing.listing_type === "rent" && <span className="ml-1 text-base font-normal text-neutral-500">/mo</span>}
-            </p>
-            <p className="mt-1.5 text-sm text-neutral-500">
-              📍 {listing.locality} &middot; {listing.condition === "new" ? "New" : "Used"} &middot;{" "}
-              {listing.listing_type === "sale" ? "For sale" : "For rent"}
-            </p>
-          </div>
-
-          {/* Details card */}
-          {(listing.listing_attributes ?? []).length > 0 && (
-            <div className="rounded-xl border border-neutral-200 p-4">
-              <h2 className="mb-3 text-sm font-semibold text-neutral-700">Details</h2>
-              <ListingAttributesDisplay attributes={listing.listing_attributes ?? []} schema={questionSchema} />
-            </div>
-          )}
-
-          {/* Fix 4: Description with line-clamp + Show more modal */}
-          {listing.description && (
-            <ListingDescription description={listing.description} />
-          )}
-
-          {/* Fix 5: Compact horizontal button row */}
+          {/* Action buttons */}
           {isBuyer && (
             <div className="flex gap-3">
               <div className="flex-1">
@@ -389,6 +376,37 @@ export default async function ListingDetailPage({
             </div>
           )}
 
+          {/* Seller */}
+          {seller && (
+            <div>
+              <h2 className="lst-h2">Seller</h2>
+              <div className="seller-card rounded-xl">
+                <SellerMiniProfile
+                  name={seller.name}
+                  profilePhotoUrl={seller.profile_photo_url}
+                  ratingAvg={seller.rating_avg ?? 0}
+                  ratingCount={seller.rating_count ?? 0}
+                  memberSince={seller.created_at}
+                  isVerified={seller.is_verified_seller ?? false}
+                  sellerId={listing.seller_id}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Details */}
+          {(listing.listing_attributes ?? []).length > 0 && (
+            <div className="lst-panel">
+              <h2 className="lst-h2">Details</h2>
+              <ListingAttributesDisplay attributes={listing.listing_attributes ?? []} schema={questionSchema} />
+            </div>
+          )}
+
+          {/* Description */}
+          {listing.description && (
+            <ListingDescription description={listing.description} />
+          )}
+
           {/* Report */}
           {isBuyer && (
             <div className="flex justify-end">
@@ -398,56 +416,61 @@ export default async function ListingDetailPage({
         </div>
       </div>
 
-      {/* ══ MOBILE CONTENT BLOCK — lg:hidden ══
-          Correct mobile order: title → details → description → seller → buttons → map
-          Each section is its own full-width block in normal document flow. */}
+      {/* ══ MOBILE CONTENT — photo already above via ... wait, photo is desktop-only now.
+          On mobile we show: photo → details → description → seller → buttons → map.
+          Title/price/location stay in the banner only. ══ */}
       <div className="flex flex-col gap-5 lg:hidden">
 
-        {/* 1. Title + price + location */}
+        {/* Photo carousel */}
         <div className="mt-4">
-          <h1 className="text-2xl font-bold leading-tight text-neutral-900">{listing.title}</h1>
-          <p className="mt-2 text-2xl font-extrabold text-neutral-900">
-            {priceFormatted}
-            {listing.listing_type === "rent" && <span className="ml-1 text-base font-normal text-neutral-500">/mo</span>}
-          </p>
-          <p className="mt-1.5 text-sm text-neutral-500">
-            📍 {listing.locality} &middot; {listing.condition === "new" ? "New" : "Used"} &middot;{" "}
-            {listing.listing_type === "sale" ? "For sale" : "For rent"}
-          </p>
+          <PhotoCarousel photoUrls={photoUrls} />
         </div>
 
-        {/* 2. Details card */}
+        {/* Details card */}
         {(listing.listing_attributes ?? []).length > 0 && (
-          <div className="rounded-xl border border-neutral-200 p-4">
-            <h2 className="mb-3 text-sm font-semibold text-neutral-700">Details</h2>
+          <div className="lst-panel">
+            <h2 className="lst-h2">Details</h2>
             <ListingAttributesDisplay attributes={listing.listing_attributes ?? []} schema={questionSchema} />
           </div>
         )}
 
-        {/* 3. Description */}
+        {/* Description */}
         {listing.description && (
           <ListingDescription description={listing.description} />
         )}
 
-        {/* 4. Seller info */}
+        {/* Seller — compact pill (doesn't fill the row) */}
         {seller && (
           <div>
-            <h2 className="mb-2 text-sm font-semibold text-neutral-700">Seller</h2>
-            <div className="seller-card rounded-xl">
-              <SellerMiniProfile
-                name={seller.name}
-                profilePhotoUrl={seller.profile_photo_url}
-                ratingAvg={seller.rating_avg ?? 0}
-                ratingCount={seller.rating_count ?? 0}
-                memberSince={seller.created_at}
-                isVerified={seller.is_verified_seller ?? false}
-                sellerId={listing.seller_id}
-              />
-            </div>
+            <h2 className="lst-h2">Seller</h2>
+            <Link
+              href={`/seller/${listing.seller_id}`}
+              className="seller-mini-link inline-flex w-fit items-center gap-2.5 rounded-full border border-neutral-200 py-1.5 pl-1.5 pr-4"
+            >
+              {seller.profile_photo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={seller.profile_photo_url} alt={seller.name ?? "Seller"} className="h-9 w-9 rounded-full object-cover" />
+              ) : (
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 text-sm font-semibold text-purple-700">
+                  {seller.name?.[0]?.toUpperCase() ?? "?"}
+                </div>
+              )}
+              <div className="text-left">
+                <p className="text-sm font-semibold text-neutral-900">{seller.name ?? "Seller"}</p>
+                <p className="text-xs text-neutral-500">
+                  {(seller.rating_count ?? 0) > 0
+                    ? `★ ${(seller.rating_avg ?? 0).toFixed(1)} (${seller.rating_count})`
+                    : "No ratings yet"}
+                </p>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="text-neutral-400">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </Link>
           </div>
         )}
 
-        {/* 5. Action buttons — full-width, stacked, in normal document flow */}
+        {/* Action buttons */}
         {isBuyer && (
           <div className="flex flex-col gap-2.5">
             <div className="btn-primary rounded-full">
@@ -469,15 +492,15 @@ export default async function ListingDetailPage({
           </div>
         )}
 
-        {/* 6. Map + view exact location */}
+        {/* Map */}
         <div>
-          <h2 className="mb-3 text-lg font-bold text-neutral-900">Location</h2>
+          <h2 className="lst-h2">Location</h2>
           <MapPreview lat={listing.lat} lng={listing.lng} listingId={listing.id} />
           <a
             href={`https://www.google.com/maps/search/?api=1&query=${listing.lat},${listing.lng}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-secondary mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 py-2.5 text-sm font-medium text-neutral-700"
+            className="btn-secondary mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 py-2.5 text-sm font-semibold text-neutral-700"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
@@ -491,31 +514,6 @@ export default async function ListingDetailPage({
         </div>
       </div>
 
-      {/* ── BELOW HERO: desktop-only full-width sections ── */}
-
-      {/* Description — desktop only: already rendered in right column above.
-          Hidden here to avoid duplication. Mobile has it in the mobile block. */}
-
-      {/* Location map — desktop only */}
-      <section className="mt-10 hidden lg:block">
-        <h2 className="mb-3 text-lg font-bold text-neutral-900">Location</h2>
-        <MapPreview lat={listing.lat} lng={listing.lng} listingId={listing.id} />
-        <a
-          href={`https://www.google.com/maps/search/?api=1&query=${listing.lat},${listing.lng}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-secondary mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 py-2.5 text-sm font-medium text-neutral-700"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-            <circle cx="12" cy="9" r="2.5" />
-          </svg>
-          View exact location
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path d="M7 17L17 7M7 7h10v10" />
-          </svg>
-        </a>
-      </section>
       </div>{/* /.lst-card */}
 
       {/* Related listings — shown on all breakpoints */}
