@@ -65,6 +65,35 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
   // even if the page was loaded before the seller marked the item as sold.
   const [listingStatus, setListingStatus] = useState(conversation.listing_status);
   const isSold = listingStatus === "sold";
+
+  // Background images (banner + centre watermark) with graceful fallback if missing.
+  const [bannerImgFailed, setBannerImgFailed] = useState(false);
+  const [centerImgFailed, setCenterImgFailed] = useState(false);
+
+  // A soft two-note "pop" chime for incoming messages — generated with the Web
+  // Audio API so no audio file is needed. Guarded so autoplay policies don't throw.
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const playNotifySound = useCallback(() => {
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AC) return;
+      const ctx = audioCtxRef.current ?? (audioCtxRef.current = new AC());
+      if (ctx.state === "suspended") ctx.resume();
+      const now = ctx.currentTime;
+      [ [880, 0], [1320, 0.09] ].forEach(([freq, offset]) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        osc.connect(gain); gain.connect(ctx.destination);
+        const t = now + offset;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.12, t + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+        osc.start(t); osc.stop(t + 0.2);
+      });
+    } catch { /* ignore — sound is a nice-to-have */ }
+  }, []);
   // Lightbox — null when closed, image URL string when open
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [lightboxMounted, setLightboxMounted] = useState(false);
@@ -169,8 +198,11 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
           if (incoming.message_type === "system") {
             setListingStatus("sold");
           }
-          // If it came from the other person, immediately mark it read
-          if (incoming.sender_id !== currentUserId) markMessagesAsRead();
+          // If it came from the other person, mark it read + play a soft chime
+          if (incoming.sender_id !== currentUserId) {
+            markMessagesAsRead();
+            playNotifySound();
+          }
         }
       )
       .subscribe();
@@ -179,7 +211,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, conversation.id, currentUserId, markMessagesAsRead]);
+  }, [supabase, conversation.id, currentUserId, markMessagesAsRead, playNotifySound]);
 
   // ── Auto-scroll to bottom on every new message ────────────────────────────────────────────
   useEffect(() => {
@@ -336,9 +368,30 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
           animation: chat-spin 0.7s linear infinite; display: inline-block;
         }
         @keyframes chat-spin { to { transform: rotate(360deg); } }
+
+        /* On mobile the floating bottom nav pill overlaps the composer — lift the
+           composer above it so the send button and pill are never covered. */
+        @media(max-width:639px){
+          .chat-input-wrap { padding-bottom: calc(20px + env(safe-area-inset-bottom)) !important; }
+        }
+
+        /* Message bubbles animate in as they arrive (auto, no interaction) */
+        .chat-msg-row { animation: chat-msg-in 340ms cubic-bezier(0.22,1,0.36,1) both; }
+        @keyframes chat-msg-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+        .chat-bubble { transition: transform 180ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 180ms ease; }
+        .chat-bubble:hover { transform: translateY(-2px); }
+
+        /* Header avatar online-dot gentle pulse */
+        .chat-online-dot { animation: chat-pulse 2.4s ease-in-out infinite; }
+        @keyframes chat-pulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(34,197,94,0.5); } 50%{ box-shadow: 0 0 0 4px rgba(34,197,94,0); } }
+        /* Item chip subtle hover */
+        .chat-item-chip { transition: background 180ms ease, transform 180ms ease; }
+        .chat-item-chip:hover { background: rgba(216,144,88,0.3) !important; transform: translateY(-1px); }
+
         @media(prefers-reduced-motion:reduce){
           .chat-send.is-active:hover, .chat-send.is-active:active, .chat-pill-ic:active { transform: none; }
           .chat-spin { animation-duration: 1.2s; }
+          .chat-msg-row, .chat-bubble, .chat-online-dot, .chat-item-chip { animation: none !important; transition: none !important; }
         }
       `}</style>
       {/* LAYOUT: full height flex column — header sticky, messages scroll, input fixed */}
@@ -363,6 +416,16 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
           position: "relative", overflow: "hidden",
           borderBottom: "1px solid rgba(255,255,255,0.1)",
         }}>
+          {/* Banner background image — masked left-fade + scrim, falls back to gradient */}
+          {!bannerImgFailed && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/chat-header.png" alt="" aria-hidden="true"
+                onError={() => setBannerImgFailed(true)}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center right", opacity: 0.4, pointerEvents: "none", WebkitMaskImage: "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.5) 45%, #000 88%)", maskImage: "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.5) 45%, #000 88%)" }} />
+              <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "linear-gradient(90deg, #071f26 0%, rgba(7,31,38,0.85) 40%, transparent 82%)" }} />
+            </>
+          )}
           <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative", zIndex: 1 }}>
             {/* Avatar */}
@@ -376,7 +439,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
                   {(otherUserProfile?.name ?? "?")[0]?.toUpperCase()}
                 </div>
               )}
-              <div style={{ position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: "50%", background: "#22c55e", border: "2px solid white" }} />
+              <div className="chat-online-dot" style={{ position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: "50%", background: "#22c55e", border: "2px solid white" }} />
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -389,7 +452,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
               {/* Clickable listing title → listing page */}
               <Link href={`/listing/${conversation.listing_id}`}
                 style={{ fontSize: 11.5, fontWeight: 600, color: "#f5d9c4", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 5, marginTop: 3, padding: "3px 9px", borderRadius: 100, background: "rgba(216,144,88,0.18)", border: "1px solid rgba(216,144,88,0.35)", maxWidth: "100%", transition: "background 150ms ease" }}
-                className="hover:opacity-90">
+                className="chat-item-chip">
                 <span aria-hidden="true">🏷️</span>
                 <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{conversation.listing_title}</span>
                 {/* Sold badge sits beside the listing title — never displaces the report button */}
@@ -421,7 +484,16 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
         )}
 
         {/* ── SCROLLABLE MESSAGE LIST — only this area scrolls ── */}
-        <div className="chat-messages-area" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10, minHeight: 0, overscrollBehavior: "contain" }}>
+        <div className="chat-messages-area" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10, minHeight: 0, overscrollBehavior: "contain", position: "relative" }}>
+          {/* Faint centre watermark — sits behind messages, fades at top/bottom */}
+          {!centerImgFailed && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/chat-center.png" alt="" aria-hidden="true"
+                onError={() => setCenterImgFailed(true)}
+                style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "min(58%, 280px)", opacity: 0.06, pointerEvents: "none", userSelect: "none" }} />
+            </>
+          )}
           {messages.map((msg) => {
             const isSystem = (msg as Message & { message_type?: string }).message_type === "system";
             if (isSystem) {
@@ -435,7 +507,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
             }
             const isOwn = msg.sender_id === currentUserId;
             return (
-              <div key={msg.id} style={{ display: "flex", justifyContent: isOwn ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 8 }}>
+              <div key={msg.id} className="chat-msg-row" style={{ display: "flex", justifyContent: isOwn ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 8 }}>
                 {/* Other person avatar */}
                 {!isOwn && (
                   otherUserProfile?.profile_photo_url ? (
@@ -465,7 +537,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
                   )}
                   {/* Text bubble */}
                   {msg.text && (
-                    <div style={{
+                    <div className="chat-bubble" style={{
                       padding: "10px 14px",
                       borderRadius: isOwn ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
                       background: isOwn ? "linear-gradient(135deg,#a5622c,#d99058)" : "white",
@@ -500,7 +572,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
             <p style={{ fontSize: 13, color: "#9ca3af", fontWeight: 500, margin: 0 }}>🏷️ Messaging disabled for sold items</p>
           </div>
         ) : (
-          <div style={{ flexShrink: 0, background: "#fff", padding: "10px 12px calc(10px + env(safe-area-inset-bottom))" }}>
+          <div className="chat-input-wrap" style={{ flexShrink: 0, background: "#fff", padding: "10px 12px calc(10px + env(safe-area-inset-bottom))" }}>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }}
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ""; }} />
 
