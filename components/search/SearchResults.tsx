@@ -12,6 +12,7 @@ import { SearchFilters, type SearchFilterValues, type SortOption } from "@/compo
 import { SaveSearchButton } from "@/components/search/SaveSearchButton";
 import { searchHitToFeedListingItem, type SearchHit } from "@/lib/client/searchHitAdapter";
 import type { Category } from "@/types";
+import { SearchBannerArt } from "@/components/search/SearchBannerArt";
 
 type TierState = {
   items: SearchHit[];
@@ -217,15 +218,108 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
     topHit && topHit.title.toLowerCase() !== submittedQuery.trim().toLowerCase();
 
   return (
-    // Fix A — same container as the home feed (TieredFeed.tsx) for identical card sizing
-    <div className="mx-auto w-full max-w-[1600px] px-4 py-6 md:px-8">
+    <div className="srch-page">
+      <style>{`
+        /* ── Search page: RUBY / CRIMSON theme ── */
+        .srch-page { background: #fbf7f8; min-height: 100vh; }
+        .srch-banner {
+          position: relative; overflow: hidden;
+          background: linear-gradient(135deg, #3d0714 0%, #8b0e2a 52%, #cf1338 100%);
+          -webkit-mask-image: linear-gradient(180deg, #000 84%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 84%, transparent 100%);
+          padding: 30px 0 52px;
+        }
+        @media(max-width:640px){ .srch-banner { padding: 22px 0 40px; } }
+        .srch-banner-grid {
+          position: absolute; inset: 0; pointer-events: none;
+          background-image:
+            linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+          background-size: 28px 28px;
+        }
+        .srch-banner-glow {
+          position: absolute; top: -110px; right: -50px; width: 300px; height: 300px; border-radius: 50%;
+          background: radial-gradient(circle, rgba(255,110,140,0.4) 0%, transparent 70%);
+          animation: srch-breathe 9s ease-in-out infinite; pointer-events: none;
+        }
+        @keyframes srch-breathe { 0%,100%{transform:scale(1);opacity:0.85} 50%{transform:scale(1.14);opacity:1} }
+        .srch-banner::before {
+          content: ""; position: absolute; top: 0; bottom: 0; left: -30%; width: 30%;
+          background: linear-gradient(100deg, transparent, rgba(255,255,255,0.08), transparent);
+          transform: skewX(-18deg); animation: srch-shine 7s ease-in-out infinite; pointer-events: none; z-index: 1;
+        }
+        @keyframes srch-shine { 0%{left:-30%} 55%,100%{left:130%} }
+        .srch-banner-inner {
+          position: relative; z-index: 1; max-width: 1600px; margin: 0 auto; padding: 0 16px;
+        }
+        @media(min-width:768px){ .srch-banner-inner { padding: 0 32px; } }
+        .srch-eyebrow {
+          display: inline-flex; align-items: center; gap: 7px;
+          font-size: 11.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+          color: #fff; margin: 0 0 12px; padding: 5px 12px; border-radius: 999px;
+          background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22);
+          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+        }
+        .srch-title {
+          font-size: clamp(24px, 4vw, 40px); font-weight: 900; letter-spacing: -0.045em;
+          line-height: 1.05; color: #fff; margin: 0; max-width: 900px;
+          text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+          animation: srch-rise 550ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        .srch-title em { font-style: normal; color: #ff9db0; }
+        @keyframes srch-rise { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+        .srch-count {
+          font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.82);
+          margin: 12px 0 0; text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+          animation: srch-rise 550ms cubic-bezier(0.22,1,0.36,1) 100ms both;
+        }
+        .srch-body {
+          max-width: 1600px; margin: -24px auto 0; padding: 0 16px 40px; position: relative; z-index: 1;
+        }
+        @media(min-width:768px){ .srch-body { padding: 0 32px 40px; } }
+        .srch-card {
+          background: #fff; border-radius: 22px; border: 1px solid #f1e5e8;
+          box-shadow: 0 12px 44px rgba(0,0,0,0.06); padding: 24px;
+          animation: srch-rise 600ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @media(min-width:768px){ .srch-card { padding: 32px; } }
+        /* Ruby brand-var remap so ListingCards + filter accents match this page */
+        .srch-page {
+          --brand: #cf1338;
+          --brand-tint: #fff1f3;
+          --brand-border: #fecdd6;
+          --brand-grad: linear-gradient(135deg, #cf1338, #f43f5e);
+        }
+        /* Results reveal on scroll */
+        .srch-results-grid > * { animation: srch-pop 500ms cubic-bezier(0.22,1,0.36,1) both; }
+        @keyframes srch-pop { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+        @media(prefers-reduced-motion:reduce){
+          .srch-banner-glow, .srch-banner::before, .srch-title, .srch-count, .srch-card, .srch-results-grid > * { animation: none !important; }
+        }
+      `}</style>
 
-      {/* Fix B — heading replaces the duplicate search bar form/input */}
-      <h1 className="mb-4 text-lg font-bold text-neutral-900">
-        {submittedQuery.trim()
-          ? <>Search results for &quot;{submittedQuery}&quot;</>
-          : "All listings"}
-      </h1>
+      {/* ── BANNER ── */}
+      <div className="srch-banner">
+        <SearchBannerArt src="/images/search-header.png" />
+        <div className="srch-banner-grid" aria-hidden="true" />
+        <div className="srch-banner-glow" aria-hidden="true" />
+        <div className="srch-banner-inner">
+          <p className="srch-eyebrow">🔍 Search</p>
+          <h1 className="srch-title">
+            {submittedQuery.trim()
+              ? <>Results for <em>&quot;{submittedQuery}&quot;</em></>
+              : <>Browse <em>all listings</em></>}
+          </h1>
+          <p className="srch-count">
+            {totalHits > 0
+              ? `${totalHits}${flatItems.length >= 0 && !isTiered ? "" : "+"} ${totalHits === 1 ? "listing" : "listings"} found`
+              : "Refine your search below"}
+          </p>
+        </div>
+      </div>
+
+      <div className="srch-body">
+        <div className="srch-card">
 
       {/* Fix C — filter controls: collapsible on mobile, inline on desktop */}
 
@@ -243,7 +337,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
             </svg>
             Filters
             {activeFilterCount > 0 && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-600 text-xs font-semibold text-white">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-600 text-xs font-semibold text-white">
                 {activeFilterCount}
               </span>
             )}
@@ -486,7 +580,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
           <button
             type="button"
             onClick={() => setSubmittedQuery(topHit.title)}
-            className="font-medium text-orange-600 hover:text-orange-700"
+            className="font-semibold text-rose-600 hover:text-rose-700"
           >
             {topHit.title}
           </button>
@@ -517,7 +611,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
       ) : (
         <>
           {/* Fix A — same grid classes as home feed */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7 lg:gap-6">
+          <div className="srch-results-grid grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7 lg:gap-6">
             {flatItems.map((hit, i) => (
               <ListingCard key={hit.id} listing={searchHitToFeedListingItem(hit)} index={i} />
             ))}
@@ -530,13 +624,15 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
               type="button"
               onClick={() => fetchFlat(false)}
               disabled={flatIsLoading}
-              className="mt-4 text-sm font-medium text-orange-600 hover:text-orange-700 disabled:opacity-60"
+              className="mt-4 text-sm font-semibold text-rose-600 hover:text-rose-700 disabled:opacity-60"
             >
               {flatIsLoading ? "Loading..." : "Show more"}
             </button>
           )}
         </>
       )}
+        </div>{/* /.srch-card */}
+      </div>{/* /.srch-body */}
     </div>
   );
 }
@@ -553,7 +649,7 @@ function SearchResultSection({
     <section className="mb-6">
       <h2 className="mb-2 text-sm font-semibold text-neutral-700">{title}</h2>
       {/* Fix A — same grid as home feed's FeedSection */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7 lg:gap-6">
+      <div className="srch-results-grid grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7 lg:gap-6">
         {tier.items.map((hit, i) => (
           <ListingCard key={hit.id} listing={searchHitToFeedListingItem(hit)} index={i} />
         ))}
@@ -563,7 +659,7 @@ function SearchResultSection({
           type="button"
           onClick={onLoadMore}
           disabled={tier.isLoading}
-          className="mt-2 text-sm font-medium text-orange-600 hover:text-orange-700 disabled:opacity-60"
+          className="mt-2 text-sm font-semibold text-rose-600 hover:text-rose-700 disabled:opacity-60"
         >
           {tier.isLoading ? "Loading..." : "Show more"}
         </button>
