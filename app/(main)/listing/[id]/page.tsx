@@ -234,6 +234,15 @@ export default async function ListingDetailPage({
           color: #1c1917; margin: 0 0 14px;
         }
         .lst-related-h em { font-style: normal; color: #9333a8; }
+
+        /* Remap the brand accent vars to PLUM inside the related section only, so
+           the shared ListingCard matches this page without affecting other pages. */
+        .lst-related {
+          --brand: #9333a8;
+          --brand-tint: #faf5ff;
+          --brand-border: #e9d5ff;
+          --brand-grad: linear-gradient(135deg, #9333a8, #c054e0);
+        }
         /* Detail section headings → Zomato weight */
         .lst-card h2:not(.lst-related-h) { letter-spacing: -0.03em; }
 
@@ -574,9 +583,11 @@ export default async function ListingDetailPage({
 
       </div>{/* /.lst-card */}
 
-      {/* Related listings — shown on all breakpoints */}
+      {/* Related listings — same ListingCard as the home page, but with the brand
+          accent vars remapped to PLUM just for this section (scoped override), so
+          the cards match the page without affecting cards anywhere else. */}
       {relatedListings.length > 0 && (
-        <section className="mb-8 mt-10">
+        <section className="lst-related mb-8 mt-10">
           <h2 className="lst-related-h">You may also <em>like</em></h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7 lg:gap-6">
             {relatedListings.map((item, i) => (
