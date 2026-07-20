@@ -8,7 +8,6 @@ import { createClient } from "@/lib/supabase/server";
 // Import all the sub-components this page assembles
 import { PhotoCarousel } from "@/components/listing/PhotoCarousel";
 import { ListingAttributesDisplay } from "@/components/listing/ListingAttributesDisplay";
-import { SellerMiniProfile } from "@/components/listing/SellerMiniProfile";
 import { MapPreview } from "@/components/listing/MapPreview";
 import { ShowNumberButton } from "@/components/listing/ShowNumberButton";
 import { ChatWithSellerButton } from "@/components/listing/ChatWithSellerButton";
@@ -179,6 +178,25 @@ export default async function ListingDetailPage({
           color: #f0c4f5; white-space: nowrap;
         }
         .lst-banner-price small { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); }
+        /* Banner head: title/meta left, seller pill right */
+        .lst-banner-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+        .lst-seller-pill {
+          flex-shrink: 0; display: inline-flex; align-items: center; gap: 11px;
+          padding: 8px 14px 8px 8px; border-radius: 999px; text-decoration: none;
+          background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.22);
+          backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+          animation: lst-rise 550ms cubic-bezier(0.22,1,0.36,1) 150ms both;
+          transition: background 200ms ease, transform 200ms ease, border-color 200ms ease;
+        }
+        .lst-seller-pill:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); border-color: rgba(255,255,255,0.4); }
+        .lst-seller-av { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+        .lst-seller-av-fallback { display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.25); color: #fff; font-weight: 800; font-size: 16px; }
+        .lst-seller-txt { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+        .lst-seller-label { font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+        .lst-seller-name { font-size: 14px; font-weight: 800; letter-spacing: -0.02em; color: #fff; white-space: nowrap; }
+        .lst-seller-rating { font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.72); }
+        .lst-seller-caret { color: rgba(255,255,255,0.6); flex-shrink: 0; }
+        @media(max-width:900px){ .lst-seller-pill { display: none; } }
         .lst-chip {
           display: inline-flex; align-items: center; gap: 4px;
           font-size: 11.5px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap;
@@ -249,6 +267,19 @@ export default async function ListingDetailPage({
         }
         @media(hover:hover){ .lst-panel:hover { border-color: #e4d3ee; box-shadow: 0 6px 20px rgba(147,51,168,0.08); } }
 
+        /* Safety tips card (plum) */
+        .lst-safety {
+          border-radius: 16px; padding: 20px 22px;
+          background: linear-gradient(135deg, #faf5ff, #fdf4ff);
+          border: 1px solid #eddcf5;
+        }
+        .lst-safety-h { font-size: 15px; font-weight: 900; letter-spacing: -0.02em; color: #5b1a5e; margin: 0 0 12px; }
+        .lst-safety-list { margin: 0 0 14px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+        .lst-safety-list li { position: relative; padding-left: 22px; font-size: 13.5px; line-height: 1.5; color: #44403c; }
+        .lst-safety-list li::before { content: "✓"; position: absolute; left: 0; top: 0; color: #9333a8; font-weight: 800; }
+        .lst-safety-link { font-size: 13px; font-weight: 700; color: #9333a8; text-decoration: none; transition: color 160ms ease; }
+        .lst-safety-link:hover { color: #7e22ce; }
+
         /* Compact seller pill — desktop title area */
         .seller-mini-link {
           transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
@@ -308,15 +339,41 @@ export default async function ListingDetailPage({
         <div className="lst-banner-glow" aria-hidden="true" />
         <div className="lst-banner-inner">
           <Link href="/" className="lst-crumb">← Back to listings</Link>
-          <h1 className="lst-banner-title">{listing.title}</h1>
-          <div className="lst-banner-meta">
-            <span className="lst-banner-price">
-              {priceFormatted}
-              {listing.listing_type === "rent" && <small> /month</small>}
-            </span>
-            <span className="lst-chip">📍 {listing.locality}</span>
-            <span className="lst-chip">{listing.condition === "new" ? "✨ New" : "♻️ Used"}</span>
-            <span className="lst-chip">{listing.listing_type === "sale" ? "For sale" : "For rent"}</span>
+          <div className="lst-banner-head">
+            <div className="min-w-0">
+              <h1 className="lst-banner-title">{listing.title}</h1>
+              <div className="lst-banner-meta">
+                <span className="lst-banner-price">
+                  {priceFormatted}
+                  {listing.listing_type === "rent" && <small> /month</small>}
+                </span>
+                <span className="lst-chip">📍 {listing.locality}</span>
+                <span className="lst-chip">{listing.condition === "new" ? "✨ New" : "♻️ Used"}</span>
+                <span className="lst-chip">{listing.listing_type === "sale" ? "For sale" : "For rent"}</span>
+              </div>
+            </div>
+
+            {/* Seller pill — top-right of the banner */}
+            {seller && (
+              <Link href={`/seller/${listing.seller_id}`} className="lst-seller-pill">
+                {seller.profile_photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={seller.profile_photo_url} alt={seller.name ?? "Seller"} className="lst-seller-av" />
+                ) : (
+                  <span className="lst-seller-av lst-seller-av-fallback">{seller.name?.[0]?.toUpperCase() ?? "?"}</span>
+                )}
+                <span className="lst-seller-txt">
+                  <span className="lst-seller-label">Seller</span>
+                  <span className="lst-seller-name">{seller.name ?? "Seller"}</span>
+                  <span className="lst-seller-rating">
+                    {(seller.rating_count ?? 0) > 0
+                      ? `★ ${(seller.rating_avg ?? 0).toFixed(1)} (${seller.rating_count})`
+                      : "No ratings yet"}
+                  </span>
+                </span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="lst-seller-caret"><path d="M9 18l6-6-6-6" /></svg>
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -376,24 +433,6 @@ export default async function ListingDetailPage({
             </div>
           )}
 
-          {/* Seller */}
-          {seller && (
-            <div>
-              <h2 className="lst-h2">Seller</h2>
-              <div className="seller-card rounded-xl">
-                <SellerMiniProfile
-                  name={seller.name}
-                  profilePhotoUrl={seller.profile_photo_url}
-                  ratingAvg={seller.rating_avg ?? 0}
-                  ratingCount={seller.rating_count ?? 0}
-                  memberSince={seller.created_at}
-                  isVerified={seller.is_verified_seller ?? false}
-                  sellerId={listing.seller_id}
-                />
-              </div>
-            </div>
-          )}
-
           {/* Details */}
           {(listing.listing_attributes ?? []).length > 0 && (
             <div className="lst-panel">
@@ -406,6 +445,18 @@ export default async function ListingDetailPage({
           {listing.description && (
             <ListingDescription description={listing.description} />
           )}
+
+          {/* Safety tips — fills the column + reinforces the brand's trust mission */}
+          <div className="lst-safety">
+            <h2 className="lst-safety-h">🛡️ Stay safe on bazar.in</h2>
+            <ul className="lst-safety-list">
+              <li>Meet in a busy public place, in daylight.</li>
+              <li>Inspect the item before you pay.</li>
+              <li>Never pay in advance to someone you haven&apos;t met.</li>
+              <li>Trust your instincts — if a deal feels off, walk away.</li>
+            </ul>
+            <Link href="/safety" className="lst-safety-link">Read our safety guide →</Link>
+          </div>
 
           {/* Report */}
           {isBuyer && (

@@ -35,15 +35,15 @@ export function ListingDescription({ description }: { description: string }) {
 
   return (
     <div>
-      <h2 className="mb-2 text-lg font-bold text-neutral-900">Description</h2>
-      <p ref={textRef} className="line-clamp-3 whitespace-pre-line text-sm text-neutral-700">
+      <h2 className="mb-2 text-[17px] font-black tracking-tight text-neutral-900">Description</h2>
+      <p ref={textRef} className="line-clamp-[8] whitespace-pre-line text-sm leading-relaxed text-neutral-700">
         {description}
       </p>
       {isOverflowing && (
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className="mt-1 text-sm font-medium text-orange-600 hover:text-orange-700"
+          className="mt-1.5 text-sm font-semibold text-purple-700 hover:text-purple-800"
         >
           Show more
         </button>
