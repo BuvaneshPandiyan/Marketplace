@@ -8,11 +8,11 @@ import { createClient } from "@/lib/supabase/client";
 import { useActiveLocation } from "@/lib/hooks/useActiveLocation";
 import { TIER_1_RADIUS_KM, TIER_2_RADIUS_KM, FEED_PAGE_SIZE } from "@/lib/feedConfig";
 import { ListingCard } from "@/components/feed/ListingCard";
+import { SearchBannerArt } from "@/components/search/SearchBannerArt";
 import { SearchFilters, type SearchFilterValues, type SortOption } from "@/components/search/SearchFilters";
 import { SaveSearchButton } from "@/components/search/SaveSearchButton";
 import { searchHitToFeedListingItem, type SearchHit } from "@/lib/client/searchHitAdapter";
 import type { Category } from "@/types";
-import { SearchBannerArt } from "@/components/search/SearchBannerArt";
 
 type TierState = {
   items: SearchHit[];
@@ -394,17 +394,66 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
               transition={{ type: "spring", damping: 28, stiffness: 280, mass: 0.8 }}
               style={{
                 position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 201,
-                maxHeight: "85vh",
-                background: "white",
-                borderRadius: "20px 20px 0 0",
-                display: "flex", flexDirection: "column",
-                boxShadow: "0 -8px 40px rgba(0,0,0,0.15)",
+                background: "#fff",
+                borderRadius: "22px 22px 0 0",
+                boxShadow: "0 -10px 50px rgba(45,7,20,0.22)",
+                paddingBottom: "env(safe-area-inset-bottom)",
+                overflow: "hidden",
               }}
             >
               {/* Drag handle */}
               <div style={{ display: "flex", justifyContent: "center", paddingTop: 12, paddingBottom: 4, flexShrink: 0 }}>
-                <div style={{ width: 36, height: 4, borderRadius: 100, background: "#e5e7eb" }} />
+                <div style={{ width: 40, height: 4, borderRadius: 100, background: "#e7d3d8" }} />
               </div>
+
+              <style>{`
+                .msf-body { --msf: #cf1338; }
+                .msf-label {
+                  font-size: 11px; font-weight: 800; color: #a1656f; text-transform: uppercase;
+                  letter-spacing: 0.08em; display: block; margin-bottom: 8px;
+                }
+                .msf-field {
+                  width: 100%; appearance: none; -webkit-appearance: none;
+                  padding: 12px 14px; border-radius: 13px; font-size: 14.5px; font-weight: 600;
+                  color: #1c1917; background: #fff; border: 1.5px solid #f0e2e5; outline: none;
+                  transition: border-color 200ms ease, box-shadow 200ms ease;
+                }
+                .msf-field::placeholder { color: #b6a8ac; font-weight: 500; }
+                .msf-field:focus { border-color: var(--msf); box-shadow: 0 0 0 4px rgba(207,19,56,0.13); }
+                .msf-select {
+                  padding-right: 38px;
+                  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23cf1338' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+                  background-repeat: no-repeat; background-position: right 14px center;
+                }
+                .msf-group { margin-bottom: 18px; animation: msf-in 400ms cubic-bezier(0.22,1,0.36,1) both; }
+                .msf-group:nth-child(2){ animation-delay: 40ms; }
+                .msf-group:nth-child(3){ animation-delay: 80ms; }
+                .msf-group:nth-child(4){ animation-delay: 120ms; }
+                .msf-group:nth-child(5){ animation-delay: 160ms; }
+                @keyframes msf-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+                .msf-apply {
+                  width: 100%; padding: 15px; border-radius: 999px; border: none; cursor: pointer;
+                  background: linear-gradient(135deg, #8b0e2a, #cf1338 55%, #f43f5e);
+                  color: #fff; font-weight: 800; font-size: 15.5px; letter-spacing: -0.01em;
+                  box-shadow: 0 8px 24px rgba(207,19,56,0.4);
+                  position: relative; overflow: hidden;
+                  transition: transform 200ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 200ms ease;
+                }
+                .msf-apply::after {
+                  content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%;
+                  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.4), transparent);
+                  transform: skewX(-20deg); animation: msf-sheen 3s ease-in-out infinite;
+                }
+                @keyframes msf-sheen { 0%{left:-60%} 55%,100%{left:130%} }
+                .msf-apply:active { transform: scale(0.97); }
+                .msf-clear {
+                  font-size: 13px; font-weight: 700; color: #cf1338;
+                  background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 8px;
+                  transition: background 160ms ease;
+                }
+                .msf-clear:active { background: #fff1f3; }
+                @media(prefers-reduced-motion:reduce){ .msf-group, .msf-apply::after { animation: none !important; } }
+              `}</style>
 
               {/* Sheet header */}
               <div style={{
@@ -416,15 +465,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   {/* Clear button — only visible when filters are active */}
                   {activeFilterCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={clearFilters}
-                      style={{
-                        fontSize: 13, fontWeight: 600, color: "#ea580c",
-                        background: "none", border: "none", cursor: "pointer",
-                        padding: "4px 8px",
-                      }}
-                    >
+                    <button type="button" onClick={clearFilters} className="msf-clear">
                       Clear all
                     </button>
                   )}
@@ -446,17 +487,17 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
               </div>
 
               {/* Filter rows — full-width stacked, easy to tap */}
-              <div style={{ overflowY: "auto", flex: 1, padding: "12px 20px 20px" }}>
+              <div className="msf-body" style={{ overflowY: "auto", maxHeight: "62vh", padding: "16px 20px 24px" }}>
 
                 {/* Category */}
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>
+                <div className="msf-group">
+                  <label className="msf-label">
                     Category
                   </label>
                   <select
                     value={filters.categoryId ?? ""}
                     onChange={(e) => setFilters({ ...filters, categoryId: e.target.value || null })}
-                    style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e7eb", fontSize: 14, background: "white" }}
+                    className="msf-field msf-select"
                   >
                     <option value="">All categories</option>
                     {categories.filter(c => !c.parent_id).map((parent) => {
@@ -476,8 +517,8 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
                 </div>
 
                 {/* Price range */}
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>
+                <div className="msf-group">
+                  <label className="msf-label">
                     Price range (₹)
                   </label>
                   <div style={{ display: "flex", gap: 10 }}>
@@ -486,27 +527,27 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
                       value={filters.priceMin}
                       onChange={(e) => setFilters({ ...filters, priceMin: e.target.value })}
                       placeholder="Min"
-                      style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e7eb", fontSize: 14 }}
+                      className="msf-field" style={{ flex: 1, minWidth: 0 }}
                     />
                     <input
                       type="number"
                       value={filters.priceMax}
                       onChange={(e) => setFilters({ ...filters, priceMax: e.target.value })}
                       placeholder="Max"
-                      style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e7eb", fontSize: 14 }}
+                      className="msf-field" style={{ flex: 1, minWidth: 0 }}
                     />
                   </div>
                 </div>
 
                 {/* Condition */}
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>
+                <div className="msf-group">
+                  <label className="msf-label">
                     Condition
                   </label>
                   <select
                     value={filters.condition ?? ""}
                     onChange={(e) => setFilters({ ...filters, condition: (e.target.value || null) as "new" | "used" | null })}
-                    style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e7eb", fontSize: 14, background: "white" }}
+                    className="msf-field msf-select"
                   >
                     <option value="">Any condition</option>
                     <option value="new">New</option>
@@ -515,14 +556,14 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
                 </div>
 
                 {/* Listing type */}
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>
+                <div className="msf-group">
+                  <label className="msf-label">
                     Type
                   </label>
                   <select
                     value={filters.listingType ?? ""}
                     onChange={(e) => setFilters({ ...filters, listingType: (e.target.value || null) as "sale" | "rent" | null })}
-                    style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e7eb", fontSize: 14, background: "white" }}
+                    className="msf-field msf-select"
                   >
                     <option value="">Sale or rent</option>
                     <option value="sale">For sale</option>
@@ -532,13 +573,13 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
 
                 {/* Sort */}
                 <div style={{ marginBottom: 24 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>
+                  <label className="msf-label">
                     Sort by
                   </label>
                   <select
                     value={sort}
                     onChange={(e) => setSort(e.target.value as SortOption)}
-                    style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e7eb", fontSize: 14, background: "white" }}
+                    className="msf-field msf-select"
                   >
                     <option value="relevance">Relevance</option>
                     <option value="price_asc">Price: Low to High</option>
@@ -549,17 +590,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
                 </div>
 
                 {/* Apply / Close button */}
-                <button
-                  type="button"
-                  onClick={() => setMobileFiltersOpen(false)}
-                  style={{
-                    width: "100%", padding: "13px", borderRadius: 100,
-                    background: "linear-gradient(135deg, #ea580c, #f97316)",
-                    color: "white", fontWeight: 700, fontSize: 15,
-                    border: "none", cursor: "pointer",
-                    boxShadow: "0 4px 16px rgba(234,88,12,0.35)",
-                  }}
-                >
+                <button type="button" onClick={() => setMobileFiltersOpen(false)} className="msf-apply">
                   Show results
                 </button>
               </div>

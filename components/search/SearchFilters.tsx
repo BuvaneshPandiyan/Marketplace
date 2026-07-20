@@ -49,21 +49,57 @@ export function SearchFilters({ categories, filters, onFiltersChange, sort, onSo
   }, [categories]);
 
   return (
-    <div className="mb-4 flex flex-wrap gap-2">
+    <div className="sf-bar mb-4 flex flex-wrap items-center gap-2.5">
+      <style>{`
+        /* ── Search filter controls: ruby theme, premium styling ── */
+        .sf-bar { --sf-accent: #cf1338; }
+        .sf-field {
+          appearance: none; -webkit-appearance: none;
+          border: 1.5px solid #ecdfe2; background: #fff; color: #1c1917;
+          border-radius: 12px; padding: 9px 13px; font-size: 13.5px; font-weight: 600;
+          letter-spacing: -0.01em; cursor: pointer; outline: none;
+          transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms cubic-bezier(0.34,1.56,0.64,1), background 200ms ease;
+        }
+        .sf-field::placeholder { color: #a8a29e; font-weight: 500; }
+        .sf-field:hover { border-color: #f0b8c2; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(207,19,56,0.1); }
+        .sf-field:focus { border-color: var(--sf-accent); box-shadow: 0 0 0 3px rgba(207,19,56,0.14); transform: translateY(-1px); }
+        /* Custom chevron for selects */
+        .sf-select {
+          padding-right: 34px;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23cf1338' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+          background-repeat: no-repeat; background-position: right 12px center;
+        }
+        .sf-price { width: 116px; }
+        /* Fade/slide the whole bar in, staggered per control */
+        .sf-field { animation: sf-in 450ms cubic-bezier(0.22,1,0.36,1) both; }
+        .sf-field:nth-child(2){ animation-delay: 40ms; }
+        .sf-field:nth-child(3){ animation-delay: 80ms; }
+        .sf-field:nth-child(4){ animation-delay: 120ms; }
+        .sf-field:nth-child(5){ animation-delay: 160ms; }
+        .sf-field:nth-child(6){ animation-delay: 200ms; }
+        @keyframes sf-in { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:none} }
+        .sf-sort { margin-left: auto; }
+        .sf-clear {
+          flex-shrink: 0; border-radius: 999px; border: 1.5px solid #ecdfe2;
+          padding: 8px 15px; font-size: 13px; font-weight: 700; color: #78716c;
+          background: #fff; cursor: pointer;
+          transition: border-color 180ms ease, color 180ms ease, background 180ms ease, transform 180ms ease;
+        }
+        .sf-clear:hover { border-color: var(--sf-accent); color: var(--sf-accent); background: #fff1f3; transform: translateY(-1px); }
+        @media(prefers-reduced-motion:reduce){ .sf-field { animation: none !important; } .sf-field:hover, .sf-field:focus, .sf-clear:hover { transform: none; } }
+      `}</style>
+
       {/* Category filter — grouped by parent with subcategories inside */}
       <select
         value={filters.categoryId ?? ""}
         onChange={(e) => onFiltersChange({ ...filters, categoryId: e.target.value || null })}
-        className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+        className="sf-field sf-select"
       >
-        <option value="">Category</option>
+        <option value="">📂 Category</option>
         {groupedCategories.map(({ parent, children }) =>
           children.length > 0 ? (
-            // Parent has subcategories — show them grouped under the parent label
             <optgroup key={parent.id} label={`${parent.icon ?? ""} ${parent.name}`}>
-              {/* "All Vehicles" option catches listings filed directly under the parent */}
               <option value={parent.id}>All {parent.name}</option>
-              {/* Each subcategory as its own option */}
               {children.map((child) => (
                 <option key={child.id} value={child.id}>
                   {child.name}
@@ -71,7 +107,6 @@ export function SearchFilters({ categories, filters, onFiltersChange, sort, onSo
               ))}
             </optgroup>
           ) : (
-            // Parent has no subcategories — show it as a plain option
             <option key={parent.id} value={parent.id}>
               {parent.icon ?? ""} {parent.name}
             </option>
@@ -85,21 +120,21 @@ export function SearchFilters({ categories, filters, onFiltersChange, sort, onSo
         value={filters.priceMin}
         onChange={(e) => onFiltersChange({ ...filters, priceMin: e.target.value })}
         placeholder="Min price"
-        className="w-28 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+        className="sf-field sf-price"
       />
       <input
         type="number"
         value={filters.priceMax}
         onChange={(e) => onFiltersChange({ ...filters, priceMax: e.target.value })}
         placeholder="Max price"
-        className="w-28 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+        className="sf-field sf-price"
       />
 
       {/* Condition filter */}
       <select
         value={filters.condition ?? ""}
         onChange={(e) => onFiltersChange({ ...filters, condition: (e.target.value || null) as "new" | "used" | null })}
-        className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+        className="sf-field sf-select"
       >
         <option value="">Any condition</option>
         <option value="new">New</option>
@@ -110,7 +145,7 @@ export function SearchFilters({ categories, filters, onFiltersChange, sort, onSo
       <select
         value={filters.listingType ?? ""}
         onChange={(e) => onFiltersChange({ ...filters, listingType: (e.target.value || null) as "sale" | "rent" | null })}
-        className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+        className="sf-field sf-select"
       >
         <option value="">Sale or rent</option>
         <option value="sale">For sale</option>
@@ -121,7 +156,7 @@ export function SearchFilters({ categories, filters, onFiltersChange, sort, onSo
       <select
         value={sort}
         onChange={(e) => onSortChange(e.target.value as SortOption)}
-        className="ml-auto rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+        className="sf-field sf-select sf-sort"
       >
         <option value="relevance">Relevance</option>
         <option value="price_asc">Price: Low to High</option>
@@ -130,13 +165,9 @@ export function SearchFilters({ categories, filters, onFiltersChange, sort, onSo
         {hasLocation && <option value="distance">Distance</option>}
       </select>
 
-      {/* Clear filters — only shown when filters are active and an onClear handler is provided */}
+      {/* Clear filters */}
       {onClear && hasActiveFilters && (
-        <button
-          type="button"
-          onClick={onClear}
-          className="shrink-0 rounded-full border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-600 transition-colors hover:border-orange-400 hover:text-orange-600"
-        >
+        <button type="button" onClick={onClear} className="sf-clear">
           ✕ Clear
         </button>
       )}

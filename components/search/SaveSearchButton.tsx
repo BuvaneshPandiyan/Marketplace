@@ -33,7 +33,7 @@ export function SaveSearchButton({ query, filters, isLoggedIn }: SaveSearchButto
   if (!isLoggedIn) {
     return (
       <p className="text-xs text-neutral-500">
-        <a href="/login" className="font-medium text-orange-600 hover:text-orange-700">
+        <a href="/login" className="font-medium text-rose-600 hover:text-rose-700">
           Log in
         </a>{" "}
         to save this search.
@@ -94,7 +94,7 @@ export function SaveSearchButton({ query, filters, isLoggedIn }: SaveSearchButto
         type="button"
         onClick={handleSave}
         disabled={isSaving}
-        className="text-xs font-medium text-orange-600 hover:text-orange-700 disabled:opacity-60"
+        className="text-xs font-medium text-rose-600 hover:text-rose-700 disabled:opacity-60"
       >
         {/* Swap label while saving */}
         {isSaving ? "Saving…" : "🔔 Save this search"}
