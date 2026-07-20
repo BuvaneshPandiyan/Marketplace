@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { useActiveLocation } from "@/lib/hooks/useActiveLocation";
 import { TIER_1_RADIUS_KM, TIER_2_RADIUS_KM, FEED_PAGE_SIZE } from "@/lib/feedConfig";
@@ -55,6 +56,9 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
 
   // Fix C — mobile filter bottom sheet state
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  // Portal needs the document to exist — guard against SSR.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const filterBtnRef = useRef<HTMLButtonElement>(null);
 
   // Lock body scroll while filter sheet is open; restore on close
@@ -361,9 +365,11 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
         />
       </div>
 
-      {/* MOBILE FILTER BOTTOM SHEET — same pattern as location selector */}
-      <AnimatePresence>
-        {mobileFiltersOpen && (
+      {/* MOBILE FILTER BOTTOM SHEET — portaled to <body> so position:fixed
+          anchors to the viewport, not a transformed ancestor (the card/banner). */}
+      {mounted && createPortal(
+        <AnimatePresence>
+          {mobileFiltersOpen && (
           <>
             {/* Backdrop */}
             <motion.div
@@ -596,8 +602,10 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
               </div>
             </motion.div>
           </>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Save-search button */}
       <div className="mb-3 flex justify-end">
