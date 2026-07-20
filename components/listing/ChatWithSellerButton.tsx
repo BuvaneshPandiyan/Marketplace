@@ -25,14 +25,14 @@ export function ChatWithSellerButton({ listingId, isLoggedIn, isOwnListing, size
     if (size === "compact") {
       return (
         <button type="button" onClick={() => requireAuth("chat with the seller")}
-          className="rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-center text-xs text-neutral-600 w-full cursor-pointer">
-          <span className="font-semibold text-orange-600">Sign in</span> to chat
+          className="rounded-lg border border-purple-100 bg-purple-50 px-3 py-2 text-center text-xs text-neutral-600 w-full cursor-pointer">
+          <span className="font-semibold text-purple-700">Sign in</span> to chat
         </button>
       );
     }
     return (
-      <div className="rounded-xl border border-orange-100 bg-orange-50 px-4 py-3 text-center text-sm text-neutral-600">
-        <a href="/login" className="font-semibold text-orange-600 hover:text-orange-700">Log in</a>
+      <div className="rounded-xl border border-purple-100 bg-purple-50 px-4 py-3 text-center text-sm text-neutral-600">
+        <a href="/login" className="font-semibold text-purple-700 hover:text-purple-800">Log in</a>
         {" "}to chat with the seller.
       </div>
     );
@@ -65,8 +65,8 @@ export function ChatWithSellerButton({ listingId, isLoggedIn, isOwnListing, size
           isCompact ? "py-2 text-xs" : "py-3 text-sm gap-2.5"
         }`}
         style={{
-          background: "linear-gradient(135deg, #ea580c 0%, #f97316 100%)",
-          boxShadow: "0 4px 20px rgba(234,88,12,0.35)",
+          background: "linear-gradient(135deg, #9333a8 0%, #c054e0 100%)",
+          boxShadow: "0 4px 20px rgba(147,51,168,0.35)",
         }}
       >
         <svg width={isCompact ? 15 : 18} height={isCompact ? 15 : 18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">

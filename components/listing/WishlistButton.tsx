@@ -21,13 +21,13 @@ export function WishlistButton({ listingId, currentPrice, isLoggedIn, size = "de
     if (isCompact) {
       return (
         <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center text-xs text-neutral-600">
-        <button type="button" onClick={() => requireAuth("save this listing")} style={{background:"none",border:"none",color:"#ea580c",fontWeight:700,cursor:"pointer",fontSize:"inherit",padding:0}}>Sign in</button>{" "}to save listings
+        <button type="button" onClick={() => requireAuth("save this listing")} style={{background:"none",border:"none",color:"#9333a8",fontWeight:700,cursor:"pointer",fontSize:"inherit",padding:0}}>Sign in</button>{" "}to save listings
       </div>
       );
     }
     return (
       <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-600">
-        <button type="button" onClick={() => requireAuth("save this listing")} style={{background:"none",border:"none",color:"#ea580c",fontWeight:700,cursor:"pointer",fontSize:"inherit",padding:0}}>Sign in</button>{" "}to save listings
+        <button type="button" onClick={() => requireAuth("save this listing")} style={{background:"none",border:"none",color:"#9333a8",fontWeight:700,cursor:"pointer",fontSize:"inherit",padding:0}}>Sign in</button>{" "}to save listings
       </div>
     );
   }

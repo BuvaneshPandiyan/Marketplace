@@ -43,12 +43,12 @@ export function MapPreview({ lat, lng, listingId }: MapPreviewProps) {
       const pinIcon = L.divIcon({
         html: `<div style="width:36px;height:44px;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.22))">
           <div style="width:36px;height:36px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#ea580c">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#9333a8">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
               <circle cx="12" cy="9" r="2.5" fill="white"/>
             </svg>
           </div>
-          <div style="width:2px;height:8px;background:#ea580c;border-radius:2px;margin-top:1px"></div>
+          <div style="width:2px;height:8px;background:#9333a8;border-radius:2px;margin-top:1px"></div>
         </div>`,
         className: "",
         iconSize: [36, 44],
@@ -60,8 +60,8 @@ export function MapPreview({ lat, lng, listingId }: MapPreviewProps) {
       // Softer privacy radius circle
       L.circle([fuzzed.lat, fuzzed.lng], {
         radius: 150,
-        color: "#ea580c",
-        fillColor: "#ea580c",
+        color: "#9333a8",
+        fillColor: "#9333a8",
         fillOpacity: 0.08,
         weight: 1.5,
         dashArray: "4 4",
@@ -146,7 +146,7 @@ export function MapPreview({ lat, lng, listingId }: MapPreviewProps) {
           transition: background 150ms ease, color 150ms ease !important;
         }
         .leaflet-control-zoom-out { border-bottom: none !important; }
-        .leaflet-control-zoom-in:hover, .leaflet-control-zoom-out:hover { background: #fff7ed !important; color: #ea580c !important; }
+        .leaflet-control-zoom-in:hover, .leaflet-control-zoom-out:hover { background: #faf5ff !important; color: #9333a8 !important; }
         .leaflet-attribution-flag { display: none !important; }
       `}</style>
     </div>

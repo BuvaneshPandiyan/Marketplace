@@ -17,8 +17,8 @@ import { ListingDescription } from "@/components/listing/ListingDescription";
 import { ReportButton } from "@/components/trust/ReportButton";
 import { WhatsAppSellerButton } from "@/components/listing/WhatsAppSellerButton";
 import { ListingCard } from "@/components/feed/ListingCard";
-import type { QuestionSchema, FeedListingItem } from "@/types";
 import { ListingBannerArt } from "@/components/listing/ListingBannerArt";
+import type { QuestionSchema, FeedListingItem } from "@/types";
 
 // generateMetadata — preserved exactly as-is
 export async function generateMetadata({
@@ -195,6 +195,25 @@ export default async function ListingDetailPage({
         .lst-related-h em { font-style: normal; color: #9333a8; }
         /* Detail section headings → Zomato weight */
         .lst-card h2:not(.lst-related-h) { letter-spacing: -0.03em; }
+
+        /* ── Zomato typography inside the card ── */
+        .lst-card h1, .lst-card h2, .lst-card h3 { letter-spacing: -0.035em; font-weight: 800; }
+        .lst-card .text-2xl { font-weight: 900 !important; letter-spacing: -0.04em; }
+        /* Price emphasis */
+        .lst-card .lst-price { font-weight: 900; letter-spacing: -0.035em; color: #1c1917; }
+
+        /* Seller card upgrade — plum-tinted, lifts on hover */
+        .lst-card .seller-mini-link,
+        .lst-card [class*="rounded-xl"][class*="border-neutral-200"] {
+          transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+        }
+        .lst-card .seller-mini-link:hover {
+          border-color: #d8b4e0 !important;
+          box-shadow: 0 8px 22px rgba(147,51,168,0.14);
+          transform: translateY(-1px);
+        }
+        /* Attribute chips / labels tinted plum on the detail side */
+        .lst-card .lst-attr-key { color: #9333a8; font-weight: 700; }
 
         /* Compact seller pill — desktop title area */
         .seller-mini-link {

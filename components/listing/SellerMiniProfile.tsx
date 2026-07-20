@@ -40,7 +40,7 @@ export function SellerMiniProfile({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={profilePhotoUrl} alt={name ?? "Seller"} className="h-14 w-14 rounded-full object-cover" />
         ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-xl font-bold text-orange-700">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-200 text-xl font-bold text-neutral-600">
             {name?.[0]?.toUpperCase() ?? "?"}
           </div>
         )}
