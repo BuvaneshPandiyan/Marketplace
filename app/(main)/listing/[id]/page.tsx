@@ -267,15 +267,18 @@ export default async function ListingDetailPage({
         }
         @media(hover:hover){ .lst-panel:hover { border-color: #e4d3ee; box-shadow: 0 6px 20px rgba(147,51,168,0.08); } }
 
-        /* Safety tips card (plum) */
+        /* Safety tips card (plum) — height matches the map (256px) on desktop */
         .lst-safety {
           border-radius: 16px; padding: 20px 22px;
           background: linear-gradient(135deg, #faf5ff, #fdf4ff);
           border: 1px solid #eddcf5;
+          display: flex; flex-direction: column;
         }
-        .lst-safety-h { font-size: 15px; font-weight: 900; letter-spacing: -0.02em; color: #5b1a5e; margin: 0 0 12px; }
-        .lst-safety-list { margin: 0 0 14px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
-        .lst-safety-list li { position: relative; padding-left: 22px; font-size: 13.5px; line-height: 1.5; color: #44403c; }
+        @media(min-width:1024px){ .lst-safety { min-height: 256px; justify-content: center; } }
+        .lst-safety-h { font-size: 15px; font-weight: 900; letter-spacing: -0.02em; color: #5b1a5e; margin: 0 0 4px; }
+        .lst-safety-sub { font-size: 12.5px; color: #7c6a86; margin: 0 0 12px; line-height: 1.5; }
+        .lst-safety-list { margin: 0 0 14px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .lst-safety-list li { position: relative; padding-left: 22px; font-size: 13px; line-height: 1.45; color: #44403c; }
         .lst-safety-list li::before { content: "✓"; position: absolute; left: 0; top: 0; color: #9333a8; font-weight: 800; }
         .lst-safety-link { font-size: 13px; font-weight: 700; color: #9333a8; text-decoration: none; transition: color 160ms ease; }
         .lst-safety-link:hover { color: #7e22ce; }
@@ -446,16 +449,20 @@ export default async function ListingDetailPage({
             <ListingDescription description={listing.description} />
           )}
 
-          {/* Safety tips — fills the column + reinforces the brand's trust mission */}
+          {/* Safety tips — fills the column + reinforces the brand's trust mission.
+              Height matches the map on the left. */}
           <div className="lst-safety">
             <h2 className="lst-safety-h">🛡️ Stay safe on bazar.in</h2>
+            <p className="lst-safety-sub">Most people here are genuine — a little care keeps it that way.</p>
             <ul className="lst-safety-list">
               <li>Meet in a busy public place, in daylight.</li>
-              <li>Inspect the item before you pay.</li>
+              <li>Inspect the item and check it works before you pay.</li>
+              <li>Prefer cash or secure payment on handover.</li>
               <li>Never pay in advance to someone you haven&apos;t met.</li>
+              <li>Keep chat on bazar.in so there&apos;s a record.</li>
               <li>Trust your instincts — if a deal feels off, walk away.</li>
             </ul>
-            <Link href="/safety" className="lst-safety-link">Read our safety guide →</Link>
+            <Link href="/safety" className="lst-safety-link">Read our full safety guide →</Link>
           </div>
 
           {/* Report */}

@@ -35,15 +35,26 @@ export function ListingDescription({ description }: { description: string }) {
 
   return (
     <div>
+      <style>{`
+        /* Mobile: short clamp. Desktop: fill down to roughly the photo + thumbnail
+           height so the "Show more" button lands next to the thumbnail strip. */
+        .ld-text {
+          display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;
+          -webkit-line-clamp: 5;
+        }
+        @media (min-width: 1024px) {
+          .ld-text { display: block; -webkit-line-clamp: unset; max-height: 372px; }
+        }
+      `}</style>
       <h2 className="mb-2 text-[17px] font-black tracking-tight text-neutral-900">Description</h2>
-      <p ref={textRef} className="line-clamp-[8] whitespace-pre-line text-sm leading-relaxed text-neutral-700">
+      <p ref={textRef} className="ld-text whitespace-pre-line text-sm leading-relaxed text-neutral-700">
         {description}
       </p>
       {isOverflowing && (
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className="mt-1.5 text-sm font-semibold text-purple-700 hover:text-purple-800"
+          className="mt-2 text-sm font-semibold text-purple-700 hover:text-purple-800"
         >
           Show more
         </button>
