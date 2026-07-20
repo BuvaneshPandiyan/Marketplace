@@ -291,8 +291,58 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
 
   return (
     <>
+      <style>{`
+        /* ── Chat pill composer (petrol + copper) ── */
+        .chat-pill {
+          flex: 1; display: flex; align-items: center; gap: 2px;
+          background: #f1f4f5; border: 1.5px solid #e2e8ea; border-radius: 100px;
+          padding: 4px 6px 4px 8px; min-width: 0;
+          transition: border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
+        }
+        .chat-pill:focus-within {
+          border-color: #1a6b7a; background: #fff;
+          box-shadow: 0 0 0 4px rgba(26,107,122,0.12);
+        }
+        .chat-pill-ic {
+          flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          background: none; border: none; cursor: pointer; color: #8a9aa0;
+          transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+        }
+        .chat-pill-ic:hover { color: #0e3d47; background: rgba(26,107,122,0.1); }
+        .chat-pill-ic:active { transform: scale(0.9); }
+        .chat-pill-ic:disabled { opacity: 0.55; cursor: default; }
+        .chat-pill-input {
+          flex: 1; min-width: 0; border: none; background: none; outline: none;
+          padding: 8px 10px; font-size: 14.5px; color: #0f2229; font-weight: 500;
+        }
+        .chat-pill-input::placeholder { color: #9fb0b5; font-weight: 500; }
+        .chat-send {
+          flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          border: none; cursor: pointer; color: #fff; background: #cbd5d8;
+          transition: background 200ms ease, box-shadow 200ms ease, transform 180ms cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .chat-send.is-active {
+          background: linear-gradient(135deg, #a5622c, #d99058);
+          box-shadow: 0 6px 20px rgba(184,115,51,0.4);
+        }
+        .chat-send.is-active:hover { transform: scale(1.09) rotate(-6deg); }
+        .chat-send.is-active:active { transform: scale(0.94); }
+        .chat-send:disabled { cursor: default; }
+        .chat-spin {
+          width: 16px; height: 16px; border-radius: 50%;
+          border: 2px solid rgba(26,107,122,0.3); border-top-color: #1a6b7a;
+          animation: chat-spin 0.7s linear infinite; display: inline-block;
+        }
+        @keyframes chat-spin { to { transform: rotate(360deg); } }
+        @media(prefers-reduced-motion:reduce){
+          .chat-send.is-active:hover, .chat-send.is-active:active, .chat-pill-ic:active { transform: none; }
+          .chat-spin { animation-duration: 1.2s; }
+        }
+      `}</style>
       {/* LAYOUT: full height flex column — header sticky, messages scroll, input fixed */}
-      <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", background: "#ede9e4", minHeight: 0 }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", background: "#eef2f3", minHeight: 0 }}>
 
         {/* Rating prompt overlay */}
         {showRatingPrompt && otherUserProfile && (
@@ -308,7 +358,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
         {/* ── STICKY HEADER ── stays visible during scroll */}
         <div style={{
           flexShrink: 0,
-          background: "linear-gradient(135deg, #1a0a00 0%, #3d1500 50%, #ea580c 100%)",
+          background: "linear-gradient(135deg, #071f26 0%, #0e3d47 50%, #1a6b7a 100%)",
           padding: "12px 14px",
           position: "relative", overflow: "hidden",
           borderBottom: "1px solid rgba(255,255,255,0.1)",
@@ -338,9 +388,9 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
               </Link>
               {/* Clickable listing title → listing page */}
               <Link href={`/listing/${conversation.listing_id}`}
-                style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4, marginTop: 1, transition: "opacity 150ms ease" }}
+                style={{ fontSize: 11.5, fontWeight: 600, color: "#f5d9c4", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 5, marginTop: 3, padding: "3px 9px", borderRadius: 100, background: "rgba(216,144,88,0.18)", border: "1px solid rgba(216,144,88,0.35)", maxWidth: "100%", transition: "background 150ms ease" }}
                 className="hover:opacity-90">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <span aria-hidden="true">🏷️</span>
                 <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{conversation.listing_title}</span>
                 {/* Sold badge sits beside the listing title — never displaces the report button */}
                 {isSold && (
@@ -392,7 +442,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={otherUserProfile.profile_photo_url} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                   ) : (
-                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#ea580c,#f97316)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "white", flexShrink: 0 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#0e3d47,#1a6b7a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "white", flexShrink: 0 }}>
                       {(otherUserProfile?.name ?? "?")[0]?.toUpperCase()}
                     </div>
                   )
@@ -418,10 +468,10 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
                     <div style={{
                       padding: "10px 14px",
                       borderRadius: isOwn ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                      background: isOwn ? "linear-gradient(135deg,#ea580c,#f97316)" : "white",
+                      background: isOwn ? "linear-gradient(135deg,#a5622c,#d99058)" : "white",
                       color: isOwn ? "white" : "#111827",
                       fontSize: 14, lineHeight: 1.45, wordBreak: "break-word",
-                      boxShadow: isOwn ? "0 4px 16px rgba(234,88,12,0.3)" : "0 2px 8px rgba(0,0,0,0.08)",
+                      boxShadow: isOwn ? "0 4px 16px rgba(184,115,51,0.32)" : "0 2px 8px rgba(0,0,0,0.07)",
                     }}>
                       {msg.text}
                     </div>
@@ -432,7 +482,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
                       {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </span>
                     {isOwn && (
-                      <span style={{ fontSize: 10, color: msg.read ? "#ea580c" : "#9ca3af", fontWeight: 600 }}>
+                      <span style={{ fontSize: 10, color: msg.read ? "#b87333" : "#9ca3af", fontWeight: 600 }}>
                         {msg.read ? "✓✓" : "✓"}
                       </span>
                     )}
@@ -450,40 +500,40 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
             <p style={{ fontSize: 13, color: "#9ca3af", fontWeight: 500, margin: 0 }}>🏷️ Messaging disabled for sold items</p>
           </div>
         ) : (
-          <div style={{ flexShrink: 0, borderTop: "1px solid #e5e7eb", background: "white", padding: "8px 12px 10px" }}>
-            <div style={{ display: "flex", gap: 10, marginBottom: 6 }}>
-              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingImage}
-                style={{ fontSize: 12, color: "#9ca3af", background: "none", border: "none", cursor: "pointer", padding: 0, transition: "color 150ms" }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#ea580c"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#9ca3af"; }}>
-                {isUploadingImage ? "Uploading…" : "📎 Photo"}
-              </button>
-              <button type="button" onClick={handleShareLocation} disabled={isSharingLocation}
-                style={{ fontSize: 12, color: isSharingLocation ? "#ea580c" : "#9ca3af", background: "none", border: "none", cursor: "pointer", padding: 0, transition: "color 150ms", opacity: isSharingLocation ? 0.7 : 1 }}>
-                {isSharingLocation ? "📍 Getting location…" : "📍 Location"}
-              </button>
-            </div>
+          <div style={{ flexShrink: 0, background: "#fff", padding: "10px 12px calc(10px + env(safe-area-inset-bottom))" }}>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }}
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ""; }} />
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendText(); } }}
-                placeholder="Type a message…"
-                style={{ flex: 1, border: "1.5px solid #e5e7eb", borderRadius: 100, padding: "10px 16px", fontSize: 14, outline: "none", background: "#f9fafb", transition: "border-color 200ms ease, background 200ms ease" }}
-                onFocus={(e) => { e.target.style.borderColor = "#ea580c"; e.target.style.background = "white"; }}
-                onBlur={(e) => { e.target.style.borderColor = "#e5e7eb"; e.target.style.background = "#f9fafb"; }}
-              />
+
+            <div className="chat-composer" style={{ display: "flex", gap: 9, alignItems: "flex-end" }}>
+              {/* The pill: attach + location icons, then the text field — one seamless pill, no boxes */}
+              <div className="chat-pill">
+                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploadingImage}
+                  className="chat-pill-ic" title="Attach photo" aria-label="Attach photo">
+                  {isUploadingImage ? (
+                    <span className="chat-spin" />
+                  ) : (
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                  )}
+                </button>
+                <button type="button" onClick={handleShareLocation} disabled={isSharingLocation}
+                  className="chat-pill-ic" title="Share location" aria-label="Share location">
+                  {isSharingLocation ? (
+                    <span className="chat-spin" />
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  )}
+                </button>
+                <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendText(); } }}
+                  placeholder="Type a message…"
+                  className="chat-pill-input"
+                />
+              </div>
+
+              {/* Send button — copper, sits to the right of the pill */}
               <button type="button" onClick={handleSendText} disabled={isSending || !inputText.trim()}
-                style={{
-                  width: 44, height: 44, borderRadius: "50%", border: "none", cursor: "pointer", flexShrink: 0,
-                  background: inputText.trim() ? "linear-gradient(135deg,#ea580c,#f97316)" : "#e5e7eb",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: inputText.trim() ? "0 4px 16px rgba(234,88,12,0.35)" : "none",
-                  transition: "background 200ms ease, box-shadow 200ms ease, transform 150ms ease",
-                }}
-                onMouseEnter={(e) => { if (inputText.trim()) (e.currentTarget as HTMLElement).style.transform = "scale(1.1)"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={inputText.trim() ? "white" : "#9ca3af"} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                className={`chat-send ${inputText.trim() ? "is-active" : ""}`} aria-label="Send message">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                 </svg>
               </button>

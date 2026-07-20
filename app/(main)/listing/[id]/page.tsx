@@ -65,24 +65,38 @@ export default async function ListingDetailPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
 
-  // Fetch listing — query preserved exactly
-  const { data: listing } = await supabase
-    .from("listings")
-    .select("*, listing_attributes(id, key, value), listing_photos(id, url, sort_order), product_types(name, question_schema)")
-    .eq("id", id)
-    .eq("status", "active")
-    .single();
+  // Run the independent queries in parallel instead of one-after-another:
+  // user auth doesn't depend on the listing, so fetch both at once.
+  const [{ data: { user } }, { data: listing }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from("listings")
+      .select("*, listing_attributes(id, key, value), listing_photos(id, url, sort_order), product_types(name, question_schema)")
+      .eq("id", id)
+      .eq("status", "active")
+      .single(),
+  ]);
 
   if (!listing) notFound();
 
-  // Fetch seller — query preserved exactly
-  const { data: seller } = await supabase
-    .from("profiles")
-    .select("id, name, profile_photo_url, rating_avg, rating_count, created_at, is_verified_seller")
-    .eq("id", listing.seller_id)
-    .single();
+  // Seller and related listings both depend only on `listing` — so once we have
+  // it, fetch them together in parallel rather than in sequence.
+  const [{ data: seller }, { data: relatedRaw }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, name, profile_photo_url, rating_avg, rating_count, created_at, is_verified_seller")
+      .eq("id", listing.seller_id)
+      .single(),
+    supabase.rpc("get_listings_far", {
+      p_lat: listing.lat,
+      p_lng: listing.lng,
+      p_radius_km: 0,
+      p_category_id: null,
+      p_limit: 14,
+      p_offset: 0,
+    }),
+  ]);
 
   // Extract photos — logic preserved exactly
   const photoUrls = (listing.listing_photos ?? [])
@@ -93,17 +107,6 @@ export default async function ListingDetailPage({
   const questionSchema = (listing.product_types as { name: string; question_schema: QuestionSchema } | null)
     ?.question_schema ?? null;
 
-  // Fetch related listings — same category, excluding current listing
-  // Uses get_listings_far for simplicity (no location dependency)
-  const { data: relatedRaw } = await supabase
-    .rpc("get_listings_far", {
-      p_lat: listing.lat,
-      p_lng: listing.lng,
-      p_radius_km: 0,
-      p_category_id: null,
-      p_limit: 14,
-      p_offset: 0,
-    });
   const relatedListings = ((relatedRaw ?? []) as FeedListingItem[])
     .filter((r: FeedListingItem) => r.id !== listing.id)
     .slice(0, 7);

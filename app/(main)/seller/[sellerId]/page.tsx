@@ -33,23 +33,22 @@ export default async function SellerProfilePage({
   const { sellerId } = await params;
   const supabase = await createClient();
 
-  // Fetch seller's public profile — same fields used by SellerMiniProfile
-  const { data: seller } = await supabase
-    .from("profiles")
-    .select("id, name, profile_photo_url, rating_avg, rating_count, created_at, is_verified_seller")
-    .eq("id", sellerId)
-    .single();
+  // Both queries only need sellerId (a param), not each other — run in parallel.
+  const [{ data: seller }, { data: rawListings }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, name, profile_photo_url, rating_avg, rating_count, created_at, is_verified_seller")
+      .eq("id", sellerId)
+      .single(),
+    supabase
+      .from("listings")
+      .select("*, listing_photos(url, sort_order)")
+      .eq("seller_id", sellerId)
+      .eq("status", "active")
+      .order("created_at", { ascending: false }),
+  ]);
 
   if (!seller) notFound();
-
-  // Fetch seller's active public listings only (not drafts/sold — those are for /my-listings only)
-  // Reuses same join shape as the home feed's FeedListingItem so ListingCard works without changes
-  const { data: rawListings } = await supabase
-    .from("listings")
-    .select("*, listing_photos(url, sort_order)")
-    .eq("seller_id", sellerId)
-    .eq("status", "active")
-    .order("created_at", { ascending: false });
 
   // Shape each row into a FeedListingItem (cover photo from first sorted photo)
   const listings: FeedListingItem[] = (rawListings ?? []).map((l) => {
