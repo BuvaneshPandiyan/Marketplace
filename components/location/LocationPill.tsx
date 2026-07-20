@@ -31,11 +31,11 @@ export function LocationPill() {
           transition: background 200ms ease;
         }
         @media (min-width: 640px) { .lp { display: flex; } }
-        @media (hover: hover) { .lp:hover { background: var(--brand-tint, #fff7ed); } }
-        .lp:focus-visible { outline: 2px solid var(--brand, #ea580c); outline-offset: 2px; }
+        @media (hover: hover) { .lp:hover { background: #e0f2fe; } }
+        .lp:focus-visible { outline: 2px solid #0284c7; outline-offset: 2px; }
 
         .lp-pin {
-          color: var(--brand, #ea580c);
+          color: #0284c7;
           flex-shrink: 0;
           transition: transform 300ms cubic-bezier(0.34,1.56,0.64,1);
         }
@@ -59,17 +59,17 @@ export function LocationPill() {
           transition: border-color 200ms ease, color 200ms ease;
         }
         @media (hover: hover) {
-          .lp:hover .lp-text { border-bottom-color: var(--brand, #ea580c); color: var(--brand, #ea580c); }
+          .lp:hover .lp-text { border-bottom-color: #0284c7; color: #0284c7; }
         }
         /* No location yet — say so in brand colour so it reads as an action */
-        .lp[data-setup="true"] .lp-text { color: var(--brand, #ea580c); border-bottom-color: var(--brand-border, #fed7aa); }
+        .lp[data-setup="true"] .lp-text { color: #0284c7; border-bottom-color: #bae6fd; }
 
         .lp-caret {
           color: #a8a29e; flex-shrink: 0;
           transition: transform 260ms cubic-bezier(0.34,1.56,0.64,1), color 200ms ease;
         }
-        @media (hover: hover) { .lp:hover .lp-caret { color: var(--brand, #ea580c); transform: translateY(1px); } }
-        .lp[data-open="true"] .lp-caret { transform: rotate(180deg); color: var(--brand, #ea580c); }
+        @media (hover: hover) { .lp:hover .lp-caret { color: #0284c7; transform: translateY(1px); } }
+        .lp[data-open="true"] .lp-caret { transform: rotate(180deg); color: #0284c7; }
 
         @media (prefers-reduced-motion: reduce) {
           .lp, .lp-pin, .lp-text, .lp-caret { transition: none !important; animation: none !important; }

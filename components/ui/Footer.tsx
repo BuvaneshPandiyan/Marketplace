@@ -31,7 +31,7 @@ export function Footer() {
   const [bgFailed, setBgFailed] = useState(false);
 
   const company = [
-    { label: "About us", href: "#" },
+    { label: "About us", href: "/about" },
     { label: "Contact", href: "/contact" },
     { label: "Careers", href: "#" },
     { label: "Blog", href: "#" },

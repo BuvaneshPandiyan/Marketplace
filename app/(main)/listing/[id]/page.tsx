@@ -18,6 +18,7 @@ import { ReportButton } from "@/components/trust/ReportButton";
 import { WhatsAppSellerButton } from "@/components/listing/WhatsAppSellerButton";
 import { ListingCard } from "@/components/feed/ListingCard";
 import type { QuestionSchema, FeedListingItem } from "@/types";
+import { ListingBannerArt } from "@/components/listing/ListingBannerArt";
 
 // generateMetadata — preserved exactly as-is
 export async function generateMetadata({
@@ -112,10 +113,89 @@ export default async function ListingDetailPage({
   const priceFormatted = `₹${Number(listing.price).toLocaleString("en-IN")}`;
 
   return (
-    <div className="mx-auto max-w-[1600px] px-4 py-6 md:px-8">
+    <div className="lst-page">
 
       {/* Button animation styles */}
       <style>{`
+        /* ── Product page: PLUM / AUBERGINE theme ── */
+        .lst-page { background: #faf9fb; }
+
+        /* Banner */
+        .lst-banner {
+          position: relative; overflow: hidden;
+          background: linear-gradient(135deg, #2a0a2e 0%, #5b1a5e 52%, #9333a8 100%);
+          -webkit-mask-image: linear-gradient(180deg, #000 84%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 84%, transparent 100%);
+          padding: 30px 0 52px;
+        }
+        .lst-banner-grid {
+          position: absolute; inset: 0; pointer-events: none;
+          background-image:
+            linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+          background-size: 28px 28px;
+        }
+        .lst-banner-glow {
+          position: absolute; top: -110px; right: -50px;
+          width: 300px; height: 300px; border-radius: 50%;
+          background: radial-gradient(circle, rgba(192,84,224,0.4) 0%, transparent 70%);
+          animation: lst-breathe 9s ease-in-out infinite; pointer-events: none;
+        }
+        @keyframes lst-breathe { 0%,100%{transform:scale(1);opacity:0.85} 50%{transform:scale(1.14);opacity:1} }
+        .lst-banner-inner {
+          position: relative; z-index: 1;
+          max-width: 1600px; margin: 0 auto; padding: 0 16px;
+        }
+        @media(min-width:768px){ .lst-banner-inner { padding: 0 32px; } }
+        .lst-crumb {
+          display: inline-flex; align-items: center; gap: 6px;
+          font-size: 12px; font-weight: 600; letter-spacing: -0.01em;
+          color: rgba(255,255,255,0.7); text-decoration: none; margin-bottom: 14px;
+          transition: color 160ms ease, transform 160ms ease;
+        }
+        .lst-crumb:hover { color: #fff; transform: translateX(-3px); }
+        .lst-banner-title {
+          font-size: clamp(24px, 4vw, 40px); font-weight: 900; letter-spacing: -0.045em;
+          line-height: 1.05; color: #fff; margin: 0; max-width: 900px;
+          text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+          animation: lst-rise 550ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes lst-rise { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+        .lst-banner-meta {
+          display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+          margin-top: 14px; animation: lst-rise 550ms cubic-bezier(0.22,1,0.36,1) 100ms both;
+        }
+        .lst-banner-price {
+          font-size: clamp(20px, 3vw, 28px); font-weight: 900; letter-spacing: -0.03em;
+          color: #f0c4f5;
+        }
+        .lst-banner-price small { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.7); }
+        .lst-chip {
+          display: inline-flex; align-items: center; gap: 5px;
+          font-size: 12px; font-weight: 700; letter-spacing: -0.01em;
+          color: #fff; padding: 5px 12px; border-radius: 999px;
+          background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22);
+          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        }
+        .lst-body {
+          max-width: 1600px; margin: -24px auto 0; padding: 0 16px 40px;
+          position: relative; z-index: 1;
+        }
+        @media(min-width:768px){ .lst-body { padding: 0 32px 40px; } }
+        .lst-card {
+          background: #fff; border-radius: 22px; border: 1px solid #eee;
+          box-shadow: 0 12px 44px rgba(0,0,0,0.06); padding: 24px;
+          animation: lst-rise 600ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @media(min-width:768px){ .lst-card { padding: 32px; } }
+        .lst-related-h {
+          font-size: clamp(20px, 3vw, 26px); font-weight: 900; letter-spacing: -0.04em;
+          color: #1c1917; margin: 0 0 14px;
+        }
+        .lst-related-h em { font-style: normal; color: #9333a8; }
+        /* Detail section headings → Zomato weight */
+        .lst-card h2:not(.lst-related-h) { letter-spacing: -0.03em; }
+
         /* Compact seller pill — desktop title area */
         .seller-mini-link {
           transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
@@ -145,12 +225,12 @@ export default async function ListingDetailPage({
           transform: translateX(-100%); transition: transform 0s;
         }
         @media (hover: hover) {
-          .btn-primary:hover { transform: scale(1.02); box-shadow: 0 8px 28px rgba(234,88,12,0.45); }
+          .btn-primary:hover { transform: scale(1.02); box-shadow: 0 8px 28px rgba(147,51,168,0.45); }
           .btn-primary:hover::after { transform: translateX(100%); transition: transform 0.4s ease; }
           /* Secondary buttons — subtle lift + orange tint */
           .btn-secondary:hover {
-            border-color: #fdba74 !important;
-            background: rgba(255,247,237,0.6) !important;
+            border-color: #d8b4e0 !important;
+            background: rgba(250,245,251,0.7) !important;
             transform: translateY(-1px);
           }
           /* Seller card */
@@ -167,6 +247,29 @@ export default async function ListingDetailPage({
         /* Mobile sticky bar */
         @media (min-width: 1024px) { .mobile-action-bar { display: none !important; } }
       `}</style>
+
+      {/* ── BANNER: item name + plum band + masked fade ── */}
+      <div className="lst-banner">
+        <ListingBannerArt src="/images/listing-header.png" />
+        <div className="lst-banner-grid" aria-hidden="true" />
+        <div className="lst-banner-glow" aria-hidden="true" />
+        <div className="lst-banner-inner">
+          <Link href="/" className="lst-crumb">← Back to listings</Link>
+          <h1 className="lst-banner-title">{listing.title}</h1>
+          <div className="lst-banner-meta">
+            <span className="lst-banner-price">
+              {priceFormatted}
+              {listing.listing_type === "rent" && <small> /month</small>}
+            </span>
+            <span className="lst-chip">📍 {listing.locality}</span>
+            <span className="lst-chip">{listing.condition === "new" ? "✨ New" : "♻️ Used"}</span>
+            <span className="lst-chip">{listing.listing_type === "sale" ? "For sale" : "For rent"}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="lst-body">
+        <div className="lst-card">
 
       {/* ── HERO GRID ── photo left, desktop-right-column right ── */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[640px_minmax(0,1fr)] lg:gap-10">
@@ -207,7 +310,7 @@ export default async function ListingDetailPage({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={seller.profile_photo_url} alt={seller.name ?? "Seller"} className="h-9 w-9 rounded-full object-cover" />
                     ) : (
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 text-sm font-semibold text-orange-700">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 text-sm font-semibold text-purple-700">
                         {seller.name?.[0]?.toUpperCase() ?? "?"}
                       </div>
                     )}
@@ -394,11 +497,12 @@ export default async function ListingDetailPage({
           </svg>
         </a>
       </section>
+      </div>{/* /.lst-card */}
 
       {/* Related listings — shown on all breakpoints */}
       {relatedListings.length > 0 && (
         <section className="mb-8 mt-10">
-          <h2 className="mb-3 text-lg font-bold text-neutral-900">You may also like</h2>
+          <h2 className="lst-related-h">You may also <em>like</em></h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7 lg:gap-6">
             {relatedListings.map((item, i) => (
               <ListingCard key={item.id} listing={item} index={i} />
@@ -406,6 +510,8 @@ export default async function ListingDetailPage({
           </div>
         </section>
       )}
+
+      </div>{/* /.lst-body */}
 
       {/* Floating "WhatsApp seller" — fetches the number through reveal_seller_phone
           on click, so it's never present in this page's HTML. Logged-out visitors
