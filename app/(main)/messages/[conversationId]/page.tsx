@@ -103,15 +103,30 @@ export default async function ConversationPage({
           }
         }
 
-        /* Report button stays inside header on all screen sizes */
+        /* Report button — glassmorphism pill, visible on the dark header */
         .chat-report-btn button,
         .chat-report-btn a {
-          font-size: 11px !important;
-          padding: 4px 10px !important;
+          font-size: 11.5px !important;
+          font-weight: 700 !important;
+          letter-spacing: 0.01em;
+          padding: 7px 14px !important;
           white-space: nowrap;
-          max-width: 70px;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          border-radius: 999px !important;
+          color: #fff !important;
+          background: rgba(255,255,255,0.14) !important;
+          border: 1px solid rgba(255,255,255,0.28) !important;
+          -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 2px 10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2);
+          transition: background 180ms ease, transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        }
+        .chat-report-btn button:hover,
+        .chat-report-btn a:hover {
+          background: rgba(248,113,113,0.9) !important;
+          border-color: rgba(248,113,113,0.9) !important;
+          color: #fff !important;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 18px rgba(220,38,38,0.4);
         }
 
         /* Prevent rubber-band / elastic overscroll from moving fixed children */

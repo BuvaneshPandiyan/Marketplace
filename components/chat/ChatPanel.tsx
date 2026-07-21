@@ -324,6 +324,19 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
   return (
     <>
       <style>{`
+        /* ── Premium chat surface: soft petrol-tinted gradient + faint dot texture ── */
+        .chat-surface {
+          background:
+            radial-gradient(1200px 500px at 100% 0%, rgba(26,107,122,0.08), transparent 60%),
+            radial-gradient(900px 500px at 0% 100%, rgba(184,115,51,0.06), transparent 55%),
+            linear-gradient(180deg, #f3f6f7 0%, #eef2f3 100%);
+        }
+        .chat-messages-area::before {
+          content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+          background-image: radial-gradient(rgba(14,61,71,0.045) 1px, transparent 1px);
+          background-size: 22px 22px;
+        }
+        .chat-messages-area > * { position: relative; z-index: 1; }
         /* ── Chat pill composer (petrol + copper) ── */
         .chat-pill {
           flex: 1; display: flex; align-items: center; gap: 2px;
@@ -395,7 +408,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
         }
       `}</style>
       {/* LAYOUT: full height flex column — header sticky, messages scroll, input fixed */}
-      <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", background: "#eef2f3", minHeight: 0 }}>
+      <div className="chat-surface" style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", minHeight: 0 }}>
 
         {/* Rating prompt overlay */}
         {showRatingPrompt && otherUserProfile && (
@@ -412,9 +425,10 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
         <div style={{
           flexShrink: 0,
           background: "linear-gradient(135deg, #071f26 0%, #0e3d47 50%, #1a6b7a 100%)",
-          padding: "12px 14px",
+          padding: "14px 16px",
           position: "relative", overflow: "hidden",
           borderBottom: "1px solid rgba(255,255,255,0.1)",
+          boxShadow: "0 8px 24px rgba(7,31,38,0.28)",
         }}>
           {/* Banner background image — masked left-fade + scrim, falls back to gradient */}
           {!bannerImgFailed && (
@@ -433,9 +447,9 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
               {otherUserProfile?.profile_photo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={otherUserProfile.profile_photo_url} alt={otherUserProfile.name ?? ""}
-                  style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.3)" }} />
+                  style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.4)", boxShadow: "0 0 0 3px rgba(255,255,255,0.08), 0 4px 12px rgba(0,0,0,0.25)" }} />
               ) : (
-                <div style={{ width: 42, height: 42, borderRadius: "50%", background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, color: "white", border: "2px solid rgba(255,255,255,0.2)" }}>
+                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: "white", border: "2px solid rgba(255,255,255,0.3)", boxShadow: "0 0 0 3px rgba(255,255,255,0.08), 0 4px 12px rgba(0,0,0,0.25)" }}>
                   {(otherUserProfile?.name ?? "?")[0]?.toUpperCase()}
                 </div>
               )}
@@ -489,13 +503,13 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
 
         {/* ── SCROLLABLE MESSAGE LIST — only this area scrolls ── */}
         <div className="chat-messages-area" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10, minHeight: 0, overscrollBehavior: "contain", position: "relative" }}>
-          {/* Faint centre watermark — sits behind messages, fades at top/bottom */}
+          {/* Faint centre watermark — sits behind messages, very subtle */}
           {!centerImgFailed && (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/images/chat-center.png" alt="" aria-hidden="true"
                 onError={() => setCenterImgFailed(true)}
-                style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "min(58%, 280px)", opacity: 0.06, pointerEvents: "none", userSelect: "none" }} />
+                style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "min(46%, 220px)", opacity: 0.035, pointerEvents: "none", userSelect: "none" }} />
             </>
           )}
           {messages.map((msg) => {
@@ -541,13 +555,20 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
                   )}
                   {/* Text bubble */}
                   {msg.text && (
-                    <div className="chat-bubble" style={{
-                      padding: "10px 14px",
-                      borderRadius: isOwn ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                      background: isOwn ? "linear-gradient(135deg,#a5622c,#d99058)" : "white",
-                      color: isOwn ? "white" : "#111827",
-                      fontSize: 14, lineHeight: 1.45, wordBreak: "break-word",
-                      boxShadow: isOwn ? "0 4px 16px rgba(184,115,51,0.32)" : "0 2px 8px rgba(0,0,0,0.07)",
+                    <div className={`chat-bubble ${isOwn ? "chat-bubble-mine" : "chat-bubble-other"}`} style={{
+                      padding: "10px 15px",
+                      borderRadius: isOwn ? "20px 20px 5px 20px" : "20px 20px 20px 5px",
+                      background: isOwn
+                        ? "linear-gradient(135deg, #b87333 0%, #d99058 60%, #e0a068 100%)"
+                        : "rgba(255,255,255,0.82)",
+                      color: isOwn ? "#fff" : "#0f2229",
+                      fontSize: 14.5, lineHeight: 1.45, wordBreak: "break-word", fontWeight: 500,
+                      border: isOwn ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(14,61,71,0.06)",
+                      WebkitBackdropFilter: isOwn ? "none" : "blur(12px)",
+                      backdropFilter: isOwn ? "none" : "blur(12px)",
+                      boxShadow: isOwn
+                        ? "0 6px 20px rgba(184,115,51,0.35), inset 0 1px 0 rgba(255,255,255,0.28)"
+                        : "0 4px 16px rgba(14,61,71,0.08), inset 0 1px 0 rgba(255,255,255,0.6)",
                     }}>
                       {msg.text}
                     </div>

@@ -175,8 +175,9 @@ export function ReportButton({ targetType, targetId, isLoggedIn }: ReportButtonP
           if (!isLoggedIn) { window.location.href = "/login"; return; }
           setIsOpen(true);
         }}
-        className="text-xs text-neutral-400 hover:text-red-600"
+        className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-red-600"
       >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
         Report
       </button>
       {mounted && modal && createPortal(modal, document.body)}
