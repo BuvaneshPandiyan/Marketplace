@@ -749,7 +749,7 @@ export function HomeHero() {
                   <h2 className="hh-h1 hh-promo-title">{slide.title}</h2>
                   <p className="hh-sub hh-promo-sub">{slide.subtitle}</p>
                   <div className="hh-ctas">
-                    <Link href={slide.href} className="hh-btn hh-btn-primary" tabIndex={active ? 0 : -1} style={{ color: theme.deep }}>
+                    <Link href={slide.href} className="hh-btn hh-btn-primary" tabIndex={active ? 0 : -1} style={{ color: theme.accent }}>
                       {slide.cta}
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                     </Link>
