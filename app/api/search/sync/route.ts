@@ -1,10 +1,8 @@
 // Import Next.js's helper types for reading the request and sending a JSON response
 import { NextRequest, NextResponse } from "next/server";
-// Import our server-side Supabase client creator (respects the caller's own RLS-scoped session)
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-// Import the function that fetches and flattens a listing into a search document
 import { buildListingSearchDocument } from "@/lib/server/buildListingSearchDocument";
-// Import the functions that actually write to (or remove from) Meilisearch
 import { upsertListingDocument, deleteListingDocument } from "@/lib/server/meilisearch";
 
 // Define the POST handler — runs when the client calls POST /api/search/sync after a mutation
@@ -41,6 +39,23 @@ export async function POST(request: NextRequest) {
     // Build the listing's current document straight from Postgres — RLS (via this user's own
     // session) naturally limits this to listings they're actually allowed to read
     const document = await buildListingSearchDocument(supabase, listingId);
+
+    // ── Purge caches for anything showing this listing ──
+    // The listing detail page caches its public data under the tag `listing:${id}`
+    // (unstable_cache), and the seller profile page is full-route cached (ISR).
+    // Without this, an edit / price change / "mark as sold" / delete could keep
+    // showing the OLD state for up to the revalidate window. Purging here — at the
+    // single choke point every mutation already calls — refreshes them immediately.
+    // This is the correctness half of caching.
+    revalidateTag(`listing:${listingId}`);
+    if (document?.seller_id) {
+      revalidatePath(`/seller/${document.seller_id}`);
+    } else {
+      // Listing was deleted and we couldn't read its seller from the doc — fall back
+      // to a direct lookup so the seller's page still gets purged.
+      const { data: row } = await supabase.from("listings").select("seller_id").eq("id", listingId).maybeSingle();
+      if (row?.seller_id) revalidatePath(`/seller/${row.seller_id}`);
+    }
 
     // If the listing no longer exists, or its status isn't "active", it shouldn't be searchable —
     // make sure any previously-indexed copy is removed rather than left stale

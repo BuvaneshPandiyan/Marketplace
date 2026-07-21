@@ -1,10 +1,13 @@
 // Import Next.js's notFound helper for missing listings
 import Link from "next/link";
 import { notFound } from "next/navigation";
-// Import Next.js's Metadata type for the dynamic metadata function
-import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 // Import our server-side Supabase client creator
 import { createClient } from "@/lib/supabase/server";
+// Cookie-free client for cacheable public reads (see lib/supabase/anon.ts)
+import { createAnonClient } from "@/lib/supabase/anon";
+// Import Next.js's Metadata type for the dynamic metadata function
+import type { Metadata } from "next";
 // Import all the sub-components this page assembles
 import { PhotoCarousel } from "@/components/listing/PhotoCarousel";
 import { ListingAttributesDisplay } from "@/components/listing/ListingAttributesDisplay";
@@ -18,6 +21,49 @@ import { WhatsAppSellerButton } from "@/components/listing/WhatsAppSellerButton"
 import { ListingCard } from "@/components/feed/ListingCard";
 import { ListingBannerArt } from "@/components/listing/ListingBannerArt";
 import type { QuestionSchema, FeedListingItem } from "@/types";
+
+// ── Cached public listing data ──
+// Everything here is identical for every visitor (the listing, its seller, and
+// related items), so we cache it in Next's data cache instead of querying Postgres
+// on every page view. It runs on the cookie-free anon client (RLS still limits it
+// to publicly-readable active listings + public profiles). Tagged `listing:${id}`
+// so /api/search/sync can purge exactly this listing the instant it's edited, sold,
+// or deleted — the correctness half of caching. A 5-minute revalidate is the safety
+// net in case a purge is ever missed.
+function getCachedListingData(id: string) {
+  return unstable_cache(
+    async () => {
+      const sb = createAnonClient();
+      const { data: listing } = await sb
+        .from("listings")
+        .select("*, listing_attributes(id, key, value), listing_photos(id, url, sort_order), product_types(name, question_schema)")
+        .eq("id", id)
+        .eq("status", "active")
+        .single();
+      if (!listing) return null;
+
+      const [{ data: seller }, { data: relatedRaw }] = await Promise.all([
+        sb
+          .from("profiles")
+          .select("id, name, profile_photo_url, rating_avg, rating_count, created_at, is_verified_seller")
+          .eq("id", listing.seller_id)
+          .single(),
+        sb.rpc("get_listings_far", {
+          p_lat: listing.lat,
+          p_lng: listing.lng,
+          p_radius_km: 0,
+          p_category_id: null,
+          p_limit: 14,
+          p_offset: 0,
+        }),
+      ]);
+
+      return { listing, seller, relatedRaw };
+    },
+    ["listing-data", id],
+    { tags: [`listing:${id}`], revalidate: 300 }
+  )();
+}
 
 // generateMetadata — preserved exactly as-is
 export async function generateMetadata({
@@ -66,37 +112,19 @@ export default async function ListingDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  // Run the independent queries in parallel instead of one-after-another:
-  // user auth doesn't depend on the listing, so fetch both at once.
-  const [{ data: { user } }, { data: listing }] = await Promise.all([
+  // getUser() stays on the cookie-based client and OUTSIDE the cache — the page
+  // remains per-user for owner/buyer logic (no auth is ever cached or leaked).
+  // The heavy PUBLIC queries (listing + joins, seller, related) are served from
+  // Next's data cache via getCachedListingData(), tagged `listing:${id}` so an
+  // edit / sold / delete purges exactly this entry. This offloads Postgres — the
+  // real bottleneck at scale — without touching the auth-dependent render.
+  const [{ data: { user } }, cached] = await Promise.all([
     supabase.auth.getUser(),
-    supabase
-      .from("listings")
-      .select("*, listing_attributes(id, key, value), listing_photos(id, url, sort_order), product_types(name, question_schema)")
-      .eq("id", id)
-      .eq("status", "active")
-      .single(),
+    getCachedListingData(id),
   ]);
 
-  if (!listing) notFound();
-
-  // Seller and related listings both depend only on `listing` — so once we have
-  // it, fetch them together in parallel rather than in sequence.
-  const [{ data: seller }, { data: relatedRaw }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("id, name, profile_photo_url, rating_avg, rating_count, created_at, is_verified_seller")
-      .eq("id", listing.seller_id)
-      .single(),
-    supabase.rpc("get_listings_far", {
-      p_lat: listing.lat,
-      p_lng: listing.lng,
-      p_radius_km: 0,
-      p_category_id: null,
-      p_limit: 14,
-      p_offset: 0,
-    }),
-  ]);
+  if (!cached) notFound();
+  const { listing, seller, relatedRaw } = cached;
 
   // Extract photos — logic preserved exactly
   const photoUrls = (listing.listing_photos ?? [])

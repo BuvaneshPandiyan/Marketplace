@@ -3,10 +3,15 @@
 // Data-fetching only (Server Component); all interactivity via ListingCard (Client).
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { createAnonClient } from "@/lib/supabase/anon";
 import { VerifiedBadge } from "@/components/listing/SellerMiniProfile";
 import { SellerListingsGrid } from "@/components/seller/SellerListingsGrid";
 import type { FeedListingItem } from "@/types";
+
+// Public seller page — no per-user rendering, so it is cache-safe.
+// Cached copy is served from the edge and refreshed at most every 5 min,
+// plus purged on-demand when this seller's listings change (see revalidate wiring).
+export const revalidate = 300;
 
 // generateMetadata for SEO / OG
 export async function generateMetadata({
@@ -15,7 +20,7 @@ export async function generateMetadata({
   params: Promise<{ sellerId: string }>;
 }): Promise<Metadata> {
   const { sellerId } = await params;
-  const supabase = await createClient();
+  const supabase = createAnonClient();
   const { data: seller } = await supabase
     .from("profiles")
     .select("name")
@@ -31,7 +36,7 @@ export default async function SellerProfilePage({
   params: Promise<{ sellerId: string }>;
 }) {
   const { sellerId } = await params;
-  const supabase = await createClient();
+  const supabase = createAnonClient();
 
   // Both queries only need sellerId (a param), not each other — run in parallel.
   const [{ data: seller }, { data: rawListings }] = await Promise.all([
