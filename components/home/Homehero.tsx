@@ -15,10 +15,11 @@
  * listings, and every pixel it takes is a pixel of stock the user can't see.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { GatedLink } from "@/components/auth/GatedLink";
+import { PROMO_SLIDES, PROMO_THEMES } from "@/lib/promoBanners";
 
 /**
  * The category pool the hero cycles through. Add or remove freely — the slots
@@ -106,22 +107,66 @@ export function HomeHero() {
     return () => clearInterval(t);
   }, []);
 
+  // ── Carousel ──────────────────────────────────────────────────
+  // Slide 0 is the hero itself; slides 1..N are the promo slots that used to
+  // live in a separate banner below. One track, auto-advancing, swipeable.
+  const slideCount = PROMO_SLIDES.length + 1;
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [artFailedPromo, setArtFailedPromo] = useState<Set<string>>(new Set());
+  const rootRef = useRef<HTMLDivElement>(null);
+  const touchX = useRef<number | null>(null);
+  const go = useCallback(
+    (next: number) => setIndex(((next % slideCount) + slideCount) % slideCount),
+    [slideCount]
+  );
+
+  // Auto-advance, pauses on hover/focus and when off-screen.
+  useEffect(() => {
+    if (paused) return;
+    const t = setInterval(() => setIndex((i) => (i + 1) % slideCount), 6000);
+    return () => clearInterval(t);
+  }, [paused, slideCount]);
+
+  // Pause while the hero is scrolled out of view.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setPaused((p) => (e.isIntersecting ? false : p)), { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <>
       <style>{`
         .hh {
           position: relative;
           overflow: hidden;
-          background: var(--brand-hero);
-          /* Mobile is deliberately tight: headline + buttons and nothing else.
-             The eyebrow used to repeat the locality that's already in the header
-             pill AND the feed's own h1, and the subtitle said what the buttons
-             already say. Both were height with no job. */
-          padding: 22px 0 24px;
           border-radius: 0 0 24px 24px;
         }
-        @media (min-width: 640px)  { .hh { padding: 48px 0 52px; border-radius: 0 0 32px 32px; } }
-        @media (min-width: 1024px) { .hh { padding: 68px 0 74px; } }
+        @media (min-width: 640px)  { .hh { border-radius: 0 0 32px 32px; } }
+
+        /* Carousel track — slides sit side by side, the track slides left/right. */
+        .hh-track {
+          display: flex;
+          transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: transform;
+        }
+        .hh-slide {
+          flex: 0 0 100%;
+          min-width: 100%;
+          position: relative;
+          overflow: hidden;
+          background: var(--brand-hero);
+          /* Mobile is deliberately tight: headline + buttons and nothing else. */
+          padding: 22px 0 40px;
+          text-decoration: none;
+          display: flex;
+          align-items: center;
+        }
+        @media (min-width: 640px)  { .hh-slide { padding: 48px 0 60px; } }
+        @media (min-width: 1024px) { .hh-slide { padding: 68px 0 82px; } }
 
         .hh-grid {
           position: absolute; inset: 0; pointer-events: none;
@@ -171,11 +216,85 @@ export function HomeHero() {
         .hh-wrap {
           position: relative;
           z-index: 1;
+          width: 100%;
           max-width: var(--page-max);
           margin: 0 auto;
           padding: 0 16px;
         }
         @media (min-width: 640px) { .hh-wrap { padding: 0 24px; } }
+
+        /* ── Promo slides (carried over from the old banner) ── */
+        .hh-promo { cursor: pointer; }
+        .hh-promo-motif {
+          position: absolute; right: 4%; top: 50%; transform: translateY(-50%);
+          font-size: 160px; line-height: 1; opacity: 0.12; pointer-events: none;
+          filter: drop-shadow(0 8px 24px rgba(0,0,0,0.3));
+          animation: hh-motif-bob 6s ease-in-out infinite;
+        }
+        @media (max-width: 640px) { .hh-promo-motif { font-size: 110px; right: -2%; opacity: 0.1; } }
+        @keyframes hh-motif-bob { 0%,100%{ transform: translateY(-50%) rotate(0); } 50%{ transform: translateY(-58%) rotate(-4deg); } }
+        .hh-promo-copy { max-width: 62%; }
+        @media (max-width: 640px) { .hh-promo-copy { max-width: 80%; } }
+        .hh-promo-kicker {
+          display: inline-block; font-size: 11px; font-weight: 800;
+          letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px;
+        }
+        @media (min-width: 640px) { .hh-promo-kicker { font-size: 12.5px; } }
+        .hh-promo-title {
+          color: #fff; margin: 0 0 10px; font-weight: 900;
+          letter-spacing: -0.04em; line-height: 1.06;
+          font-size: 26px;
+        }
+        @media (min-width: 640px)  { .hh-promo-title { font-size: 40px; margin-bottom: 12px; } }
+        @media (min-width: 1024px) { .hh-promo-title { font-size: 52px; } }
+        .hh-promo-sub {
+          color: rgba(255,255,255,0.78); font-size: 14px; font-weight: 500;
+          line-height: 1.5; letter-spacing: -0.01em; margin: 0 0 20px; max-width: 46ch;
+        }
+        @media (max-width: 480px) { .hh-promo-sub { display: none; } }
+        @media (min-width: 1024px) { .hh-promo-sub { font-size: 16.5px; } }
+        .hh-promo-cta {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: #fff; color: #111; border-radius: var(--r-pill);
+          padding: 12px 22px; font-size: 14px; font-weight: 800; letter-spacing: -0.02em;
+          box-shadow: 0 8px 26px rgba(0,0,0,0.24);
+          transition: transform 240ms var(--spring), box-shadow 240ms ease;
+        }
+        .hh-promo-cta svg { transition: transform 260ms var(--spring); }
+        @media (hover: hover) {
+          .hh-promo:hover .hh-promo-cta { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(0,0,0,0.34); }
+          .hh-promo:hover .hh-promo-cta svg { transform: translateX(4px); }
+        }
+
+        /* ── Carousel controls ── */
+        .hh-arrow {
+          position: absolute; top: 50%; transform: translateY(-50%); z-index: 6;
+          width: 40px; height: 40px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.28);
+          backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+          color: #fff; cursor: pointer;
+          transition: background 180ms ease, transform 180ms ease;
+          opacity: 0; pointer-events: none;
+        }
+        @media (min-width: 900px) {
+          .hh:hover .hh-arrow { opacity: 1; pointer-events: auto; }
+          .hh-arrow-prev { left: 14px; }
+          .hh-arrow-next { right: 14px; }
+          .hh-arrow:hover { background: rgba(255,255,255,0.26); transform: translateY(-50%) scale(1.08); }
+        }
+        .hh-dots {
+          position: absolute; bottom: 12px; left: 0; right: 0; z-index: 6;
+          display: flex; justify-content: center; gap: 7px;
+        }
+        @media (min-width: 640px) { .hh-dots { bottom: 16px; } }
+        .hh-dot {
+          width: 7px; height: 7px; border-radius: 999px; border: none; cursor: pointer;
+          background: rgba(255,255,255,0.4);
+          transition: width 260ms var(--spring), background 200ms ease;
+        }
+        .hh-dot.is-active { width: 22px; background: #fff; }
+        .hh-dot:hover { background: rgba(255,255,255,0.7); }
 
         /* Two columns once there's room for the floaters to not crowd the text */
         .hh-cols { display: block; }
@@ -428,6 +547,8 @@ export function HomeHero() {
         }
 
         @media (prefers-reduced-motion: reduce) {
+          .hh-track { transition: none !important; }
+          .hh-promo-motif, .hh-promo-cta, .hh-promo-cta svg, .hh-arrow, .hh-dot { animation: none !important; transition: none !important; }
           .hh-glow, .hh-float, .hh-h1 em::after, .hh-art-img,
           .hh-float-face, .hh-word { animation: none !important; }
           .hh-float-inner, .hh-float-emoji { transition: none !important; }
@@ -444,7 +565,24 @@ export function HomeHero() {
         }
       `}</style>
 
-      <section className="hh">
+      <section className="hh" ref={rootRef}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocusCapture={() => setPaused(true)}
+        onBlurCapture={() => setPaused(false)}
+        onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }}
+        onTouchEnd={(e) => {
+          if (touchX.current === null) return;
+          const dx = e.changedTouches[0].clientX - touchX.current;
+          if (Math.abs(dx) > 45) go(dx < 0 ? index + 1 : index - 1);
+          touchX.current = null;
+        }}
+        aria-roledescription="carousel"
+      >
+        <div className="hh-track" style={{ transform: `translateX(-${index * 100}%)` }}>
+
+        {/* ══ SLIDE 0 — the hero ══ */}
+        <div className="hh-slide" aria-hidden={index !== 0}>
         {/* Artwork sits furthest back, behind the grid and bloom, and is masked
             so its left edge dissolves into the gradient — the headline always
             lands on flat colour, never on busy pixels. */}
@@ -563,6 +701,77 @@ export function HomeHero() {
               })}
             </div>
           </div>
+        </div>
+        </div>{/* /slide 0 */}
+
+        {/* ══ PROMO SLIDES 1..N ══ */}
+        {PROMO_SLIDES.map((slide, i) => {
+          const theme = PROMO_THEMES[slide.theme];
+          const failed = artFailedPromo.has(slide.id);
+          return (
+            <Link
+              key={slide.id}
+              href={slide.href}
+              className="hh-slide hh-promo"
+              aria-hidden={index !== i + 1}
+              tabIndex={index === i + 1 ? 0 : -1}
+              style={{ background: theme.bg }}
+            >
+              {slide.image && !failed && (
+                <div className="hh-art-img" aria-hidden="true">
+                  <Image
+                    src={slide.image}
+                    alt=""
+                    fill
+                    sizes="(max-width: 899px) 100vw, 55vw"
+                    style={{ objectFit: "cover", objectPosition: "center right" }}
+                    onError={() => setArtFailedPromo((prev) => new Set(prev).add(slide.id))}
+                  />
+                </div>
+              )}
+              <div className="hh-grid" aria-hidden="true" />
+              <div className="hh-glow" aria-hidden="true" style={{ background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)` }} />
+              {/* Big translucent motif */}
+              <span className="hh-promo-motif" aria-hidden="true">{slide.motif}</span>
+
+              <div className="hh-wrap">
+                <div className="hh-promo-copy">
+                  <span className="hh-promo-kicker" style={{ color: theme.accent }}>{slide.kicker}</span>
+                  <h2 className="hh-promo-title">{slide.title}</h2>
+                  <p className="hh-promo-sub">{slide.subtitle}</p>
+                  <span className="hh-promo-cta">
+                    {slide.cta}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+
+        </div>{/* /track */}
+
+        {/* ── Carousel controls ── */}
+        <button type="button" className="hh-arrow hh-arrow-prev" onClick={() => go(index - 1)} aria-label="Previous slide">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+        </button>
+        <button type="button" className="hh-arrow hh-arrow-next" onClick={() => go(index + 1)} aria-label="Next slide">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+        </button>
+        <div className="hh-dots" role="tablist" aria-label="Choose slide">
+          {Array.from({ length: slideCount }).map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              role="tab"
+              aria-selected={index === i}
+              aria-label={`Slide ${i + 1}`}
+              className={`hh-dot ${index === i ? "is-active" : ""}`}
+              onClick={() => go(i)}
+            />
+          ))}
         </div>
       </section>
     </>
