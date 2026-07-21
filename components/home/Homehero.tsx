@@ -223,8 +223,9 @@ export function HomeHero() {
         }
         @media (min-width: 640px) { .hh-wrap { padding: 0 24px; } }
 
-        /* ── Promo slides (carried over from the old banner) ── */
-        .hh-promo { cursor: pointer; }
+        /* ── Promo slides — typography + buttons inherit the hero's own classes
+           (.hh-h1, .hh-sub, .hh-btn) so they match the first slide EXACTLY. Only
+           the promo-specific bits live here. ── */
         .hh-promo-motif {
           position: absolute; right: 4%; top: 50%; transform: translateY(-50%);
           font-size: 160px; line-height: 1; opacity: 0.12; pointer-events: none;
@@ -233,38 +234,47 @@ export function HomeHero() {
         }
         @media (max-width: 640px) { .hh-promo-motif { font-size: 110px; right: -2%; opacity: 0.1; } }
         @keyframes hh-motif-bob { 0%,100%{ transform: translateY(-50%) rotate(0); } 50%{ transform: translateY(-58%) rotate(-4deg); } }
-        .hh-promo-copy { max-width: 62%; }
-        @media (max-width: 640px) { .hh-promo-copy { max-width: 80%; } }
+        .hh-promo-copy { max-width: 92%; }
+        @media (min-width: 640px)  { .hh-promo-copy { max-width: 70%; } }
+        @media (min-width: 1024px) { .hh-promo-copy { max-width: 62%; } }
+        /* Kicker matches the eyebrow weight/tracking of the hero's small labels */
         .hh-promo-kicker {
           display: inline-block; font-size: 11px; font-weight: 800;
           letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px;
         }
         @media (min-width: 640px) { .hh-promo-kicker { font-size: 12.5px; } }
-        .hh-promo-title {
-          color: #fff; margin: 0 0 10px; font-weight: 900;
-          letter-spacing: -0.04em; line-height: 1.06;
-          font-size: 26px;
+        /* Title reuses .hh-h1 sizing verbatim; just neutralise the em-only accent bits */
+        .hh-promo-title em { color: inherit; }
+        .hh-promo-title::after { content: none; }
+        /* Secondary ghost button + trust row only earn their space on bigger screens */
+        .hh-promo-secondary { display: none; }
+        @media (min-width: 640px) { .hh-promo-secondary { display: inline-flex; } }
+        .hh-promo-trust { display: none; }
+        @media (min-width: 640px) {
+          .hh-promo-trust {
+            display: flex; gap: 18px; margin-top: 22px; flex-wrap: wrap;
+            list-style: none; padding: 0;
+          }
+          .hh-promo-trust li {
+            display: inline-flex; align-items: center; gap: 6px;
+            color: rgba(255,255,255,0.72); font-size: 12.5px; font-weight: 600;
+            letter-spacing: -0.015em;
+          }
         }
-        @media (min-width: 640px)  { .hh-promo-title { font-size: 40px; margin-bottom: 12px; } }
-        @media (min-width: 1024px) { .hh-promo-title { font-size: 52px; } }
-        .hh-promo-sub {
-          color: rgba(255,255,255,0.78); font-size: 14px; font-weight: 500;
-          line-height: 1.5; letter-spacing: -0.01em; margin: 0 0 20px; max-width: 46ch;
+
+        /* ── Auto-advance progress line ── */
+        .hh-progress {
+          position: absolute; left: 0; right: 0; bottom: 0; height: 3px; z-index: 6;
+          background: rgba(255,255,255,0.14);
         }
-        @media (max-width: 480px) { .hh-promo-sub { display: none; } }
-        @media (min-width: 1024px) { .hh-promo-sub { font-size: 16.5px; } }
-        .hh-promo-cta {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: #fff; color: #111; border-radius: var(--r-pill);
-          padding: 12px 22px; font-size: 14px; font-weight: 800; letter-spacing: -0.02em;
-          box-shadow: 0 8px 26px rgba(0,0,0,0.24);
-          transition: transform 240ms var(--spring), box-shadow 240ms ease;
+        .hh-progress-fill {
+          display: block; height: 100%; width: 0;
+          background: rgba(255,255,255,0.85);
+          border-radius: 0 3px 3px 0;
+          box-shadow: 0 0 10px rgba(255,255,255,0.5);
+          animation: hh-progress 6s linear forwards;
         }
-        .hh-promo-cta svg { transition: transform 260ms var(--spring); }
-        @media (hover: hover) {
-          .hh-promo:hover .hh-promo-cta { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(0,0,0,0.34); }
-          .hh-promo:hover .hh-promo-cta svg { transform: translateX(4px); }
-        }
+        @keyframes hh-progress { from { width: 0; } to { width: 100%; } }
 
         /* ── Carousel controls ── */
         .hh-arrow {
@@ -548,7 +558,8 @@ export function HomeHero() {
 
         @media (prefers-reduced-motion: reduce) {
           .hh-track { transition: none !important; }
-          .hh-promo-motif, .hh-promo-cta, .hh-promo-cta svg, .hh-arrow, .hh-dot { animation: none !important; transition: none !important; }
+          .hh-progress-fill, .hh-promo-motif, .hh-promo-cta, .hh-promo-cta svg, .hh-arrow, .hh-dot { animation: none !important; transition: none !important; }
+          .hh-progress-fill { width: 100% !important; }
           .hh-glow, .hh-float, .hh-h1 em::after, .hh-art-img,
           .hh-float-face, .hh-word { animation: none !important; }
           .hh-float-inner, .hh-float-emoji { transition: none !important; }
@@ -708,13 +719,12 @@ export function HomeHero() {
         {PROMO_SLIDES.map((slide, i) => {
           const theme = PROMO_THEMES[slide.theme];
           const failed = artFailedPromo.has(slide.id);
+          const active = index === i + 1;
           return (
-            <Link
+            <div
               key={slide.id}
-              href={slide.href}
               className="hh-slide hh-promo"
-              aria-hidden={index !== i + 1}
-              tabIndex={index === i + 1 ? 0 : -1}
+              aria-hidden={!active}
               style={{ background: theme.bg }}
             >
               {slide.image && !failed && (
@@ -731,27 +741,41 @@ export function HomeHero() {
               )}
               <div className="hh-grid" aria-hidden="true" />
               <div className="hh-glow" aria-hidden="true" style={{ background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)` }} />
-              {/* Big translucent motif */}
               <span className="hh-promo-motif" aria-hidden="true">{slide.motif}</span>
 
               <div className="hh-wrap">
                 <div className="hh-promo-copy">
-                  <span className="hh-promo-kicker" style={{ color: theme.accent }}>{slide.kicker}</span>
-                  <h2 className="hh-promo-title">{slide.title}</h2>
-                  <p className="hh-promo-sub">{slide.subtitle}</p>
-                  <span className="hh-promo-cta">
-                    {slide.cta}
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M5 12h14M13 6l6 6-6 6" />
-                    </svg>
-                  </span>
+                  <span className="hh-promo-kicker" style={{ color: theme.accent }}>{slide.motif} {slide.kicker}</span>
+                  <h2 className="hh-h1 hh-promo-title">{slide.title}</h2>
+                  <p className="hh-sub hh-promo-sub">{slide.subtitle}</p>
+                  <div className="hh-ctas">
+                    <Link href={slide.href} className="hh-btn hh-btn-primary" tabIndex={active ? 0 : -1} style={{ color: theme.deep }}>
+                      {slide.cta}
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                    </Link>
+                    <Link href="/" className="hh-btn hh-btn-ghost hh-promo-secondary" tabIndex={active ? 0 : -1}>Browse all</Link>
+                  </div>
+                  <ul className="hh-trust hh-promo-trust">
+                    <li>✓ 100% free to list</li>
+                    <li>✓ Verified sellers</li>
+                    <li>✓ Deals near you</li>
+                  </ul>
                 </div>
               </div>
-            </Link>
+            </div>
           );
         })}
 
         </div>{/* /track */}
+
+        {/* ── Auto-advance progress line ── */}
+        <div className="hh-progress" aria-hidden="true">
+          <span
+            key={index}
+            className="hh-progress-fill"
+            style={{ animationPlayState: paused ? "paused" : "running" }}
+          />
+        </div>
 
         {/* ── Carousel controls ── */}
         <button type="button" className="hh-arrow hh-arrow-prev" onClick={() => go(index - 1)} aria-label="Previous slide">
