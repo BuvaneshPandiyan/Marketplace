@@ -3,10 +3,10 @@
 // Data-fetching only (Server Component); all interactivity via ListingCard (Client).
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { createAnonClient } from "@/lib/supabase/anon";
 import { VerifiedBadge } from "@/components/listing/SellerMiniProfile";
 import { SellerListingsGrid } from "@/components/seller/SellerListingsGrid";
 import type { FeedListingItem } from "@/types";
+import { createAnonClient } from "@/lib/supabase/anon";
 
 // Public seller page — no per-user rendering, so it is cache-safe.
 // Cached copy is served from the edge and refreshed at most every 5 min,

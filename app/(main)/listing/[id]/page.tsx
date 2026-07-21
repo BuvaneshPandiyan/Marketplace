@@ -6,6 +6,7 @@ import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 // Cookie-free client for cacheable public reads (see lib/supabase/anon.ts)
 import { createAnonClient } from "@/lib/supabase/anon";
+
 // Import Next.js's Metadata type for the dynamic metadata function
 import type { Metadata } from "next";
 // Import all the sub-components this page assembles

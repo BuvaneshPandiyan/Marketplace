@@ -1,4 +1,4 @@
-import { HomeHero } from "@/components/home/HomeHero";
+import { HomeHero } from "@/components/home/Homehero";
 import { TieredFeed } from "@/components/feed/TieredFeed";
 
 /**
