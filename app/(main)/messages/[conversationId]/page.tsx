@@ -49,6 +49,14 @@ export default async function ConversationPage({
         - The inner ChatPanel uses a flex column: header shrinks, messages scroll, input shrinks.
       */}
       <style>{`
+        /* This is a full-height chat surface — the global site footer must not
+           show below it (it peeks through on mobile when you scroll). The chat
+           page mounts this marker; hide the footer while it's present. */
+        body:has(.chat-page-container) footer,
+        body:has(.chat-page-container) .bzf {
+          display: none !important;
+        }
+
         .chat-page-container {
           position: fixed;
           top: 76px;
