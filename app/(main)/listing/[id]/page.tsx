@@ -6,7 +6,6 @@ import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 // Cookie-free client for cacheable public reads (see lib/supabase/anon.ts)
 import { createAnonClient } from "@/lib/supabase/anon";
-
 // Import Next.js's Metadata type for the dynamic metadata function
 import type { Metadata } from "next";
 // Import all the sub-components this page assembles
@@ -20,7 +19,7 @@ import { ListingDescription } from "@/components/listing/ListingDescription";
 import { ReportButton } from "@/components/trust/ReportButton";
 import { WhatsAppSellerButton } from "@/components/listing/WhatsAppSellerButton";
 import { ListingCard } from "@/components/feed/ListingCard";
-import { ListingBannerArt } from "@/components/listing/ListingBannerArt";
+import { BannerArt } from "@/components/ui/BannerArt";
 import type { QuestionSchema, FeedListingItem } from "@/types";
 
 // ── Cached public listing data ──
@@ -378,7 +377,7 @@ export default async function ListingDetailPage({
 
       {/* ── BANNER: item name + plum band + masked fade ── */}
       <div className="lst-banner">
-        <ListingBannerArt src="/images/listing-header.png" />
+        <BannerArt variant="glyphs" tint="#c054e0" tint2="#f0c4f5" id="listing" />
         <div className="lst-banner-grid" aria-hidden="true" />
         <div className="lst-banner-glow" aria-hidden="true" />
         <div className="lst-banner-inner">

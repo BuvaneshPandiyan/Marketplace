@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useActiveLocation } from "@/lib/hooks/useActiveLocation";
 import { TIER_1_RADIUS_KM, TIER_2_RADIUS_KM, FEED_PAGE_SIZE } from "@/lib/feedConfig";
 import { ListingCard } from "@/components/feed/ListingCard";
-import { SearchBannerArt } from "@/components/search/SearchBannerArt";
+import { BannerArt } from "@/components/ui/BannerArt";
 import { SearchFilters, type SearchFilterValues, type SortOption } from "@/components/search/SearchFilters";
 import { SaveSearchButton } from "@/components/search/SaveSearchButton";
 import { searchHitToFeedListingItem, type SearchHit } from "@/lib/client/searchHitAdapter";
@@ -337,7 +337,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
 
       {/* ── BANNER ── */}
       <div className="srch-banner">
-        <SearchBannerArt src="/images/search-header.png" />
+        <BannerArt variant="topo" tint="#ff9db0" tint2="#f43f5e" id="search" />
         <div className="srch-banner-grid" aria-hidden="true" />
         <div className="srch-banner-glow" aria-hidden="true" />
         <div className="srch-banner-inner">

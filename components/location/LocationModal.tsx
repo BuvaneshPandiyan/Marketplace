@@ -17,8 +17,8 @@
  */
 
 import { useEffect, useState } from "react";
+import { BannerArt } from "@/components/ui/BannerArt";
 import { createPortal } from "react-dom";
-import Image from "next/image";
 import { useActiveLocation } from "@/lib/hooks/useActiveLocation";
 import { LocationSearchInput } from "@/components/location/LocationSearchInput";
 import type { StoredLocation } from "@/lib/client/locationStorage";
@@ -53,7 +53,6 @@ export function LocationModal({ onClose }: LocationModalProps) {
    * Same pattern as HomeHero: no broken image, no layout shift, drop the file in
    * and it appears with no code change.
    */
-  const [artFailed, setArtFailed] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -414,19 +413,8 @@ export function LocationModal({ onClose }: LocationModalProps) {
 
       <div className="lm-card" role="dialog" aria-modal="true" aria-labelledby="lm-title">
         <div className="lm-head">
-          {!artFailed && (
-            <div className="lm-head-art" aria-hidden="true">
-              <Image
-                src="/images/location-header.png"
-                alt=""
-                fill
-                sizes="(max-width: 639px) 100vw, 420px"
-                style={{ objectFit: "cover", objectPosition: "center right" }}
-                onError={() => setArtFailed(true)}
-              />
-            </div>
-          )}
-          {!artFailed && <div className="lm-head-scrim" aria-hidden="true" />}
+          <BannerArt variant="topo" tint="#7dd3fc" tint2="#0284c7" id="location" />
+          <div className="lm-head-scrim" aria-hidden="true" />
           <div className="lm-head-grid" aria-hidden="true" />
           <div className="lm-grip" aria-hidden="true" />
           <div className="lm-head-row">

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { BannerArt } from "@/components/ui/BannerArt";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -26,7 +26,6 @@ export function SellWizard() {
 
   const [step,             setStep]             = useState(1);
   const [productType,      setProductType]      = useState<ProductType | null>(null);
-  const [bandArtFailed,    setBandArtFailed]    = useState(false);
   const [attributeAnswers, setAttributeAnswers] = useState<Record<string, string>>({});
   const [title,            setTitle]            = useState("");
   const [description,      setDescription]      = useState("");
@@ -337,18 +336,7 @@ export function SellWizard() {
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div className="swh">
-        {!bandArtFailed && (
-          <div className="swh-band-art" aria-hidden="true">
-            <Image
-              src="/images/sell-header.png"
-              alt=""
-              fill
-              sizes="100vw"
-              style={{ objectFit: "cover", objectPosition: "center right" }}
-              onError={() => setBandArtFailed(true)}
-            />
-          </div>
-        )}
+        <BannerArt variant="topo" tint="#67e8f9" tint2="#0891b2" id="sell" />
         <div className="swh-band-scrim" aria-hidden="true" />
         <div className="swh-band-grid" aria-hidden="true" />
         <div className="swh-band-glow" aria-hidden="true" />

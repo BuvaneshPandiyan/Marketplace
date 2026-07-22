@@ -16,8 +16,8 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { BannerArt } from "@/components/ui/BannerArt";
 import { GatedLink } from "@/components/auth/GatedLink";
 import { PROMO_SLIDES, PROMO_THEMES } from "@/lib/promoBanners";
 
@@ -78,7 +78,6 @@ export function HomeHero() {
    * image icon, no layout shift, hero still looks finished. Drop the file in and
    * it appears on the next load with no code change.
    */
-  const [artFailed, setArtFailed] = useState(false);
 
   /**
    * Which pool item each slot is showing. One slot swaps every SWAP_MS, round
@@ -113,7 +112,6 @@ export function HomeHero() {
   const slideCount = PROMO_SLIDES.length + 1;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [artFailedPromo, setArtFailedPromo] = useState<Set<string>>(new Set());
   const rootRef = useRef<HTMLDivElement>(null);
   const touchX = useRef<number | null>(null);
   const go = useCallback(
@@ -417,7 +415,7 @@ export function HomeHero() {
         .hh-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
         .hh-btn-primary {
           position: relative; overflow: hidden;
-          background: #fff; color: #7e22ce;
+          background: #fff; color: var(--slide-accent, #9333a8);
           /* A slow halo, so the primary action keeps a pulse of its own once the
              entrance animations have all settled */
           animation: bz-rise 480ms var(--spring) 540ms both,
@@ -433,7 +431,7 @@ export function HomeHero() {
         .hh-btn-primary:hover svg { transform: translateX(4px); }
         .hh-btn-primary::after {
           content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
-          background: linear-gradient(90deg, transparent, rgba(147,51,168,0.18), transparent);
+          background: linear-gradient(90deg, transparent, var(--slide-shine, rgba(147,51,168,0.18)), transparent);
           transform: translateX(-120%) skewX(-18deg);
         }
         .hh-btn-ghost {
@@ -591,23 +589,12 @@ export function HomeHero() {
         <div className="hh-track" style={{ transform: `translateX(-${index * 100}%)` }}>
 
         {/* ══ SLIDE 0 — the hero ══ */}
-        <div className="hh-slide" aria-hidden={index !== 0}>
+        <div className="hh-slide" aria-hidden={index !== 0}
+             style={{ "--slide-accent": "#9333a8", "--slide-shine": "rgba(147,51,168,0.18)" } as React.CSSProperties}>
         {/* Artwork sits furthest back, behind the grid and bloom, and is masked
             so its left edge dissolves into the gradient — the headline always
             lands on flat colour, never on busy pixels. */}
-        {!artFailed && (
-          <div className="hh-art-img" aria-hidden="true">
-            <Image
-              src="/images/hero-marketplace.png"
-              alt=""
-              fill
-              priority
-              sizes="(max-width: 899px) 100vw, 55vw"
-              style={{ objectFit: "cover", objectPosition: "center right" }}
-              onError={() => setArtFailed(true)}
-            />
-          </div>
-        )}
+        <BannerArt variant="aurora" tint="#c054e0" tint2="#9333a8" id="hero" />
         <div className="hh-grid" aria-hidden="true" />
         <div className="hh-glow" aria-hidden="true" />
 
@@ -716,27 +703,20 @@ export function HomeHero() {
         {/* ══ PROMO SLIDES 1..N ══ */}
         {PROMO_SLIDES.map((slide, i) => {
           const theme = PROMO_THEMES[slide.theme];
-          const failed = artFailedPromo.has(slide.id);
-          const active = index === i + 1;
+                  const active = index === i + 1;
           return (
             <div
               key={slide.id}
               className="hh-slide hh-promo"
               aria-hidden={!active}
-              style={{ background: theme.bg }}
+              style={{ background: theme.bg, "--slide-accent": theme.deep, "--slide-shine": `${theme.deep}2e` } as React.CSSProperties}
             >
-              {slide.image && !failed && (
-                <div className="hh-art-img" aria-hidden="true">
-                  <Image
-                    src={slide.image}
-                    alt=""
-                    fill
-                    sizes="(max-width: 899px) 100vw, 55vw"
-                    style={{ objectFit: "cover", objectPosition: "center right" }}
-                    onError={() => setArtFailedPromo((prev) => new Set(prev).add(slide.id))}
-                  />
-                </div>
-              )}
+              <BannerArt
+                variant={(["glass", "topo", "glyphs", "aurora"] as const)[i % 4]}
+                tint={theme.accent}
+                tint2={theme.deep}
+                id={`promo-${slide.id}`}
+              />
               <div className="hh-grid" aria-hidden="true" />
               <div className="hh-glow" aria-hidden="true" style={{ background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)` }} />
               <span className="hh-promo-motif" aria-hidden="true">{slide.motif}</span>
@@ -747,7 +727,7 @@ export function HomeHero() {
                   <h2 className="hh-h1 hh-promo-title">{slide.title}</h2>
                   <p className="hh-sub hh-promo-sub">{slide.subtitle}</p>
                   <div className="hh-ctas">
-                    <Link href={slide.href} className="hh-btn hh-btn-primary" tabIndex={active ? 0 : -1} style={{ color: theme.deep }}>
+                    <Link href={slide.href} className="hh-btn hh-btn-primary" tabIndex={active ? 0 : -1}>
                       {slide.cta}
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                     </Link>

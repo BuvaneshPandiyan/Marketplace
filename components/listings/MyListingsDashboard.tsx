@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { BannerArt } from "@/components/ui/BannerArt";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MyListingCard } from "@/components/listings/MyListingCard";
-import Image from "next/image";
 import Link from "next/link";
 
 type RawListing = {
@@ -38,7 +38,6 @@ export function MyListingsDashboard({ listings }: Props) {
   const [sort,     setSort]     = useState("newest");
   const [view,     setView]     = useState<"grid"|"list">("grid");
   // Optional band artwork — falls back to the plain gradient if absent.
-  const [artFailed, setArtFailed] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
   const [mounted,  setMounted]  = useState(false);
   const [dropPos,  setDropPos]  = useState({ top: 0, right: 0 });
@@ -535,18 +534,7 @@ export function MyListingsDashboard({ listings }: Props) {
             the page has a top edge and the stat tiles have something to sit
             against. It bleeds past the container's padding on purpose. */}
         <div className="ml-band">
-          {!artFailed && (
-            <div className="ml-band-art" aria-hidden="true">
-              <Image
-                src="/images/header-listings.png"
-                alt=""
-                fill
-                sizes="100vw"
-                style={{ objectFit: "cover", objectPosition: "top right" }}
-                onError={() => setArtFailed(true)}
-              />
-            </div>
-          )}
+          <BannerArt variant="glyphs" tint="#a5b4fc" tint2="#6366f1" id="mylistings" />
           <div className="ml-band-scrim" aria-hidden="true" />
           <div className="ml-band-grid" aria-hidden="true" />
           <div className="ml-band-glow" aria-hidden="true" />

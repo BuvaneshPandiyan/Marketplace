@@ -16,8 +16,8 @@
  */
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { BannerArt } from "@/components/ui/BannerArt";
 import { createPortal } from "react-dom";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -59,7 +59,6 @@ export function ChatsPopover() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   // Optional header artwork — falls back to the plain gradient if absent.
-  const [artFailed, setArtFailed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 639px)");
   const router = useRouter();
@@ -257,23 +256,10 @@ export function ChatsPopover() {
           position: "relative",
         }}
       >
-        {!artFailed && (
-          <>
-            {/* Artwork behind the header. Masked so it fades out on the left where
+        {/* Artwork behind the header. Masked so it fades out on the left where
                 the title sits, then a scrim over that for guaranteed legibility. */}
-            <div className="pop-art" aria-hidden="true">
-              <Image
-                src="/images/header-chats.png"
-                alt=""
-                fill
-                sizes="(max-width: 639px) 100vw, 340px"
-                style={{ objectFit: "cover", objectPosition: "center right" }}
-                onError={() => setArtFailed(true)}
-              />
-            </div>
+            <BannerArt variant="glass" tint="#fb7185" tint2="#e11d48" id="chats" />
             <div className="pop-art-scrim" aria-hidden="true" />
-          </>
-        )}
         <div
           style={{
             position: "absolute",

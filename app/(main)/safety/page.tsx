@@ -27,7 +27,6 @@ export default function SafetyPage() {
   return (
     <LegalPage
       theme={theme}
-      bandImage="/images/safety-header.png"
       eyebrow="🛡️ Safety & trust"
       titleLead="Safety &"
       titleAccent="Trust"

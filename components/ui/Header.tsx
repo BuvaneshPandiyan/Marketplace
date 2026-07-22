@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { BannerArt } from "@/components/ui/BannerArt";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -13,7 +14,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useUser } from "@/lib/hooks/useUser";
 import { GatedLink } from "@/components/auth/GatedLink";
 import { LocationModal } from "@/components/location/LocationModal";
-import Image from "next/image";
 import { LocationPill } from "@/components/location/LocationPill";
 import { SearchBar } from "@/components/search/SearchBar";
 import { ChatsPopover } from "@/components/chat/ChatsPopover";
@@ -77,7 +77,6 @@ export function Header() {
   // ── state ──────────────────────────────────────────────────────────
   const [locSheetOpen, setLocSheetOpen]       = useState(false);
   // Optional drawer header artwork — falls back to the plain gradient if absent.
-  const [drawerArtFailed, setDrawerArtFailed] = useState(false);
   const [scrolled, setScrolled]               = useState(false);
   const [drawerOpen, setDrawerOpen]           = useState(false);
   const [logoutConfirm, setLogoutConfirm]     = useState(false);
@@ -942,22 +941,9 @@ export function Header() {
               padding:"14px 20px 16px", flexShrink:0,
               position:"relative",
             }}>
-              {!drawerArtFailed && (
-                <>
-                  {/* Optional artwork, masked left so the title stays on flat colour */}
-                  <div className="pop-art" aria-hidden="true">
-                    <Image
-                      src="/images/header-menu.png"
-                      alt=""
-                      fill
-                      sizes="320px"
-                      style={{ objectFit: "cover", objectPosition: "center right" }}
-                      onError={() => setDrawerArtFailed(true)}
-                    />
-                  </div>
+              {/* Optional artwork, masked left so the title stays on flat colour */}
+                  <BannerArt variant="aurora" tint="#fb7185" tint2="#9f1239" id="menu" />
                   <div className="pop-art-scrim" aria-hidden="true" />
-                </>
-              )}
               {/* Subtle grid overlay */}
               <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize:"28px 28px", borderRadius:"24px 24px 0 0" }} />
 

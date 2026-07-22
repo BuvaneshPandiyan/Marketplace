@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { BannerArt } from "@/components/ui/BannerArt";
 import { createPortal } from "react-dom";
-import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useAuthGate } from "@/components/auth/AuthGateContext";
 import { useUser } from "@/lib/hooks/useUser";
@@ -45,7 +45,6 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   // Optional header artwork — falls back to the plain gradient if absent.
-  const [artFailed, setArtFailed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 639px)");
   const router = useRouter();
@@ -160,23 +159,10 @@ export function NotificationBell() {
         borderRadius: isMobileSheet ? 0 : "16px 16px 0 0",
         position: "relative",
       }}>
-        {!artFailed && (
-          <>
-            {/* Optional header artwork, masked so it fades out on the left where
+        {/* Optional header artwork, masked so it fades out on the left where
                 the title sits, plus a scrim for guaranteed legibility. */}
-            <div className="pop-art" aria-hidden="true">
-              <Image
-                src="/images/header-notifications.png"
-                alt=""
-                fill
-                sizes="(max-width: 639px) 100vw, 340px"
-                style={{ objectFit: "cover", objectPosition: "center right" }}
-                onError={() => setArtFailed(true)}
-              />
-            </div>
+            <BannerArt variant="aurora" tint="#e879f9" tint2="#c026d3" id="notifs" />
             <div className="pop-art-scrim" aria-hidden="true" />
-          </>
-        )}
         {/* Grid overlay */}
         <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize:"28px 28px", borderRadius: isMobileSheet ? 0 : "16px 16px 0 0", pointerEvents:"none" }} />
         {/* Drag handle — only on mobile sheet */}

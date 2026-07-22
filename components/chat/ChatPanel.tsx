@@ -3,6 +3,7 @@
 
 // Import React's hooks
 import { useCallback, useEffect, useRef, useState } from "react";
+import { BannerArt } from "@/components/ui/BannerArt";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ReportButton } from "@/components/trust/ReportButton";
@@ -65,10 +66,6 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
   // even if the page was loaded before the seller marked the item as sold.
   const [listingStatus, setListingStatus] = useState(conversation.listing_status);
   const isSold = listingStatus === "sold";
-
-  // Background images (banner + centre watermark) with graceful fallback if missing.
-  const [bannerImgFailed, setBannerImgFailed] = useState(false);
-  const [centerImgFailed, setCenterImgFailed] = useState(false);
 
   // A soft two-note "pop" chime for incoming messages — generated with the Web
   // Audio API so no audio file is needed. Guarded so autoplay policies don't throw.
@@ -430,16 +427,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
           borderBottom: "1px solid rgba(255,255,255,0.1)",
           boxShadow: "0 8px 24px rgba(7,31,38,0.28)",
         }}>
-          {/* Banner background image — masked left-fade + scrim, falls back to gradient */}
-          {!bannerImgFailed && (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/chat-header.png" alt="" aria-hidden="true"
-                onError={() => setBannerImgFailed(true)}
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center right", opacity: 0.4, pointerEvents: "none", WebkitMaskImage: "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.5) 45%, #000 88%)", maskImage: "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.5) 45%, #000 88%)" }} />
-              <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "linear-gradient(90deg, #071f26 0%, rgba(7,31,38,0.85) 40%, transparent 82%)" }} />
-            </>
-          )}
+          <BannerArt variant="aurora" tint="#1a6b7a" tint2="#d99058" id="chathdr" />
           <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative", zIndex: 1 }}>
             {/* Avatar */}
@@ -503,15 +491,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
 
         {/* ── SCROLLABLE MESSAGE LIST — only this area scrolls ── */}
         <div className="chat-messages-area" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10, minHeight: 0, overscrollBehavior: "contain", position: "relative" }}>
-          {/* Faint centre watermark — sits behind messages, very subtle */}
-          {!centerImgFailed && (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/chat-center.png" alt="" aria-hidden="true"
-                onError={() => setCenterImgFailed(true)}
-                style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "min(46%, 220px)", opacity: 0.035, pointerEvents: "none", userSelect: "none" }} />
-            </>
-          )}
+          <BannerArt variant="glyphs" tint="#0e3d47" tint2="#b87333" id="chatctr" intensity={0.16} />
           {messages.map((msg) => {
             const isSystem = (msg as Message & { message_type?: string }).message_type === "system";
             if (isSystem) {

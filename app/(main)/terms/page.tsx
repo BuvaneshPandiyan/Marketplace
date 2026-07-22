@@ -27,7 +27,6 @@ export default function TermsPage() {
   return (
     <LegalPage
       theme={theme}
-      bandImage="/images/terms-header.png"
       eyebrow="📜 The rules"
       titleLead="Terms of"
       titleAccent="Service"

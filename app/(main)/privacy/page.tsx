@@ -28,7 +28,6 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       theme={theme}
-      bandImage="/images/privacy-header.png"
       eyebrow="🔒 Your privacy"
       titleLead="Privacy"
       titleAccent="Policy"

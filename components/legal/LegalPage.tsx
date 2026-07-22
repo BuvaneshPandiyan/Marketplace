@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { LegalBandArt } from "@/components/legal/LegalBandArt";
+import { BannerArt } from "@/components/ui/BannerArt";
 
 /**
  * Shared layout for the site's legal / policy pages (Terms, Cookies, Safety,
@@ -51,7 +51,6 @@ export function LegalPage({
   sections,
   theme,
   footerNote,
-  bandImage,
 }: {
   eyebrow: string;
   titleLead: string;
@@ -63,7 +62,6 @@ export function LegalPage({
   theme: LegalTheme;
   footerNote: ReactNode;
   /** optional band background image path, e.g. "/images/privacy-header.png" */
-  bandImage?: string;
 }) {
   return (
     <div className="pp">
@@ -243,7 +241,7 @@ export function LegalPage({
       `}</style>
 
       <div className="pp-band">
-        {bandImage && <LegalBandArt src={bandImage} scrim={theme.band[0]} />}
+        <BannerArt variant="topo" tint={theme.accent} tint2={theme.accentSoft} id={`legal-${theme.eyebrow.replace(/\W+/g, "").toLowerCase()}`} />
         <div className="pp-band-grid" aria-hidden="true" />
         <div className="pp-band-glow" aria-hidden="true" />
         <div className="pp-band-inner">

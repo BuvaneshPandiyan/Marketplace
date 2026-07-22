@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useState } from "react";
+import { BannerArt } from "@/components/ui/BannerArt";
 
 /**
  * Site footer — premium, editorial, restrained.
@@ -23,12 +22,11 @@ import { useState } from "react";
  * the same friendly-but-premium character the brief asks for — so the footer
  * stays cohesive with the rest of the app with zero new asset/network dep.
  *
- * Backgrounds: masked desktop + mobile images with a bgFailed fallback to the
+ * Backgrounds: CSS-drawn aurora art (no image files) layered over the
  * plain gradient. prefers-reduced-motion disables all motion.
  */
 export function Footer() {
   const year = new Date().getFullYear();
-  const [bgFailed, setBgFailed] = useState(false);
 
   const company = [
     { label: "About us", href: "/about" },
@@ -72,22 +70,7 @@ export function Footer() {
           background:
             radial-gradient(120% 60% at 50% -10%, rgba(52,211,153,0.10), transparent 60%);
         }
-
-        /* Background images (masked), fallback to gradient */
-        .bzf-bg { position: absolute; inset: 0; z-index: -1; opacity: 0.28; pointer-events: none; }
-        .bzf-bg-desktop {
-          -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.45) 46%, #000 92%);
-          mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.45) 46%, #000 92%);
-        }
-        .bzf-bg-mobile {
-          -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.45) 42%, #000 90%);
-          mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.45) 42%, #000 90%);
-        }
-        .bzf-bg-mobile { display: block; }
-        .bzf-bg-desktop { display: none; }
         @media(min-width:641px){
-          .bzf-bg-mobile { display: none; }
-          .bzf-bg-desktop { display: block; }
         }
         .bzf-scrim {
           position: absolute; inset: 0; z-index: -1; pointer-events: none;
@@ -284,30 +267,7 @@ export function Footer() {
       `}</style>
 
       {/* Background images + scrim */}
-      {!bgFailed && (
-        <>
-          <div className="bzf-bg bzf-bg-desktop" aria-hidden="true">
-            <Image
-              src="/images/footer-bg.png"
-              alt=""
-              fill
-              sizes="100vw"
-              style={{ objectFit: "cover", objectPosition: "center right" }}
-              onError={() => setBgFailed(true)}
-            />
-          </div>
-          <div className="bzf-bg bzf-bg-mobile" aria-hidden="true">
-            <Image
-              src="/images/footer-bg-mobile.png"
-              alt=""
-              fill
-              sizes="100vw"
-              style={{ objectFit: "cover", objectPosition: "center top" }}
-              onError={() => setBgFailed(true)}
-            />
-          </div>
-        </>
-      )}
+      <BannerArt variant="aurora" tint="#0b5d43" tint2="#34d399" id="footer" intensity={0.5} />
       <div className="bzf-scrim" aria-hidden="true" />
 
       <div className="bzf-inner">

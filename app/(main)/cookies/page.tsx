@@ -27,7 +27,6 @@ export default function CookiesPage() {
   return (
     <LegalPage
       theme={theme}
-      bandImage="/images/cookies-header.png"
       eyebrow="🍪 Cookies"
       titleLead="Cookie"
       titleAccent="Policy"

@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { WishlistBandArt } from "@/components/wishlist/WishlistBandArt";
 import { WishlistCard, type WishlistCardEntry } from "@/components/wishlist/WishlistCard";
+import { BannerArt } from "@/components/ui/BannerArt";
 
 export default async function WishlistPage() {
   const supabase = await createClient();
@@ -194,7 +194,7 @@ export default async function WishlistPage() {
       <div className="mx-auto max-w-[1600px] px-4 md:px-8" style={{ paddingBottom: 40, position: "relative" }}>
         {/* Hero band */}
         <div className="wp-band" aria-hidden="true">
-          <WishlistBandArt />
+          <BannerArt variant="glass" tint="#5eead4" tint2="#0d9488" id="wishlist" />
           <div className="wp-band-grid" />
           <div className="wp-band-glow" />
         </div>

@@ -1,32 +1,13 @@
-"use client";
-
 /**
- * The contact hero's optional artwork.
+ * The contact hero's artwork.
  *
- * Split into its own client component so it can use onError — the contact page is
- * force-static and a pure server component, which can't. If
- * /images/contact-header.png is absent, this hides itself and the hero shows its
- * plain emerald gradient. Same optional-artwork pattern as every other header
- * (WishlistBandArt, the chats/notifications/menu headers).
+ * Now a thin wrapper over the shared CSS art system — no image, no failure
+ * state, nothing to download. Kept as its own component so the contact page
+ * (a force-static server component) keeps a stable import.
  */
 
-import Image from "next/image";
-import { useState } from "react";
+import { BannerArt } from "@/components/ui/BannerArt";
 
 export function ContactHeroArt() {
-  const [failed, setFailed] = useState(false);
-  if (failed) return null;
-  return (
-    <div className="ct-hero-art" aria-hidden="true">
-      <Image
-        src="/images/contact-header.png"
-        alt=""
-        fill
-        sizes="100vw"
-        className="ct-hero-img"
-        style={{ objectFit: "cover" }}
-        onError={() => setFailed(true)}
-      />
-    </div>
-  );
+  return <BannerArt variant="glass" tint="#6ee7b7" tint2="#059669" id="contact" />;
 }

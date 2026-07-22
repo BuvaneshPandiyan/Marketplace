@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AboutBandArt } from "@/components/about/AboutBandArt";
+import { BannerArt } from "@/components/ui/BannerArt";
 
 export const metadata: Metadata = {
   title: "About us — bazar.in",
@@ -193,7 +193,7 @@ export default function AboutPage() {
 
       {/* Band */}
       <div className="ab-band">
-        <AboutBandArt src="/images/about-header.png" />
+        <BannerArt variant="aurora" tint="#b34a63" tint2="#f0a8b4" id="about" />
         <div className="ab-band-grid" aria-hidden="true" />
         <div className="ab-band-glow" aria-hidden="true" />
         <div className="ab-band-inner">
