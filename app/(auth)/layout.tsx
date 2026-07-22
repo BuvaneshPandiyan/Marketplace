@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div style={{ minHeight:"100svh", display:"flex", fontFamily:"inherit" }}>
+    <div style={{ height:"100svh", maxHeight:"100svh", overflow:"hidden", display:"flex", fontFamily:"inherit" }}>
       <style>{`
         /* ── Floating card animations ── */
         @keyframes fl-1 { 0%,100%{transform:translate(0,0) rotate(-3deg)} 50%{transform:translate(10px,-16px) rotate(2deg)} }
@@ -35,7 +35,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
         @media(max-width:768px){
           .auth-left  { display:none !important; }
-          .auth-right { padding:24px 16px !important; padding-top:48px !important; }
+          .auth-right { padding:20px 16px !important; }
           /* Mobile no longer gets a flat empty background — it gets its own
              burgundy ambience so the page feels designed, not blank. */
           .auth-right {
@@ -46,6 +46,29 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           }
           .auth-mobile-brand { display:flex !important; }
         }
+
+        /* The auth surface is ONE fixed screen: nothing scrolls, nothing
+           rubber-bands, and no scrollbar is ever drawn. Short viewports are
+           handled by compressing the layout below, not by scrolling. */
+        .auth-right {
+          overflow: hidden; overscroll-behavior: none;
+          scrollbar-width: none; -ms-overflow-style: none;
+        }
+        .auth-right::-webkit-scrollbar { display: none; }
+        /* Short viewports (small phones, or a phone with the keyboard open):
+           tighten every vertical gap so the form still fits one screen. */
+        @media (max-height: 760px) {
+          .auth-mobile-brand { margin-bottom: 12px !important; gap: 2px !important; }
+          .auth-mb-mark { width: 46px !important; height: 46px !important; font-size: 22px !important; }
+          .auth-mb-name { font-size: 20px !important; }
+          .auth-card { padding: 20px 18px !important; }
+        }
+        @media (max-height: 640px) {
+          .auth-mobile-brand { display: none !important; }
+          .auth-card { padding: 16px 16px !important; }
+          .auth-right { padding: 12px 14px !important; }
+        }
+        .auth-right::-webkit-scrollbar { display: none; }
 
         /* ── Ambient burgundy orbs behind the form (all screens) ── */
         .auth-amb {
@@ -225,7 +248,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         flex:1, display:"flex", flexDirection:"column",
         alignItems:"center", justifyContent:"center",
         padding:"40px 28px", background:"#fbf7f8",
-        overflowY:"auto", minHeight:"100svh",
+        overflow:"hidden", height:"100%", overscrollBehavior:"none",
         position:"relative",
       }}>
         {/* Ambient burgundy / champagne glow behind the form */}
