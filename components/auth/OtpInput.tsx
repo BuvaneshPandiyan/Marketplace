@@ -95,7 +95,7 @@ export function OtpInput({ length, onChange }: OtpInputProps) {
           // Handle pasting a full code into any box
           onPaste={handlePaste}
           // Style each box as a square-ish, centered, large-text cell
-          className="h-12 w-12 rounded-lg border border-neutral-300 text-center text-lg font-semibold focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+          className="h-12 w-12 rounded-lg border border-neutral-300 text-center text-lg font-semibold focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
         />
       ))}
     </div>

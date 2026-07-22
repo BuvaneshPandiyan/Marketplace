@@ -1,8 +1,6 @@
 // Mark this as a Client Component since it's part of the interactive wizard
 "use client";
 
-// Import the reusable manual location search component
-import { LocationSearchInput } from "@/components/location/LocationSearchInput";
 // Import the shared location shape
 import type { StoredLocation } from "@/lib/client/locationStorage";
 
@@ -10,8 +8,9 @@ import type { StoredLocation } from "@/lib/client/locationStorage";
 type LocationStepProps = {
   // The currently selected locality name for this listing
   locality: string | null;
-  // A callback fired when the seller picks a different location
-  onLocationChange: (location: StoredLocation) => void;
+  // Kept for API compatibility with SellWizard; no longer used for a manual
+  // override — the exact captured location is what gets listed.
+  onLocationChange?: (location: StoredLocation) => void;
   // A callback fired when the seller submits the whole listing
   onSubmit: () => void;
   // A callback fired when the seller wants to go back to the previous step
@@ -23,24 +22,22 @@ type LocationStepProps = {
 };
 
 // Define and export the LocationStep component
-export function LocationStep({ locality, onLocationChange, onSubmit, onBack, isSubmitting, submitError }: LocationStepProps) {
+export function LocationStep({ locality, onSubmit, onBack, isSubmitting, submitError }: LocationStepProps) {
   // Render the location confirmation step
   return (
-    // A vertical stack containing the heading, current location, search box, and submit button
+    // A vertical stack containing the heading, current location, and submit button
     <div className="space-y-4">
       {/* Heading for this step */}
       <h2 className="text-2xl font-black tracking-tight text-neutral-900">Where&apos;s it <span className="text-cyan-600">at?</span></h2>
-      <p className="mb-4 mt-1 text-sm font-medium text-neutral-500">Nearby buyers discover your listing first.</p>
+      <p className="mb-4 mt-1 text-sm font-medium text-neutral-500">
+        Your item is listed at your exact current location, so nearby buyers find it first.
+      </p>
 
-      {/* Show the currently selected locality, pre-filled from the seller's active browsing location */}
-      <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-700">
-        <span aria-hidden="true">📍</span> {locality ?? "No location set"}
-      </div>
-
-      {/* Let the seller search for and pick a different location if this listing is elsewhere */}
-      <div>
-        <label className="mb-1 block text-sm font-medium text-neutral-700">Not quite right? Search for another area</label>
-        <LocationSearchInput onSelect={onLocationChange} placeholder="Search for a different area..." />
+      {/* The captured location, used exactly as-is. There is deliberately no manual
+          override here: letting sellers pick a different area would break the
+          photo/location match that the anti-scam checks depend on. */}
+      <div className="rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-3 text-sm font-semibold text-neutral-800">
+        <span aria-hidden="true">📍</span> {locality ?? "Detecting your location..."}
       </div>
 
       {/* Show any error from a failed submit attempt */}

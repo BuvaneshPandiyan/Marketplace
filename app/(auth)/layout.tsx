@@ -36,11 +36,89 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         @media(max-width:768px){
           .auth-left  { display:none !important; }
           .auth-right { padding:24px 16px !important; padding-top:48px !important; }
+          /* Mobile no longer gets a flat empty background — it gets its own
+             burgundy ambience so the page feels designed, not blank. */
+          .auth-right {
+            background:
+              radial-gradient(900px 420px at 100% -8%, rgba(122,31,61,0.16), transparent 62%),
+              radial-gradient(700px 380px at -10% 106%, rgba(212,175,106,0.13), transparent 58%),
+              linear-gradient(180deg, #fbf7f8 0%, #f6eef0 100%) !important;
+          }
+          .auth-mobile-brand { display:flex !important; }
         }
+
+        /* ── Ambient burgundy orbs behind the form (all screens) ── */
+        .auth-amb {
+          position:absolute; border-radius:50%; pointer-events:none; filter:blur(46px);
+          animation:auth-drift 14s ease-in-out infinite;
+        }
+        @keyframes auth-drift {
+          0%,100%{ transform:translate(0,0) scale(1); opacity:0.55; }
+          50%    { transform:translate(16px,-22px) scale(1.12); opacity:0.8; }
+        }
+
+        /* ── The form card: glowing burgundy border, fades up on load ── */
+        .auth-card {
+          position:relative; width:100%; max-width:400px;
+          background:rgba(255,255,255,0.86);
+          -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+          border:1.5px solid rgba(122,31,61,0.14);
+          border-radius:24px; padding:26px 22px;
+          box-shadow:
+            0 18px 60px rgba(61,10,32,0.14),
+            0 2px 8px rgba(61,10,32,0.06),
+            inset 0 1px 0 rgba(255,255,255,0.85);
+          animation:auth-card-rise 560ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes auth-card-rise { from{opacity:0; transform:translateY(22px) scale(0.98);} to{opacity:1; transform:none;} }
+        /* A soft champagne-gold halo breathing around the card */
+        .auth-card::before {
+          content:''; position:absolute; inset:-1.5px; border-radius:24px; z-index:-1;
+          background:linear-gradient(135deg, rgba(212,175,106,0.5), rgba(122,31,61,0.35), rgba(212,175,106,0.5));
+          background-size:220% 220%;
+          animation:auth-halo 7s ease infinite;
+          filter:blur(7px); opacity:0.55;
+        }
+        @keyframes auth-halo { 0%,100%{background-position:0% 50%; opacity:0.4;} 50%{background-position:100% 50%; opacity:0.75;} }
+
+        /* ── Inputs inside the auth card: burgundy focus glow ── */
+        .auth-card input:not([type="checkbox"]):not([type="radio"]),
+        .auth-card select, .auth-card textarea {
+          transition:border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
+        }
+        .auth-card input:not([type="checkbox"]):not([type="radio"]):focus,
+        .auth-card select:focus, .auth-card textarea:focus {
+          border-color:#7a1f3d !important;
+          box-shadow:0 0 0 4px rgba(122,31,61,0.13) !important;
+          outline:none !important;
+        }
+
+        /* ── Mobile brand lockup above the card ── */
+        .auth-mobile-brand {
+          display:none; flex-direction:column; align-items:center; gap:6px;
+          margin-bottom:20px; text-align:center;
+          animation:auth-card-rise 520ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+        .auth-mb-mark {
+          width:56px; height:56px; border-radius:18px; display:flex;
+          align-items:center; justify-content:center; font-size:27px;
+          background:linear-gradient(135deg,#5c1330,#9c3050);
+          box-shadow:0 10px 28px rgba(92,19,48,0.34), inset 0 1px 0 rgba(255,255,255,0.2);
+          animation:auth-mark-pulse 3.4s ease-in-out infinite;
+        }
+        @keyframes auth-mark-pulse {
+          0%,100%{ box-shadow:0 10px 28px rgba(92,19,48,0.34), 0 0 0 0 rgba(212,175,106,0.45), inset 0 1px 0 rgba(255,255,255,0.2); }
+          50%    { box-shadow:0 10px 28px rgba(92,19,48,0.34), 0 0 0 12px rgba(212,175,106,0), inset 0 1px 0 rgba(255,255,255,0.2); }
+        }
+        .auth-mb-name { font-size:23px; font-weight:900; letter-spacing:-0.04em; color:#3d0a20; margin:2px 0 0; }
+        .auth-mb-tag  { font-size:12.5px; font-weight:600; color:#8a6b74; margin:0; }
+
         @media(prefers-reduced-motion:reduce){
           .auth-card-1,.auth-card-2,.auth-card-3,.auth-card-4,
           .auth-card-5,.auth-card-6,.auth-card-7,.auth-card-8,
-          .auth-orb,.auth-form,.auth-badge { animation:none!important; }
+          .auth-orb,.auth-form,.auth-badge,
+          .auth-amb,.auth-card,.auth-card::before,
+          .auth-mobile-brand,.auth-mb-mark { animation:none!important; }
         }
       `}</style>
 
@@ -49,7 +127,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       ═══════════════════════════════════════════════════════ */}
       <div className="auth-left" style={{
         flex:"0 0 52%", position:"relative", overflow:"hidden",
-        background:"linear-gradient(160deg, #0f0700 0%, #5a1500 30%, #c43a00 65%, #ea580c 85%, #f97316 100%)",
+        background:"linear-gradient(160deg, #14040d 0%, #3d0a20 30%, #5c1330 65%, #7a1f3d 85%, #9c3050 100%)",
         backgroundSize:"200% 200%",
         animation:"shimmer-bg 12s ease infinite",
         display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
@@ -77,7 +155,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         {/* ── Floating listing cards ── */}
         {[
           { icon:"📱", label:"iPhone 14 Pro",     price:"₹68,000",    tag:"Like New",   top:"7%",    left:"4%",   cls:"auth-card-1", color:"#3b82f6" },
-          { icon:"🚗", label:"Maruti Swift",       price:"₹4,20,000",  tag:"2022",       top:"12%",   right:"4%",  cls:"auth-card-2", color:"#ea580c" },
+          { icon:"🚗", label:"Maruti Swift",       price:"₹4,20,000",  tag:"2022",       top:"12%",   right:"4%",  cls:"auth-card-2", color:"#d4af6a" },
           { icon:"🏠", label:"2BHK Apartment",     price:"₹18k/mo",   tag:"Furnished",  top:"38%",   left:"2%",   cls:"auth-card-3", color:"#10b981" },
           { icon:"💻", label:"MacBook Air M2",     price:"₹82,000",    tag:"Good Cond.", bottom:"34%",right:"4%",  cls:"auth-card-4", color:"#64748b" },
           { icon:"📷", label:"Sony Alpha A7III",   price:"₹1,30,000",  tag:"With Lens",  top:"6%",    left:"42%",  cls:"auth-card-5", color:"#a855f7" },
@@ -146,12 +224,23 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <div className="auth-right" style={{
         flex:1, display:"flex", flexDirection:"column",
         alignItems:"center", justifyContent:"center",
-        padding:"40px 28px", background:"#f9f8f6",
+        padding:"40px 28px", background:"#fbf7f8",
         overflowY:"auto", minHeight:"100svh",
+        position:"relative",
       }}>
-        {/* Logo on mobile (left side is hidden) */}
-        <div style={{ width:"100%", maxWidth:400, marginBottom:0 }}>
-          <div className="auth-form" style={{ width:"100%", maxWidth:400 }}>
+        {/* Ambient burgundy / champagne glow behind the form */}
+        <div className="auth-amb" aria-hidden="true" style={{ width:320, height:320, top:"-6%", right:"-12%", background:"rgba(122,31,61,0.20)" }} />
+        <div className="auth-amb" aria-hidden="true" style={{ width:260, height:260, bottom:"-8%", left:"-10%", background:"rgba(212,175,106,0.22)", animationDelay:"3s" }} />
+
+        <div style={{ width:"100%", maxWidth:400, position:"relative", zIndex:1 }}>
+          {/* Brand lockup — only shows on mobile, where the left panel is hidden */}
+          <div className="auth-mobile-brand">
+            <span className="auth-mb-mark" aria-hidden="true">🛍️</span>
+            <p className="auth-mb-name">bazar.in</p>
+            <p className="auth-mb-tag">Buy &amp; sell anything locally.</p>
+          </div>
+
+          <div className="auth-card auth-form">
             {children}
           </div>
         </div>

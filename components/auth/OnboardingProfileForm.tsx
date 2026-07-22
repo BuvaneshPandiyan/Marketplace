@@ -158,7 +158,7 @@ export function OnboardingProfileForm() {
         {/* A centered circular photo picker/preview */}
         <div className="mb-4 flex justify-center">
           {/* The clickable label wraps a hidden file input, styled to look like an avatar circle */}
-          <label className="relative h-20 w-20 cursor-pointer overflow-hidden rounded-full border-2 border-dashed border-neutral-300 bg-neutral-50 hover:border-orange-400">
+          <label className="relative h-20 w-20 cursor-pointer overflow-hidden rounded-full border-2 border-dashed border-neutral-300 bg-neutral-50 hover:border-rose-400">
             {/* Show the chosen photo preview if one exists, otherwise show a placeholder icon */}
             {photoPreviewUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- a local blob preview URL doesn't work with next/image
@@ -194,7 +194,7 @@ export function OnboardingProfileForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., Priya Sharma"
-          className="mb-4 w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+          className="mb-4 w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
         />
 
         {/* Conditionally render an error message if one exists */}
@@ -204,7 +204,7 @@ export function OnboardingProfileForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-lg bg-orange-600 py-2.5 text-sm font-medium text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-lg bg-rose-900 py-2.5 text-sm font-medium text-white transition hover:bg-rose-950 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {/* Swap the label depending on whether we're currently saving */}
           {isSubmitting ? "Saving..." : "Continue"}

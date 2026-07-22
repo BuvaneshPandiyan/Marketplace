@@ -181,9 +181,9 @@ export function SignupFlow() {
   // ── OTP Step ────────────────────────────────────────────────────────────
   if (step === "otp") return (
     <div>
-      <style>{`.auth-inp:focus{border-color:#ea580c!important;box-shadow:0 0 0 3px rgba(234,88,12,0.10)}`}</style>
+      <style>{`.auth-inp:focus{border-color:#7a1f3d!important;box-shadow:0 0 0 3px rgba(122,31,61,0.10)}`}</style>
       <div style={{ textAlign:"center", marginBottom:28 }}>
-        <div style={{ width:56, height:56, borderRadius:"50%", background:"linear-gradient(135deg,#ea580c,#f97316)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, margin:"0 auto 16px" }}>
+        <div style={{ width:56, height:56, borderRadius:"50%", background:"linear-gradient(135deg,#7a1f3d,#9c3050)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, margin:"0 auto 16px" }}>
           📱
         </div>
         <h2 style={{ fontSize:24, fontWeight:800, color:"#111", margin:"0 0 6px", letterSpacing:"-0.02em" }}>Verify your number</h2>
@@ -204,7 +204,7 @@ export function SignupFlow() {
           ← Go back
         </button>
         <button type="button" disabled={cooldown>0||isSubmitting}
-          style={{ background:"none", border:"none", color:cooldown>0?"#9ca3af":"#ea580c", fontWeight:600, cursor:cooldown>0?"not-allowed":"pointer" }}
+          style={{ background:"none", border:"none", color:cooldown>0?"#9ca3af":"#7a1f3d", fontWeight:600, cursor:cooldown>0?"not-allowed":"pointer" }}
           onClick={sendOtp}>
           {cooldown>0 ? `Resend in ${cooldown}s` : "Resend OTP"}
         </button>
@@ -216,7 +216,7 @@ export function SignupFlow() {
   return (
     <div>
       <style>{`
-        .auth-inp:focus{border-color:#ea580c!important;box-shadow:0 0 0 3px rgba(234,88,12,0.10)}
+        .auth-inp:focus{border-color:#7a1f3d!important;box-shadow:0 0 0 3px rgba(122,31,61,0.10)}
         .auth-inp{transition:border-color 150ms ease}
       `}</style>
 
@@ -225,7 +225,7 @@ export function SignupFlow() {
         <h1 style={{ fontSize:28, fontWeight:900, color:"#111", margin:"0 0 6px", letterSpacing:"-0.03em" }}>Create account</h1>
         <p style={{ fontSize:14, color:"#6b7280", margin:0 }}>
           Already have one?{" "}
-          <Link href="/login" style={{ color:"#ea580c", fontWeight:700, textDecoration:"none" }}>Sign in</Link>
+          <Link href="/login" style={{ color:"#7a1f3d", fontWeight:700, textDecoration:"none" }}>Sign in</Link>
         </p>
       </div>
 
@@ -244,7 +244,7 @@ export function SignupFlow() {
           </div>
           <div>
             <p style={{ fontSize:13, fontWeight:600, color:"#374151", margin:"0 0 2px" }}>Profile photo</p>
-            <button type="button" style={{ fontSize:12, color:"#ea580c", fontWeight:600, background:"none", border:"none", cursor:"pointer", padding:0 }}
+            <button type="button" style={{ fontSize:12, color:"#7a1f3d", fontWeight:600, background:"none", border:"none", cursor:"pointer", padding:0 }}
               onClick={() => fileRef.current?.click()}>
               {photoPreview ? "Change photo" : "Upload photo (optional)"}
             </button>
@@ -318,7 +318,7 @@ export function SignupFlow() {
           <div>
             <p style={{ color:"#dc2626", fontSize:13, margin:0 }}>{error}</p>
             {error.includes("already has an account") && (
-              <Link href="/login" style={{ fontSize:13, color:"#ea580c", fontWeight:700, textDecoration:"none", display:"inline-block", marginTop:6 }}>
+              <Link href="/login" style={{ fontSize:13, color:"#7a1f3d", fontWeight:700, textDecoration:"none", display:"inline-block", marginTop:6 }}>
                 → Sign in to your account
               </Link>
             )}
@@ -326,7 +326,7 @@ export function SignupFlow() {
         )}
 
         <button type="submit" disabled={isSubmitting || !!usernameErr}
-          style={{ width:"100%", padding:"13px", borderRadius:10, background:"linear-gradient(135deg,#ea580c,#f97316)", color:"white", border:"none", fontSize:14, fontWeight:700, cursor:"pointer", opacity: isSubmitting||!!usernameErr ? 0.7:1 }}>
+          style={{ width:"100%", padding:"13px", borderRadius:10, background:"linear-gradient(135deg,#7a1f3d,#9c3050)", color:"white", border:"none", fontSize:14, fontWeight:700, cursor:"pointer", opacity: isSubmitting||!!usernameErr ? 0.7:1 }}>
           {isSubmitting ? "Sending OTP..." : "Create Account →"}
         </button>
 

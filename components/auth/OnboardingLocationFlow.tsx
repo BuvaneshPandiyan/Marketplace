@@ -137,7 +137,7 @@ export function OnboardingLocationFlow() {
       {/* Heading for this screen */}
       <h1 className="mb-2 text-lg font-semibold text-neutral-900">Where are you located?</h1>
       {/* Show the reason we fell back to manual entry, if we have one */}
-      {errorMessage && <p className="mb-3 text-sm text-amber-600">{errorMessage}</p>}
+      {errorMessage && <p className="mb-3 text-sm text-rose-900">{errorMessage}</p>}
       {/* General instructions for the manual search box */}
       <p className="mb-4 text-sm text-neutral-500">Search for your area so we can show you nearby listings.</p>
       {/* The reusable debounced search input, wired to save+continue on selection */}

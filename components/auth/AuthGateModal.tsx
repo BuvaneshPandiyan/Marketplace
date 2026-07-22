@@ -149,7 +149,7 @@ export function AuthGateModal({ isOpen, onClose, action = "continue" }: Props) {
         /* ── GRADIENT HEAD ────────────────────────────────────────── */
         .ag-head {
           position: relative;
-          background: linear-gradient(135deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%);
+          background: linear-gradient(135deg, #6e3b39 0%, #a9645c 45%, #e0a48f 100%);
           padding: 22px 24px 26px;
           text-align: center;
         }
@@ -173,8 +173,8 @@ export function AuthGateModal({ isOpen, onClose, action = "continue" }: Props) {
           width: 62px; height: 62px; border-radius: 50%;
           background: #fff;
           display: flex; align-items: center; justify-content: center;
-          color: #ea580c;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+          color: #b76e63;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.18);
           animation: ag-pop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) 120ms both;
         }
         /* Two halo rings ping outward once the lock lands */
@@ -210,20 +210,20 @@ export function AuthGateModal({ isOpen, onClose, action = "continue" }: Props) {
         /* ── PERKS ────────────────────────────────────────────────── */
         .ag-perks {
           list-style: none; margin: 0 0 20px; padding: 14px 15px;
-          background: #fff7ed; border: 1.5px solid #fed7aa;
+          background: #fdf4f1; border: 1.5px solid #f0d5cc;
           border-radius: 16px;
           display: flex; flex-direction: column; gap: 10px;
         }
         .ag-perk {
           display: flex; align-items: center; gap: 10px;
-          font-size: 13px; font-weight: 600; color: #9a3412;
+          font-size: 13px; font-weight: 600; color: #7d4a45;
         }
         .ag-perk-dot {
           width: 24px; height: 24px; border-radius: 8px; flex-shrink: 0;
-          background: linear-gradient(135deg, #ea580c, #f97316);
+          background: linear-gradient(135deg, #b76e63, #e8b4a0);
           color: #fff;
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 2px 8px rgba(234,88,12,0.3);
+          box-shadow: 0 2px 8px rgba(183,110,99,0.3);
         }
 
         /* ── CTAs ─────────────────────────────────────────────────── */
@@ -237,9 +237,9 @@ export function AuthGateModal({ isOpen, onClose, action = "continue" }: Props) {
         .ag-btn:focus-visible { outline: 3px solid #1a1a1a; outline-offset: 2px; }
         .ag-primary {
           position: relative; overflow: hidden; border: none;
-          background: linear-gradient(135deg, #ea580c, #f97316);
+          background: linear-gradient(135deg, #a9645c, #cf8b7a 55%, #e8b4a0);
           color: #fff;
-          box-shadow: 0 6px 20px rgba(234,88,12,0.42);
+          box-shadow: 0 6px 20px rgba(169,100,92,0.42);
           transition: transform 240ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 240ms ease;
         }
         /* Light sweeps across the primary CTA on hover */
@@ -255,9 +255,9 @@ export function AuthGateModal({ isOpen, onClose, action = "continue" }: Props) {
                       border-color 200ms ease, color 200ms ease, background 200ms ease;
         }
         @media (hover: hover) {
-          .ag-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(234,88,12,0.55); }
+          .ag-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(169,100,92,0.55); }
           .ag-primary:hover::after { animation: ag-shine 750ms ease both; }
-          .ag-secondary:hover { border-color: #ea580c; color: #ea580c; background: #fff7ed; transform: translateY(-2px); }
+          .ag-secondary:hover { border-color: #cf8b7a; color: #a9645c; background: #fdf4f1; transform: translateY(-2px); }
         }
         .ag-btn:active { transform: scale(0.97); }
 

@@ -23,7 +23,7 @@ export function CountryCodeSelect({ value, onChange }: CountryCodeSelectProps) {
       // Notify the parent whenever the selection changes
       onChange={(e) => onChange(e.target.value)}
       // Style the select to look like the left half of a combined input group
-      className="rounded-l-lg border border-r-0 border-neutral-300 bg-neutral-50 px-2 py-2.5 text-sm focus:border-orange-500 focus:outline-none"
+      className="rounded-l-lg border border-r-0 border-neutral-300 bg-neutral-50 px-2 py-2.5 text-sm focus:border-rose-800 focus:outline-none"
     >
       {/* Loop over every available country code and render it as an option */}
       {COUNTRY_CODES.map((country) => (

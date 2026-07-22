@@ -67,11 +67,11 @@ export function SetPasswordForm() {
   // ── Form ─────────────────────────────────────────────────────────────────
   return (
     <div>
-      <style>{`.sp-inp:focus{border-color:#ea580c!important;box-shadow:0 0 0 3px rgba(234,88,12,0.10)}`}</style>
+      <style>{`.sp-inp:focus{border-color:#7a1f3d!important;box-shadow:0 0 0 3px rgba(122,31,61,0.10)}`}</style>
 
       {/* Header */}
       <div style={{ marginBottom:28 }}>
-        <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#ea580c,#f97316)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, marginBottom:16, boxShadow:"0 6px 20px rgba(234,88,12,0.30)" }}>
+        <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#7a1f3d,#9c3050)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, marginBottom:16, boxShadow:"0 6px 20px rgba(122,31,61,0.30)" }}>
           🔐
         </div>
         <h1 style={{ fontSize:26, fontWeight:900, color:"#111", margin:"0 0 8px", letterSpacing:"-0.03em" }}>
@@ -136,7 +136,7 @@ export function SetPasswordForm() {
         )}
 
         <button type="submit" disabled={submitting || !password || !confirm}
-          style={{ width:"100%", padding:"13px", borderRadius:10, background:"linear-gradient(135deg,#ea580c,#f97316)", color:"white", border:"none", fontSize:14, fontWeight:700, cursor:"pointer", transition:"opacity 150ms ease, transform 150ms ease", opacity: submitting || !password || !confirm ? 0.65 : 1 }}>
+          style={{ width:"100%", padding:"13px", borderRadius:10, background:"linear-gradient(135deg,#7a1f3d,#9c3050)", color:"white", border:"none", fontSize:14, fontWeight:700, cursor:"pointer", transition:"opacity 150ms ease, transform 150ms ease", opacity: submitting || !password || !confirm ? 0.65 : 1 }}>
           {submitting ? "Setting password..." : "Set Password & Continue →"}
         </button>
 

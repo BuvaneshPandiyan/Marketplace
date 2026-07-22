@@ -167,7 +167,7 @@ export function LoginFlow() {
   // ── OTP screen ─────────────────────────────────────────────────────────
   if (step === "otp") return (
     <div>
-      <style>{`.auth-inp:focus{border-color:#ea580c!important;box-shadow:0 0 0 3px rgba(234,88,12,0.10)}`}</style>
+      <style>{`.auth-inp:focus{border-color:#7a1f3d!important;box-shadow:0 0 0 3px rgba(122,31,61,0.10)}`}</style>
       <div style={{ marginBottom:24 }}>
         <h2 style={{ fontSize:24, fontWeight:800, color:"#111", margin:"0 0 6px", letterSpacing:"-0.02em" }}>Enter the code</h2>
         <p style={{ fontSize:14, color:"#6b7280", margin:0 }}>Sent to {toE164(countryCode, localNumber)}</p>
@@ -183,7 +183,7 @@ export function LoginFlow() {
           ← Change number
         </button>
         <button type="button" disabled={cooldown>0||isSubmitting}
-          style={{ background:"none", border:"none", color:cooldown>0?"#9ca3af":"#ea580c", cursor:cooldown>0?"not-allowed":"pointer", fontWeight:600, fontSize:13 }}
+          style={{ background:"none", border:"none", color:cooldown>0?"#9ca3af":"#7a1f3d", cursor:cooldown>0?"not-allowed":"pointer", fontWeight:600, fontSize:13 }}
           onClick={sendOtp}>
           {cooldown>0 ? `Resend in ${cooldown}s` : "Resend OTP"}
         </button>
@@ -195,12 +195,12 @@ export function LoginFlow() {
   return (
     <div>
       <style>{`
-        .auth-inp:focus{border-color:#ea580c!important;box-shadow:0 0 0 3px rgba(234,88,12,0.10)}
+        .auth-inp:focus{border-color:#7a1f3d!important;box-shadow:0 0 0 3px rgba(122,31,61,0.10)}
         .auth-tab{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all 180ms ease;flex:1;text-align:center;}
-        .auth-tab-on{background:#ea580c;color:white;box-shadow:0 4px 14px rgba(234,88,12,0.35)}
+        .auth-tab-on{background:#7a1f3d;color:white;box-shadow:0 4px 14px rgba(122,31,61,0.35)}
         .auth-tab-off{background:transparent;color:#6b7280}
-        .auth-tab-off:hover{color:#ea580c}
-        .auth-btn-primary{width:100%;padding:13px;border-radius:10px;background:linear-gradient(135deg,#ea580c,#f97316);color:white;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:opacity 150ms ease,transform 150ms ease;letter-spacing:-0.01em}
+        .auth-tab-off:hover{color:#7a1f3d}
+        .auth-btn-primary{width:100%;padding:13px;border-radius:10px;background:linear-gradient(135deg,#7a1f3d,#9c3050);color:white;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:opacity 150ms ease,transform 150ms ease;letter-spacing:-0.01em}
         .auth-btn-primary:hover:not(:disabled){opacity:0.92;transform:translateY(-1px)}
         .auth-btn-primary:active{transform:scale(0.98)}
         .auth-btn-primary:disabled{opacity:0.65;cursor:not-allowed}
@@ -208,7 +208,7 @@ export function LoginFlow() {
 
       {/* Bazar logo on mobile (left panel hidden) */}
       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:28 }}>
-        <div style={{ width:40, height:40, borderRadius:12, background:"linear-gradient(135deg,#ea580c,#f97316)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, boxShadow:"0 4px 14px rgba(234,88,12,0.3)" }}>
+        <div style={{ width:40, height:40, borderRadius:12, background:"linear-gradient(135deg,#7a1f3d,#9c3050)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, boxShadow:"0 4px 14px rgba(122,31,61,0.3)" }}>
           🛍️
         </div>
         <div>
@@ -219,7 +219,7 @@ export function LoginFlow() {
 
       <p style={{ fontSize:13, color:"#6b7280", margin:"0 0 20px" }}>
         New to bazar.in?{" "}
-        <Link href="/signup" style={{ color:"#ea580c", fontWeight:700, textDecoration:"none" }}>Create a free account</Link>
+        <Link href="/signup" style={{ color:"#7a1f3d", fontWeight:700, textDecoration:"none" }}>Create a free account</Link>
       </p>
 
       {/* Mode toggle */}
@@ -267,7 +267,7 @@ export function LoginFlow() {
             {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
           <button type="button"
-            style={{ background:"none", border:"none", color:"#ea580c", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"center" }}
+            style={{ background:"none", border:"none", color:"#7a1f3d", fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"center" }}
             onClick={() => setMode("otp")}>
             Forgot password? Use OTP instead →
           </button>
@@ -290,11 +290,11 @@ export function LoginFlow() {
           </div>
           {error && <p style={{ color:"#dc2626", fontSize:13, margin:0 }}>{error}</p>}
           {showSignupHint && (
-            <div style={{ background:"rgba(234,88,12,0.05)", border:"1.5px solid rgba(234,88,12,0.2)", borderRadius:10, padding:"12px 14px" }}>
+            <div style={{ background:"rgba(122,31,61,0.05)", border:"1.5px solid rgba(122,31,61,0.2)", borderRadius:10, padding:"12px 14px" }}>
               <p style={{ fontSize:13, color:"#92400e", margin:"0 0 8px", fontWeight:600 }}>
                 This number isn&apos;t registered yet.
               </p>
-              <Link href="/signup" style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:8, background:"linear-gradient(135deg,#ea580c,#f97316)", color:"white", fontWeight:700, fontSize:13, textDecoration:"none" }}>
+              <Link href="/signup" style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:8, background:"linear-gradient(135deg,#7a1f3d,#9c3050)", color:"white", fontWeight:700, fontSize:13, textDecoration:"none" }}>
                 Create a free account →
               </Link>
             </div>
