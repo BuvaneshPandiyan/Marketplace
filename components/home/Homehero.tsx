@@ -3,7 +3,7 @@
 /**
  * Homepage hero.
  *
- * Same visual language as the Contact page banner — the dark→orange sweep, the
+ * Same visual language as the Contact page banner — a dark jewel-tone sweep, the
  * faint grid, the corner bloom, heavy tight type — so the two read as one brand
  * rather than two designers.
  *
@@ -158,15 +158,15 @@ export function HomeHero() {
           min-width: 100%;
           position: relative;
           overflow: hidden;
-          background: var(--brand-hero);
+          background: linear-gradient(135deg, #2a0a2e 0%, #5b1a5e 45%, #9333a8 100%);
           /* Mobile is deliberately tight: headline + buttons and nothing else. */
           padding: 22px 0 40px;
           text-decoration: none;
           display: flex;
           align-items: center;
         }
-        @media (min-width: 640px)  { .hh-slide { padding: 48px 0 60px; } }
-        @media (min-width: 1024px) { .hh-slide { padding: 68px 0 82px; } }
+        @media (min-width: 640px)  { .hh-slide { padding: 32px 0 44px; } }
+        @media (min-width: 1024px) { .hh-slide { padding: 42px 0 56px; } }
 
         .hh-grid {
           position: absolute; inset: 0; pointer-events: none;
@@ -246,9 +246,7 @@ export function HomeHero() {
         /* Title reuses .hh-h1 sizing verbatim; just neutralise the em-only accent bits */
         .hh-promo-title em { color: inherit; }
         .hh-promo-title::after { content: none; }
-        /* Secondary ghost button + trust row only earn their space on bigger screens */
-        .hh-promo-secondary { display: none; }
-        @media (min-width: 640px) { .hh-promo-secondary { display: inline-flex; } }
+        /* Trust row only earns its space on bigger screens */
         .hh-promo-trust { display: none; }
         @media (min-width: 640px) {
           .hh-promo-trust {
@@ -419,7 +417,7 @@ export function HomeHero() {
         .hh-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
         .hh-btn-primary {
           position: relative; overflow: hidden;
-          background: #fff; color: var(--brand);
+          background: #fff; color: #7e22ce;
           /* A slow halo, so the primary action keeps a pulse of its own once the
              entrance animations have all settled */
           animation: bz-rise 480ms var(--spring) 540ms both,
@@ -749,11 +747,10 @@ export function HomeHero() {
                   <h2 className="hh-h1 hh-promo-title">{slide.title}</h2>
                   <p className="hh-sub hh-promo-sub">{slide.subtitle}</p>
                   <div className="hh-ctas">
-                    <Link href={slide.href} className="hh-btn hh-btn-primary" tabIndex={active ? 0 : -1} style={{ color: theme.accent }}>
+                    <Link href={slide.href} className="hh-btn hh-btn-primary" tabIndex={active ? 0 : -1}>
                       {slide.cta}
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                     </Link>
-                    <Link href="/" className="hh-btn hh-btn-ghost hh-promo-secondary" tabIndex={active ? 0 : -1}>Browse all</Link>
                   </div>
                   <ul className="hh-trust hh-promo-trust">
                     <li>✓ 100% free to list</li>

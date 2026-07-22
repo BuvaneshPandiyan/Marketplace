@@ -41,26 +41,30 @@ export type PromoSlide = {
 };
 
 /** Gradients per theme. Orange stays the hero; the others are supporting slots. */
-export const PROMO_THEMES: Record<PromoTheme, { bg: string; glow: string; accent: string }> = {
+export const PROMO_THEMES: Record<PromoTheme, { bg: string; glow: string; accent: string; deep: string }> = {
   ember: {
-    bg: "linear-gradient(115deg, #1a0a00 0%, #7c2000 45%, #ea580c 100%)",
-    glow: "rgba(249,115,22,0.5)",
-    accent: "#fdba74",
+    bg: "linear-gradient(115deg, #3d0714 0%, #8b0e2a 45%, #cf1338 100%)",
+    glow: "rgba(244,63,94,0.45)",
+    accent: "#ff9db0",
+    deep: "#cf1338",
   },
   midnight: {
     bg: "linear-gradient(115deg, #0b1020 0%, #1e2a55 48%, #3b5bdb 100%)",
     glow: "rgba(96,132,255,0.45)",
     accent: "#a5c0ff",
+    deep: "#3b5bdb",
   },
   mint: {
     bg: "linear-gradient(115deg, #04231a 0%, #0b5f43 48%, #10b981 100%)",
     glow: "rgba(16,185,129,0.45)",
     accent: "#8ee9c8",
+    deep: "#059669",
   },
   grape: {
     bg: "linear-gradient(115deg, #1b0a26 0%, #4c1d70 48%, #9333ea 100%)",
     glow: "rgba(168,85,247,0.45)",
     accent: "#dcb4ff",
+    deep: "#9333ea",
   },
 };
 
