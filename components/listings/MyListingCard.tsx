@@ -568,11 +568,13 @@ export function MyListingCard({ listing, index = 0, layout = "grid" }: Props) {
               </button>
               {menuOpen && (
                 <div className="mlc-menu" role="menu">
-                  <button type="button" className="mlc-item" role="menuitem" disabled={isUpdating}
+                  {!isSold && (
+                    <button type="button" className="mlc-item" role="menuitem" disabled={isUpdating}
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenuOpen(false); setIsEditOpen(true); }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></svg>
                     Edit
                   </button>
+                  )}
                   {!isSold && (
                     <button type="button" className="mlc-item" role="menuitem" disabled={isUpdating}
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleMarkAsSold(); }}>
@@ -634,11 +636,13 @@ export function MyListingCard({ listing, index = 0, layout = "grid" }: Props) {
 
           {menuOpen && (
             <div className="mlc-menu" role="menu">
-              <button type="button" className="mlc-item" role="menuitem" disabled={isUpdating}
+              {!isSold && (
+                <button type="button" className="mlc-item" role="menuitem" disabled={isUpdating}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenuOpen(false); setIsEditOpen(true); }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></svg>
                 Edit
               </button>
+              )}
 
               {!isSold && (
                 <button type="button" className="mlc-item" role="menuitem" disabled={isUpdating}

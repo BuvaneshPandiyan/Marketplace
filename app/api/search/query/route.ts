@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from "next/server";
 // Import our Meilisearch client helper and index name constant
 import { getMeilisearchClient, LISTINGS_INDEX_NAME, type ListingSearchDocument } from "@/lib/server/meilisearch";
+// Used to identify the caller so we can keep their own listings out of results
+import { createClient } from "@/lib/supabase/server";
 
 // Define the small set of sort options this route understands, matching the UI's sort dropdown
 type SortOption = "relevance" | "price_asc" | "price_desc" | "newest" | "distance";
@@ -10,6 +12,17 @@ type SortOption = "relevance" | "price_asc" | "price_desc" | "newest" | "distanc
 export async function GET(request: NextRequest) {
   // Grab the URL's query parameters for easy reading
   const params = request.nextUrl.searchParams;
+
+  // Who is asking? You can't buy your own item, so a seller's own listings are
+  // noise in their search results. Anonymous callers get everything.
+  let currentUserId: string | null = null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    currentUserId = data.user?.id ?? null;
+  } catch {
+    // Session lookup failing must never break search — just don't filter.
+  }
 
   // Read the free-text search query, defaulting to an empty string (an empty query still works
   // in Meilisearch — it just means "match everything", useful for filter-only browsing)
@@ -53,6 +66,8 @@ export async function GET(request: NextRequest) {
   if (condition) filterClauses.push(`condition = "${condition}"`);
   // Add a listing type filter if one was given
   if (listingType) filterClauses.push(`listing_type = "${listingType}"`);
+  // Exclude the caller's own listings (see above)
+  if (currentUserId) filterClauses.push(`seller_id != "${currentUserId}"`);
   // Add the outer radius geo filter if we have a center point and a radius
   if (lat !== null && lng !== null && radiusKm !== null) {
     // _geoRadius takes the radius in METERS, so convert from km

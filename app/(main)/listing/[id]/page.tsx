@@ -135,8 +135,13 @@ export default async function ListingDetailPage({
   const questionSchema = (listing.product_types as { name: string; question_schema: QuestionSchema } | null)
     ?.question_schema ?? null;
 
+  // Related items come from the SHARED cache (fetched with the cookie-free anon
+  // client), so they can't be filtered per-user at the database level without
+  // poisoning that cache for everyone. Filter here instead, where we know who
+  // is viewing: drop this listing itself, and anything the viewer owns — you
+  // can't buy your own item. We fetch 14 and show 7, so there's headroom.
   const relatedListings = ((relatedRaw ?? []) as FeedListingItem[])
-    .filter((r: FeedListingItem) => r.id !== listing.id)
+    .filter((r: FeedListingItem) => r.id !== listing.id && r.seller_id !== user?.id)
     .slice(0, 7);
 
   const isBuyer = user?.id !== listing.seller_id;
