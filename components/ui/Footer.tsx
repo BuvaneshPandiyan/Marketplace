@@ -83,11 +83,11 @@ export function Footer() {
           padding: 44px 24px 24px;
         }
         @media(min-width:768px){ .bzf-inner { padding: 52px 40px 26px; } }
-        /* On mobile the floating nav pill overlaps the bottom — add just enough
-           bottom padding so the copyright clears it, and the pill sits over the
-           footer's own green (no empty spacer band below). */
+        /* The nav pill now hides on scroll-down, so by the time the footer is on
+           screen it's already out of the way — the old 72px clearance just left a
+           dead band. Keep only the device safe-area plus a little breathing room. */
         @media(max-width:639px){
-          .bzf-inner { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+          .bzf-inner { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
         }
 
         /* ── Type primitives ─────────────────────────────── */

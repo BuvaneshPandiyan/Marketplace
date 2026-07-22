@@ -379,10 +379,23 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
         }
         @keyframes chat-spin { to { transform: rotate(360deg); } }
 
-        /* On mobile the floating bottom nav pill overlaps the composer — lift the
-           composer above it so the send button and pill are never covered. */
+        /* The composer sits directly above the floating nav on mobile. Enough
+           clearance that they read as separate things, without the dead band a
+           larger value left behind. */
         @media(max-width:639px){
-          .chat-input-wrap { padding-bottom: calc(20px + env(safe-area-inset-bottom)) !important; }
+          .chat-input-wrap { padding-bottom: calc(30px + env(safe-area-inset-bottom)) !important; }
+        }
+
+        /* Sold notice — a pill sized to its text, not a full-width bar */
+        .chat-sold-pill {
+          margin: 0; display: inline-flex; align-items: center; gap: 7px;
+          padding: 9px 16px; border-radius: 999px;
+          font-size: 12.5px; font-weight: 600; letter-spacing: -0.01em;
+          color: #6b5a4e;
+          background: rgba(255,255,255,0.82);
+          border: 1px solid rgba(184,115,51,0.22);
+          -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+          box-shadow: 0 4px 14px rgba(14,61,71,0.07);
         }
 
         /* Message bubbles animate in as they arrive (auto, no interaction) */
@@ -573,11 +586,13 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
 
         {/* ── FIXED INPUT AREA — never scrolls away ── */}
         {isSold ? (
-          <div style={{ flexShrink: 0, borderTop: "1px solid #e5e7eb", background: "white", padding: "14px 16px", textAlign: "center" }}>
-            <p style={{ fontSize: 13, color: "#9ca3af", fontWeight: 500, margin: 0 }}>🏷️ Messaging disabled for sold items</p>
+          <div className="chat-input-wrap" style={{ flexShrink: 0, display: "flex", justifyContent: "center", padding: "10px 12px calc(10px + env(safe-area-inset-bottom))" }}>
+            {/* A pill that wraps the text, rather than a full-width panel — the
+                message is incidental, so it shouldn't read as a toolbar. */}
+            <p className="chat-sold-pill">🏷️ Messaging disabled for sold items</p>
           </div>
         ) : (
-          <div className="chat-input-wrap" style={{ flexShrink: 0, background: "#fff", padding: "10px 12px calc(10px + env(safe-area-inset-bottom))" }}>
+          <div className="chat-input-wrap" style={{ flexShrink: 0, padding: "10px 12px calc(10px + env(safe-area-inset-bottom))" }}>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }}
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ""; }} />
 
