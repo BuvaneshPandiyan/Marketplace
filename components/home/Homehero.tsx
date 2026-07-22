@@ -165,8 +165,8 @@ export function HomeHero() {
           display: flex;
           align-items: center;
         }
-        @media (min-width: 640px)  { .hh-slide { padding: 32px 0 44px; } }
-        @media (min-width: 1024px) { .hh-slide { padding: 42px 0 56px; } }
+        @media (min-width: 640px)  { .hh-slide { padding: 22px 0 32px; } }
+        @media (min-width: 1024px) { .hh-slide { padding: 28px 0 40px; } }
 
         .hh-grid {
           position: absolute; inset: 0; pointer-events: none;
@@ -178,7 +178,7 @@ export function HomeHero() {
         .hh-glow {
           position: absolute; top: -140px; right: -90px;
           width: 420px; height: 420px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(249,115,22,0.5) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(192,84,224,0.5) 0%, transparent 70%);
           pointer-events: none;
           animation: hh-breathe 9s ease-in-out infinite;
         }
@@ -324,7 +324,7 @@ export function HomeHero() {
         @media (min-width: 400px)  { .hh-h1 { font-size: 30px; } }
         @media (min-width: 640px)  { .hh-h1 { font-size: 48px; margin-bottom: 20px; } }
         @media (min-width: 1024px) { .hh-h1 { font-size: 62px; } }
-        .hh-h1 em { font-style: normal; color: #fdba74; position: relative; }
+        .hh-h1 em { font-style: normal; color: #e9b8f5; position: relative; }
         /* The underline draws itself in once, after the headline lands */
         /* Words clip against their own line box and slide up into it */
         .hh-line { display: block; overflow: hidden; padding-bottom: 0.06em; }
@@ -343,7 +343,7 @@ export function HomeHero() {
            transformed descendant gets its own compositing layer that a clipped
            background cannot paint into — the text renders invisible. Glow via
            text-shadow instead, which composites fine alongside transforms. */
-        .hh-h1 em { color: #fdba74; }
+        .hh-h1 em { color: #e9b8f5; }
         .hh-h1 em .hh-word {
           animation: hh-word-up 620ms var(--ease) both,
                      hh-glow 4.2s ease-in-out infinite;
@@ -356,12 +356,12 @@ export function HomeHero() {
         .hh-h1 em .hh-word:nth-child(4) { animation-delay: 585ms, 1.85s; }
         @keyframes hh-glow {
           0%, 65%, 100% { text-shadow: 0 0 0 rgba(255,255,255,0); }
-          80%           { text-shadow: 0 0 26px rgba(255,236,210,0.85); }
+          80%           { text-shadow: 0 0 26px rgba(243,222,250,0.9); }
         }
         .hh-h1 em::after {
           content: ''; position: absolute; left: 0; right: 0; bottom: 2px;
           height: 5px; border-radius: 4px;
-          background: rgba(253,186,116,0.35);
+          background: rgba(233,184,245,0.38);
           transform-origin: left;
           animation: hh-underline 700ms var(--ease) 620ms both;
         }
@@ -433,7 +433,7 @@ export function HomeHero() {
         .hh-btn-primary:hover svg { transform: translateX(4px); }
         .hh-btn-primary::after {
           content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
-          background: linear-gradient(90deg, transparent, rgba(234,88,12,0.18), transparent);
+          background: linear-gradient(90deg, transparent, rgba(147,51,168,0.18), transparent);
           transform: translateX(-120%) skewX(-18deg);
         }
         .hh-btn-ghost {
@@ -521,14 +521,14 @@ export function HomeHero() {
           .hh-float:hover .hh-float-inner {
             transform: translateY(-7px) scale(1.1);
             background: rgba(255,255,255,0.24);
-            border-color: rgba(253,186,116,0.6);
+            border-color: rgba(233,184,245,0.6);
             box-shadow: 0 20px 48px rgba(0,0,0,0.34),
-                        0 0 0 1px rgba(253,186,116,0.25),
-                        0 0 30px rgba(249,115,22,0.35);
+                        0 0 0 1px rgba(233,184,245,0.25),
+                        0 0 30px rgba(147,51,168,0.4);
           }
           .hh-float:hover .hh-float-emoji {
             transform: rotate(-12deg) scale(1.2);
-            background: rgba(253,186,116,0.3);
+            background: rgba(233,184,245,0.3);
           }
         }
         /* The face flips over when its category swaps */
@@ -564,7 +564,7 @@ export function HomeHero() {
           .hh-float:hover .hh-float-inner,
           .hh-float:hover .hh-float-emoji { transform: none !important; }
           .hh-word { transform: none !important; opacity: 1 !important; }
-          .hh-h1 em { color: #fdba74 !important; }
+          .hh-h1 em { color: #e9b8f5 !important; }
           .hh-h1 em .hh-word { animation: none !important; text-shadow: none !important; }
           .hh-h1 em::after { transform: scaleX(1) !important; }
           .hh-btn, .hh-btn-primary svg { transition: none !important; }
@@ -747,7 +747,7 @@ export function HomeHero() {
                   <h2 className="hh-h1 hh-promo-title">{slide.title}</h2>
                   <p className="hh-sub hh-promo-sub">{slide.subtitle}</p>
                   <div className="hh-ctas">
-                    <Link href={slide.href} className="hh-btn hh-btn-primary" tabIndex={active ? 0 : -1}>
+                    <Link href={slide.href} className="hh-btn hh-btn-primary" tabIndex={active ? 0 : -1} style={{ color: theme.deep }}>
                       {slide.cta}
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                     </Link>

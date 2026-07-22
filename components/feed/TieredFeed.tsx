@@ -204,6 +204,49 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
     // Wider container — max-w-[1600px] uses full available width on large screens
     <>
       <style>{`
+        /* Each card picks up the next colour in the palette — the shared
+           ListingCard reads --brand*, so remapping here recolours it per card
+           without touching the component or affecting any other page. */
+        .tf-grid > .lc:nth-child(12n+1)  { --brand: var(--c1);  }
+        .tf-grid > .lc:nth-child(12n+2)  { --brand: var(--c2);  }
+        .tf-grid > .lc:nth-child(12n+3)  { --brand: var(--c3);  }
+        .tf-grid > .lc:nth-child(12n+4)  { --brand: var(--c4);  }
+        .tf-grid > .lc:nth-child(12n+5)  { --brand: var(--c5);  }
+        .tf-grid > .lc:nth-child(12n+6)  { --brand: var(--c6);  }
+        .tf-grid > .lc:nth-child(12n+7)  { --brand: var(--c7);  }
+        .tf-grid > .lc:nth-child(12n+8)  { --brand: var(--c8);  }
+        .tf-grid > .lc:nth-child(12n+9)  { --brand: var(--c9);  }
+        .tf-grid > .lc:nth-child(12n+10) { --brand: var(--c10); }
+        .tf-grid > .lc:nth-child(12n+11) { --brand: var(--c11); }
+        .tf-grid > .lc:nth-child(12n+12) { --brand: var(--c12); }
+        /* Derive the supporting tints from whichever accent the card landed on */
+        .tf-grid > .lc {
+          --brand-tint:   color-mix(in srgb, var(--brand) 8%,  #fff);
+          --brand-border: color-mix(in srgb, var(--brand) 30%, #fff);
+          --brand-grad:   linear-gradient(135deg, var(--brand), color-mix(in srgb, var(--brand) 62%, #fff));
+        }
+
+        /* ── HOME FEED PALETTE ─────────────────────────────────────────
+           The feed no longer runs on the single global orange. It cycles
+           through the colours already used across the site, so the home page
+           reads as a colourful index of the whole product rather than one hue.
+           Each accent is applied by remapping --brand* on a scope, which is
+           what the shared ListingCard reads — so cards recolour without the
+           component being touched (and without affecting any other page). */
+        .tf-page {
+          --c1:  #0d9488;  /* teal      — wishlist   */
+          --c2:  #6366f1;  /* indigo    — listings   */
+          --c3:  #e11d48;  /* rose      — chats      */
+          --c4:  #0284c7;  /* sky       — location   */
+          --c5:  #c026d3;  /* magenta   — notifs     */
+          --c6:  #059669;  /* emerald   — contact    */
+          --c7:  #9333a8;  /* plum      — listing    */
+          --c8:  #cf1338;  /* ruby      — search     */
+          --c9:  #1a6b7a;  /* petrol    — chat       */
+          --c10: #7c3aed;  /* violet    — privacy    */
+          --c11: #0b5d43;  /* forest    — footer     */
+          --c12: #7a1f3d;  /* burgundy  — auth       */
+        }
         /* ── Feed typography ──────────────────────────────────────────
            Matches the hero and contact page: heavy weights, tight tracking,
            real size steps. The old h1 was text-lg/bold and the section
@@ -221,7 +264,7 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
         @media (min-width: 640px)  { .tf-h1 { font-size: 28px; } }
         @media (min-width: 1024px) { .tf-h1 { font-size: 32px; } }
         .tf-h1 em {
-          font-style: normal; color: var(--brand, #ea580c);
+          font-style: normal; color: var(--c1);
           position: relative;
           /* Belt and braces: localities are short now, but a long one must wrap
              and clamp rather than run off the side of the page. */
@@ -233,7 +276,7 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
         .tf-h1 em::after {
           content: ''; position: absolute; left: 0; right: 0; bottom: -1px;
           height: 4px; border-radius: 4px;
-          background: var(--brand-border, #fed7aa);
+          background: color-mix(in srgb, var(--c1) 38%, transparent);
           transform-origin: left;
           animation: tf-underline 620ms var(--ease) 260ms both;
         }
@@ -243,9 +286,9 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
           flex-shrink: 0;
           display: inline-flex; align-items: center; gap: 6px;
           padding: 8px 14px; border-radius: var(--r-pill, 100px);
-          border: 1.5px solid var(--brand-border, #fed7aa);
-          background: var(--brand-tint, #fff7ed);
-          color: var(--brand, #ea580c);
+          border: 1.5px solid color-mix(in srgb, var(--c6) 32%, transparent);
+          background: color-mix(in srgb, var(--c6) 8%, #fff);
+          color: var(--c6);
           font-size: 12.5px; font-weight: 800; letter-spacing: -0.02em;
           cursor: pointer;
           transition: transform 240ms var(--spring), background 200ms ease, box-shadow 200ms ease;
@@ -253,7 +296,7 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
         @media (hover: hover) {
           .tf-refresh:hover {
             background: #fff; transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(234,88,12,0.22);
+            box-shadow: 0 6px 18px color-mix(in srgb, var(--c6) 28%, transparent);
           }
           .tf-refresh:hover svg { transform: rotate(-180deg); }
         }
@@ -271,7 +314,7 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
         @media (min-width: 640px) { .tf-h2 { font-size: 19px; } }
         .tf-h2-bar {
           width: 4px; height: 17px; border-radius: 4px; flex-shrink: 0;
-          background: var(--brand-grad, linear-gradient(135deg,#ea580c,#f97316));
+          background: linear-gradient(135deg, var(--c1), var(--c9));
         }
         @media (min-width: 640px) { .tf-h2-bar { height: 20px; } }
 
@@ -280,12 +323,12 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
           display: flex; align-items: center; gap: 10px;
           margin-bottom: 18px; padding: 12px 15px;
           border-radius: var(--r-md, 16px);
-          background: var(--brand-tint, #fff7ed);
-          border: 1.5px solid var(--brand-border, #fed7aa);
-          color: var(--brand-dark, #9a3412);
+          background: color-mix(in srgb, var(--c12) 8%, #fff);
+          border: 1.5px solid color-mix(in srgb, var(--c12) 30%, transparent);
+          color: color-mix(in srgb, var(--c12) 80%, #000);
           font-size: 13px; font-weight: 600; line-height: 1.45;
         }
-        .tf-locbanner svg { flex-shrink: 0; color: var(--brand, #ea580c); }
+        .tf-locbanner svg { flex-shrink: 0; color: var(--c12); }
 
         /* ── Feed layout ──────────────────────────────────────────
            Flex, not grid. CSS Grid gives every cell an identical track, so the
@@ -340,14 +383,14 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
           left: 0; right: 0; top: 50%; height: 2px;
           transform: translateY(-50%);
           border-radius: 2px;
-          background: linear-gradient(90deg, transparent, var(--brand-border, #fed7aa) 22%, var(--brand, #ea580c) 50%, var(--brand-border, #fed7aa) 78%, transparent);
+          background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c4) 32%, transparent) 22%, var(--c4) 50%, color-mix(in srgb, var(--c4) 32%, transparent) 78%, transparent);
         }
         @media (min-width: 640px) {
           .tf-sep-line {
             left: 50%; right: auto; top: 10%; bottom: 10%;
             width: 2px; height: auto;
             transform: translateX(-50%);
-            background: linear-gradient(180deg, transparent, var(--brand-border, #fed7aa) 22%, var(--brand, #ea580c) 50%, var(--brand-border, #fed7aa) 78%, transparent);
+            background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--c4) 32%, transparent) 22%, var(--c4) 50%, color-mix(in srgb, var(--c4) 32%, transparent) 78%, transparent);
           }
         }
 
@@ -356,9 +399,9 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
           display: flex; align-items: center; gap: 7px;
           padding: 7px 13px; border-radius: var(--r-pill, 100px);
           background: #fff;
-          border: 1.5px solid var(--brand-border, #fed7aa);
-          color: var(--brand, #ea580c);
-          box-shadow: 0 4px 16px rgba(234,88,12,0.18);
+          border: 1.5px solid color-mix(in srgb, var(--c4) 32%, transparent);
+          color: var(--c4);
+          box-shadow: 0 4px 16px color-mix(in srgb, var(--c4) 24%, transparent);
           animation: tf-sep-pulse 3s ease-in-out infinite;
         }
         @media (min-width: 640px) {
@@ -371,8 +414,8 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
           }
         }
         @keyframes tf-sep-pulse {
-          0%,100% { box-shadow: 0 4px 16px rgba(234,88,12,0.18), 0 0 0 0 rgba(234,88,12,0.28); }
-          50%     { box-shadow: 0 4px 16px rgba(234,88,12,0.18), 0 0 0 8px rgba(234,88,12,0); }
+          0%,100% { box-shadow: 0 4px 16px color-mix(in srgb, var(--c4) 24%, transparent), 0 0 0 0 color-mix(in srgb, var(--c4) 36%, transparent); }
+          50%     { box-shadow: 0 4px 16px color-mix(in srgb, var(--c4) 24%, transparent), 0 0 0 8px transparent; }
         }
         .tf-sep-badge svg { flex-shrink: 0; }
 
@@ -425,7 +468,7 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
         }
         @media (hover: hover) {
           .tf-pager-btn:not(:disabled):hover {
-            border-color: var(--brand, #ea580c); color: var(--brand, #ea580c);
+            border-color: var(--c2); color: var(--c2);
             transform: translateY(-2px);
           }
         }
@@ -433,7 +476,7 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
         .tf-pager-page {
           min-width: 30px; text-align: center;
           padding: 6px 9px; border-radius: var(--r-pill, 100px);
-          background: var(--brand-grad, linear-gradient(135deg,#ea580c,#f97316));
+          background: linear-gradient(135deg, var(--c1), var(--c9));
           color: #fff; font-size: 12px; font-weight: 800;
         }
 
@@ -460,7 +503,7 @@ export function TieredFeed({ categorySlug }: TieredFeedProps) {
         }
       `}</style>
 
-    <div className="mx-auto w-full max-w-[1600px] px-4 py-6 md:px-8">
+    <div className="tf-page mx-auto w-full max-w-[1600px] px-4 py-6 md:px-8">
       <div className="mb-4">
         <CategoryChips />
       </div>

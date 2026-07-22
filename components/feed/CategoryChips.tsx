@@ -37,7 +37,7 @@ const PREFERRED_ORDER = [
  *  much more weight than they did as a 10%-opacity pill background. */
 const ACCENT: Record<string, [string, string]> = {
   "electronics-mobiles": ["#3b82f6", "#60a5fa"],
-  "vehicles":            ["#ea580c", "#fb923c"],
+  "vehicles":            ["#0284c7", "#38bdf8"],
   "property-rentals":    ["#10b981", "#34d399"],
   "furniture-home":      ["#f59e0b", "#fbbf24"],
   "fashion":             ["#ec4899", "#f472b6"],
@@ -45,7 +45,7 @@ const ACCENT: Record<string, [string, string]> = {
   "services":            ["#14b8a6", "#2dd4bf"],
   "sports-fitness":      ["#22c55e", "#4ade80"],
   "books-education":     ["#6366f1", "#818cf8"],
-  "pets":                ["#fb923c", "#fdba74"],
+  "pets":                ["#0d9488", "#5eead4"],
   "kids-baby":           ["#e879f9", "#f0abfc"],
   "beauty-health":       ["#f472b6", "#f9a8d4"],
   "home-appliances":     ["#38bdf8", "#7dd3fc"],
@@ -58,7 +58,7 @@ const ACCENT: Record<string, [string, string]> = {
   "watches-jewellery":   ["#d97706", "#f59e0b"],
   "food-agriculture":    ["#84cc16", "#a3e635"],
   "travel-luggage":      ["#06b6d4", "#22d3ee"],
-  "art-collectibles":    ["#f97316", "#fb923c"],
+  "art-collectibles":    ["#c026d3", "#e879f9"],
   "health-medical":      ["#14b8a6", "#5eead4"],
 };
 const DEFAULT_ACCENT: [string, string] = ["#6b7280", "#9ca3af"];
@@ -120,8 +120,8 @@ export function CategoryChips() {
           position: sticky; top: 92px; z-index: 40;
           /* Warm cream band, not grey. This is the single biggest reason the rail
              now reads as Zomato/Swiggy rather than as a filter bar. */
-          background: var(--brand-tint, #fff7ed);
-          border-bottom: 1px solid var(--brand-border, #fed7aa);
+          background: linear-gradient(180deg, #f7f5fb 0%, #f4f7f8 100%);
+          border-bottom: 1px solid rgba(71,85,105,0.12);
           padding: 14px 0 14px;
           margin-bottom: 8px;
           overflow: hidden;
@@ -133,7 +133,7 @@ export function CategoryChips() {
         .cr-shell::before {
           content: '';
           position: absolute; inset: -50%;
-          background-image: radial-gradient(circle, rgba(234,88,12,0.13) 1px, transparent 1px);
+          background-image: radial-gradient(circle, rgba(71,85,105,0.10) 1px, transparent 1px);
           background-size: 18px 18px;
           -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 25%, #000 100%);
           mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 25%, #000 100%);
@@ -154,14 +154,14 @@ export function CategoryChips() {
         }
         @media (min-width: 768px) { .cr-head-h { font-size: 18px; } }
         .cr-head-h em {
-          font-style: normal; color: var(--brand, #ea580c);
+          font-style: normal; color: #cf1338;
           position: relative;
         }
         /* Hand-drawn underline that sketches itself in */
         .cr-head-h em::after {
           content: ''; position: absolute; left: 0; right: 0; bottom: -2px;
           height: 3px; border-radius: 3px;
-          background: var(--brand-border, #fed7aa);
+          background: rgba(207,19,56,0.32);
           transform-origin: left;
           animation: cr-underline 620ms var(--ease) 320ms both;
         }
@@ -289,8 +289,8 @@ export function CategoryChips() {
           pointer-events: none; z-index: 2;
           opacity: 1; transition: opacity 260ms ease;
         }
-        .cr-fade-l { left: 0;  background: linear-gradient(90deg, var(--brand-tint, #fff7ed) 25%, transparent); }
-        .cr-fade-r { right: 0; background: linear-gradient(270deg, var(--brand-tint, #fff7ed) 25%, transparent); }
+        .cr-fade-l { left: 0;  background: linear-gradient(90deg, #f6f5fa 25%, transparent); }
+        .cr-fade-r { right: 0; background: linear-gradient(270deg, #f6f5fa 25%, transparent); }
         .cr-fade[data-hidden="true"] { opacity: 0; }
 
         .cr-arrow {
@@ -304,7 +304,7 @@ export function CategoryChips() {
           transition: transform 220ms var(--spring), background 200ms ease, opacity 220ms ease;
         }
         @media (min-width: 768px) and (hover: hover) { .cr-arrow { display: flex; } }
-        .cr-arrow:hover { transform: scale(1.14); background: var(--brand-tint, #fff7ed); color: var(--brand, #ea580c); }
+        .cr-arrow:hover { transform: scale(1.14); background: #eef2ff; color: #6366f1; }
         .cr-arrow[data-hidden="true"] { opacity: 0; pointer-events: none; }
         .cr-arrow-l { left: -6px; }
         .cr-arrow-r { right: -6px; }
