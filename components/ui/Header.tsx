@@ -83,8 +83,59 @@ export function Header() {
   const [isSigningOut, setIsSigningOut]       = useState(false);
   const [searchExpanded, setSearchExpanded]   = useState(false);
   const [navMobileVisible, setNavMobileVisible] = useState(true);
+  // Separate from navMobileVisible on purpose: that one is the manual hide (and
+  // brings back the restore button). This is the automatic scroll behaviour,
+  // which must NOT surface a restore button — scrolling up is how you get it back.
+  const [navHiddenByScroll, setNavHiddenByScroll] = useState(false);
   const [wishlistPop, setWishlistPop]         = useState(false);
   const [mounted, setMounted]                 = useState(false);
+
+  /**
+   * Hide the mobile pill while scrolling DOWN, bring it back on scroll UP.
+   *
+   * Notes on the details, since a naive version of this feels broken:
+   *  - A threshold stops the bar flickering on tiny scroll jitter.
+   *  - It always reappears near the top of the page.
+   *  - Reads are batched into rAF so we never layout-thrash on scroll.
+   *  - The bar is translated, never unmounted — unmounting causes a visible
+   *    jump and would also trip the manual restore button.
+   *  - Pages that scroll inside a fixed container (the chat) never fire window
+   *    scroll, so the bar simply stays put there, which is what we want.
+   */
+  useEffect(() => {
+    // With reduced motion requested, leave the bar alone entirely rather than
+    // sliding it in and out. Read here rather than reusing the component-level
+    // flag so this effect doesn't depend on declaration order.
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+    let lastY = window.scrollY;
+    let ticking = false;
+    const THRESHOLD = 8;   // ignore jitter smaller than this
+    const TOP_ZONE  = 80;  // always visible near the top
+
+    const update = () => {
+      ticking = false;
+      // iOS rubber-banding can report negative values — clamp.
+      const y = Math.max(0, window.scrollY);
+      const delta = y - lastY;
+
+      if (y < TOP_ZONE) {
+        setNavHiddenByScroll(false);
+      } else if (Math.abs(delta) > THRESHOLD) {
+        setNavHiddenByScroll(delta > 0);
+      }
+      lastY = y;
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   // ── no navVisible/navCollapsed (collapse removed) ─────────────────
   // ── no mlDropOpen/mlDropRef (dropdown removed) ────────────────────
 
@@ -803,15 +854,19 @@ export function Header() {
       <motion.div
         layout
         className="sm:hidden mob-pill"
+        /* Driven through Framer rather than an inline `transform`, because the
+           `layout` prop above already owns this element's transform — setting
+           it by hand would have the two fighting each other mid-animation. */
+        animate={{ y: navHiddenByScroll ? 110 : 0 }}
         style={{
           ...PILL,
           position:"fixed", bottom:12, left:16, right:16, zIndex:100,
           boxShadow:"0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)",
           overflow:"hidden",
+          /* Stop it swallowing taps while it is off-screen */
+          pointerEvents: navHiddenByScroll ? "none" : "auto",
           /* Compositor layer — prevents URL bar show/hide from triggering a repaint/reposition */
           willChange: "transform",
-          WebkitTransform: "translateZ(0)",
-          transform: "translateZ(0)",
         }}
         transition={prefersReducedMotion ? { duration:0 } : { type:"spring", damping:28, stiffness:300 }}
       >
