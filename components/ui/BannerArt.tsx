@@ -39,6 +39,8 @@ export function BannerArt({ variant, tint, tint2, id, intensity = 1 }: Props) {
       <style>{`
         .ba {
           position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+          /* Repaints inside the art can't invalidate anything outside it. */
+          contain: paint;
         }
         /* Everything fades out toward the left so headline text never fights it */
         .${k} {
@@ -50,15 +52,20 @@ export function BannerArt({ variant, tint, tint2, id, intensity = 1 }: Props) {
         /* ── AURORA ─────────────────────────────────────────────── */
         .${k} .ba-blob {
           position: absolute; border-radius: 50%;
-          filter: blur(58px);
+          /* 40px reads the same as 58px once it's this diffuse, and costs less */
+          filter: blur(40px);
           animation: ba-drift 18s ease-in-out infinite;
+          /* Rasterise the blur once, then move the layer on the GPU */
+          will-change: transform;
+          transform: translateZ(0);
+          backface-visibility: hidden;
         }
         .${k} .ba-blob:nth-child(2) { animation-duration: 23s; animation-delay: -6s; }
         .${k} .ba-blob:nth-child(3) { animation-duration: 27s; animation-delay: -12s; }
         @keyframes ba-drift {
-          0%,100% { transform: translate(0,0) scale(1);      opacity: 0.75; }
-          33%     { transform: translate(26px,-20px) scale(1.14); opacity: 1; }
-          66%     { transform: translate(-18px,16px) scale(0.94); opacity: 0.65; }
+          0%,100% { transform: translate3d(0,0,0);        opacity: 0.75; }
+          33%     { transform: translate3d(30px,-24px,0); opacity: 1; }
+          66%     { transform: translate3d(-22px,18px,0); opacity: 0.65; }
         }
 
         /* ── GLASS ──────────────────────────────────────────────── */

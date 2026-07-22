@@ -53,6 +53,14 @@ export function Footer() {
         .bzf {
           position: relative;
           margin-top: 32px;
+          /* The footer sits on every page, so its animations were burning frames
+             the whole time you were reading content three screens above it.
+             content-visibility lets the browser skip rendering AND pause
+             animations in this subtree until it is close to the viewport.
+             The auto keyword makes it remember the real height after the
+             first render, so the scrollbar doesn't jump on the way down. */
+          content-visibility: auto;
+          contain-intrinsic-size: auto 520px;
           background: linear-gradient(160deg, #052e21 0%, #064e3b 55%, #0b5d43 100%);
           color: #9fb3a9;
           overflow: hidden;

@@ -154,19 +154,23 @@ input, textarea, select, button {
 }
 
 @keyframes bz-grid-drift { to { transform: translate(44px, 44px); } }
+/* Translate-only on purpose: scaling a blurred layer makes the browser redo the
+   blur every frame, which is one of the most expensive things you can ask of it.
+   Moving a pre-rasterised layer is nearly free on the GPU, and at 70px blur the
+   difference is invisible. */
 @keyframes bz-float-1 {
-  0%,100% { transform: translate(0,0) scale(1); }
-  33%     { transform: translate(6vw, 5vh) scale(1.1); }
-  66%     { transform: translate(-3vw, 9vh) scale(0.95); }
+  0%,100% { transform: translate3d(0,0,0); }
+  33%     { transform: translate3d(7vw, 6vh, 0); }
+  66%     { transform: translate3d(-4vw, 10vh, 0); }
 }
 @keyframes bz-float-2 {
-  0%,100% { transform: translate(0,0) scale(1); }
-  33%     { transform: translate(-7vw, -6vh) scale(1.08); }
-  66%     { transform: translate(-2vw, 5vh) scale(0.94); }
+  0%,100% { transform: translate3d(0,0,0); }
+  33%     { transform: translate3d(-8vw, -7vh, 0); }
+  66%     { transform: translate3d(-3vw, 6vh, 0); }
 }
 @keyframes bz-float-3 {
-  0%,100% { transform: translate(0,0) scale(1); }
-  50%     { transform: translate(5vw, -7vh) scale(1.12); }
+  0%,100% { transform: translate3d(0,0,0); }
+  50%     { transform: translate3d(6vw, -8vh, 0); }
 }
 
 /* Phones: fewer, cheaper layers — blur() is expensive to composite and
