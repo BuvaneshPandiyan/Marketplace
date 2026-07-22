@@ -225,12 +225,14 @@ export default function BlogPage() {
           animation: bl-rise 560ms cubic-bezier(0.22,1,0.36,1) 110ms both;
         }
 
-        .bl-wrap { max-width: 1100px; margin: -30px auto 0; padding: 0 16px 90px; position: relative; z-index: 2; }
+        .bl-wrap { max-width: 1600px; margin: -30px auto 0; padding: 0 16px 90px; position: relative; z-index: 2; }
         @media(min-width:768px){ .bl-wrap { padding: 0 32px 100px; } }
 
         /* ── Post cards ── */
         .bl-grid { display: grid; gap: 18px; }
-        @media(min-width:768px){ .bl-grid { grid-template-columns: 1fr 1fr; } }
+        @media(min-width:768px){  .bl-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media(min-width:1280px){ .bl-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+        @media(min-width:1650px){ .bl-grid { grid-template-columns: repeat(4, 1fr); } }
 
         .bl-post {
           background: #fff; border-radius: 22px; border: 1px solid #eceef3;
@@ -299,9 +301,47 @@ export default function BlogPage() {
         }
         @media(hover:hover){ .bl-btn:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(255,138,122,0.55); } }
 
+        /* Cards reveal as they scroll in, where the browser supports it */
+        @supports (animation-timeline: view()) {
+          .bl-post {
+            animation: bl-reveal linear both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 24%;
+          }
+        }
+        @keyframes bl-reveal { from { opacity: 0; transform: translateY(28px) scale(0.985); } to { opacity: 1; transform: none; } }
+
+        /* Post icons drift continuously so the grid always has life in it */
+        .bl-post-ic { animation: bl-bob 6s ease-in-out infinite; }
+        .bl-post:nth-child(2n) .bl-post-ic { animation-delay: -1.5s; }
+        .bl-post:nth-child(3n) .bl-post-ic { animation-delay: -3s; }
+        .bl-post:nth-child(4n) .bl-post-ic { animation-delay: -4.5s; }
+        @keyframes bl-bob { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-5px) rotate(-7deg)} }
+
+        /* A light sweep crosses a card on hover */
+        .bl-post::after {
+          content:""; position:absolute; top:0; bottom:0; left:-60%; width:45%;
+          background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--pa) 16%, transparent), transparent);
+          transform: skewX(-18deg); pointer-events:none; opacity:0;
+        }
+        @media(hover:hover){
+          .bl-post:hover::after { animation: bl-sweep 760ms ease both; }
+          .bl-post:hover .bl-post-ic { transform: scale(1.12) rotate(-8deg); }
+          .bl-post:hover .bl-post-title { color: color-mix(in srgb, var(--pa) 72%, #000); }
+        }
+        @keyframes bl-sweep { 0%{left:-60%;opacity:1} 100%{left:130%;opacity:1} }
+        .bl-post-ic { transition: transform 300ms cubic-bezier(0.34,1.56,0.64,1); }
+        .bl-post-title { transition: color 240ms ease; }
+
+        /* The colour bar on top of each card breathes gently */
+        .bl-post::before { animation: bl-bar 5s ease-in-out infinite; }
+        @keyframes bl-bar { 0%,100%{opacity:0.85} 50%{opacity:1} }
+
         @media(prefers-reduced-motion:reduce){
-          .bl-band-glow, .bl-band::before, .bl-title, .bl-sub, .bl-post, .bl-btn {
+          .bl-band-glow, .bl-band::before, .bl-title, .bl-sub, .bl-post, .bl-btn,
+          .bl-post-ic, .bl-post::before, .bl-post::after {
             animation: none !important; transition: none !important;
+            opacity: 1 !important; transform: none !important;
           }
         }
       `}</style>

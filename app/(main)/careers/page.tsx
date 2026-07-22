@@ -74,8 +74,14 @@ export default function CareersPage() {
           animation: cr-rise 560ms cubic-bezier(0.22,1,0.36,1) 110ms both;
         }
 
-        .cr-wrap { max-width: 1000px; margin: -30px auto 0; padding: 0 16px 90px; position: relative; z-index: 2; }
+        .cr-wrap { max-width: 1600px; margin: -30px auto 0; padding: 0 16px 90px; position: relative; z-index: 2; }
         @media(min-width:768px){ .cr-wrap { padding: 0 32px 100px; } }
+
+        /* On wide screens the page splits: the story on the left, a sticky
+           facts rail on the right, so the extra width carries content rather
+           than empty margin. */
+        .cr-layout { display: grid; gap: 22px; }
+        @media(min-width:1100px){ .cr-layout { grid-template-columns: minmax(0,1fr) 340px; align-items: start; } }
 
         .cr-card {
           background: #fff; border-radius: 24px; border: 1px solid #ececef;
@@ -84,6 +90,29 @@ export default function CareersPage() {
           animation: cr-rise 620ms cubic-bezier(0.22,1,0.36,1) both;
         }
         @media(min-width:768px){ .cr-card { padding: 42px 46px; } }
+        @media(min-width:1100px){ .cr-card { margin-bottom: 0; } }
+
+        /* ── Sticky facts rail ── */
+        .cr-rail { display: grid; gap: 14px; }
+        @media(min-width:1100px){ .cr-rail { position: sticky; top: 96px; } }
+        .cr-fact {
+          background: #fff; border: 1px solid #ececef; border-radius: 18px;
+          padding: 18px 20px; box-shadow: 0 8px 26px rgba(0,0,0,0.05);
+          animation: cr-rise 620ms cubic-bezier(0.22,1,0.36,1) both;
+          transition: transform 240ms cubic-bezier(0.22,1,0.36,1), box-shadow 240ms ease, border-color 240ms ease;
+        }
+        .cr-fact:nth-child(2){ animation-delay: 90ms; }
+        .cr-fact:nth-child(3){ animation-delay: 180ms; }
+        @media(hover:hover){
+          .cr-fact:hover { transform: translateY(-3px); border-color: #bef264; box-shadow: 0 14px 34px rgba(101,163,13,0.14); }
+        }
+        .cr-fact-n {
+          font-size: 30px; font-weight: 900; letter-spacing: -0.05em; margin: 0;
+          background: linear-gradient(135deg, #4d7c0f, #a3e635);
+          -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .cr-fact-l { font-size: 12.5px; font-weight: 700; color: #71717a; margin: 3px 0 0; letter-spacing: -0.01em; }
+        .cr-fact-d { font-size: 12.5px; color: #a1a1aa; margin: 8px 0 0; line-height: 1.5; }
 
         /* The headline answer — big, unmissable, no hunting for it */
         .cr-status {
@@ -117,6 +146,7 @@ export default function CareersPage() {
         /* What we'd look for, one day */
         .cr-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
         @media(min-width:640px){ .cr-list { grid-template-columns: 1fr 1fr; } }
+        @media(min-width:1500px){ .cr-list { grid-template-columns: repeat(2, 1fr); } }
         .cr-item {
           display: flex; gap: 11px; align-items: flex-start;
           padding: 15px 16px; border-radius: 15px;
@@ -153,7 +183,33 @@ export default function CareersPage() {
           .cr-btn-ghost:hover { background: rgba(255,255,255,0.2); transform: translateY(-3px); }
         }
 
+        /* Sections reveal as they scroll into view. Uses the native scroll
+           timeline where supported; browsers without it just show the content. */
+        @supports (animation-timeline: view()) {
+          .cr-section, .cr-cta {
+            animation: cr-reveal linear both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 26%;
+          }
+        }
+        @keyframes cr-reveal { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+
+        /* Item icons drift on their own, so the page is never fully still */
+        .cr-item-ic { animation: cr-bob 5s ease-in-out infinite; }
+        .cr-item:nth-child(2) .cr-item-ic { animation-delay: -1.2s; }
+        .cr-item:nth-child(3) .cr-item-ic { animation-delay: -2.4s; }
+        .cr-item:nth-child(4) .cr-item-ic { animation-delay: -3.6s; }
+        @keyframes cr-bob { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-4px) rotate(-6deg)} }
+
+        /* The status badge keeps a soft pulse */
+        .cr-status-ic { animation: cr-pulse 3.2s ease-in-out infinite; }
+        @keyframes cr-pulse {
+          0%,100% { box-shadow: 0 6px 18px rgba(101,163,13,0.32), 0 0 0 0 rgba(163,230,53,0.5); }
+          50%     { box-shadow: 0 6px 18px rgba(101,163,13,0.32), 0 0 0 12px rgba(163,230,53,0); }
+        }
+
         @media(prefers-reduced-motion:reduce){
+          .cr-section, .cr-cta, .cr-item-ic, .cr-status-ic, .cr-fact { animation: none !important; opacity: 1 !important; transform: none !important; }
           .cr-band-glow, .cr-band::before, .cr-title, .cr-sub, .cr-card,
           .cr-item, .cr-btn { animation: none !important; transition: none !important; }
         }
@@ -178,6 +234,7 @@ export default function CareersPage() {
       </div>
 
       <div className="cr-wrap">
+        <div className="cr-layout">
         <div className="cr-card">
           {/* The answer, up front */}
           <div className="cr-status">
@@ -254,6 +311,26 @@ export default function CareersPage() {
               always reply quickly.
             </p>
           </div>
+        </div>
+
+        {/* Sticky facts rail — carries the extra width on large screens */}
+        <aside className="cr-rail">
+          <div className="cr-fact">
+            <p className="cr-fact-n">0</p>
+            <p className="cr-fact-l">Open roles</p>
+            <p className="cr-fact-d">Nothing available today. This page updates first when that changes.</p>
+          </div>
+          <div className="cr-fact">
+            <p className="cr-fact-n">100%</p>
+            <p className="cr-fact-l">Free to list</p>
+            <p className="cr-fact-d">No listing fees, no commission — the marketplace stays free to use.</p>
+          </div>
+          <div className="cr-fact">
+            <p className="cr-fact-n">1</p>
+            <p className="cr-fact-l">Problem we care about</p>
+            <p className="cr-fact-d">Stopping people from being scammed by sellers who never had the item.</p>
+          </div>
+        </aside>
         </div>
 
         {/* Closing CTA */}
