@@ -153,7 +153,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
         .select("*")
         .eq("conversation_id", conversation.id)
         .order("created_at", { ascending: true });
-      const msgs = (data as (Message & { message_type?: string })[]) ?? [];
+      const msgs = (data as Message[]) ?? [];
       setMessages(msgs);
       // If the history already contains a system message the listing was marked sold before
       // this session — disable the composer immediately without waiting for a Realtime event.
@@ -184,12 +184,12 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
           event: "INSERT",
           schema: "public",
           table: "messages",
-          // Meilisearch-style filter: only fire for this conversation's rows
+          // Realtime filter: only fire for this conversation's rows
           filter: `conversation_id=eq.${conversation.id}`,
         },
         (payload) => {
           // Append the incoming message to the list
-          const incoming = payload.new as Message & { message_type?: string };
+          const incoming = payload.new as Message;
           setMessages((prev) => [...prev, incoming]);
           // If it's a system message (e.g. "marked as sold"), disable the composer immediately
           if (incoming.message_type === "system") {
@@ -506,7 +506,7 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
         <div className="chat-messages-area" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10, minHeight: 0, overscrollBehavior: "contain", position: "relative" }}>
           <BannerArt variant="glyphs" tint="#0e3d47" tint2="#b87333" id="chatctr" intensity={0.16} />
           {messages.map((msg) => {
-            const isSystem = (msg as Message & { message_type?: string }).message_type === "system";
+            const isSystem = msg.message_type === "system";
             if (isSystem) {
               return (
                 <div key={msg.id} style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
