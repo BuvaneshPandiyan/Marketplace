@@ -16,6 +16,7 @@
  */
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -411,8 +412,14 @@ export function WishlistCard({ entry, index = 0 }: { entry: WishlistCardEntry; i
       >
         <Link href={href} className="lc-photo" aria-label={entry.title}>
           {entry.coverPhotoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={entry.coverPhotoUrl} alt={entry.title} className="lc-img" />
+            <Image
+              src={entry.coverPhotoUrl}
+              alt={entry.title}
+              fill
+              sizes="(min-width: 1024px) 14vw, (min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw"
+              className="lc-img"
+              style={{ objectFit: "cover" }}
+            />
           ) : (
             <div className="lc-noimg">📦</div>
           )}

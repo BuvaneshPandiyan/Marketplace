@@ -1,4 +1,6 @@
 "use client";
+
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type PhotoCarouselProps = {
@@ -159,8 +161,16 @@ export function PhotoCarousel({ photoUrls, layout = "stacked" }: PhotoCarouselPr
       <div className="pc-stage">
         {photoUrls.map((url, i) => (
           <div key={url} className={`pc-slide ${i === currentIndex ? "is-active" : ""}`} aria-hidden={i !== currentIndex}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt={`Photo ${i + 1} of ${count}`} />
+            <Image
+              src={url}
+              alt={`Photo ${i + 1} of ${count}`}
+              fill
+              // Full width on phones; a fixed 500px column on desktop.
+              sizes="(min-width: 1024px) 500px, 100vw"
+              // Only the visible slide is worth prioritising — the rest load lazily.
+              priority={i === 0}
+              style={{ objectFit: "cover" }}
+            />
           </div>
         ))}
       </div>
@@ -201,8 +211,7 @@ export function PhotoCarousel({ photoUrls, layout = "stacked" }: PhotoCarouselPr
                 <button key={url} type="button" className={`pc-thumb ${index === currentIndex ? "is-active" : ""}`}
                   style={{ width: 72, height: 72 }}
                   onClick={() => goTo(index)} onMouseEnter={() => goTo(index)} aria-label={`View photo ${index + 1}`}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt={`Thumbnail ${index + 1}`} />
+                  <Image src={url} alt={`Thumbnail ${index + 1}`} fill sizes="72px" style={{ objectFit: "cover" }} />
                 </button>
               ))}
             </div>
@@ -227,8 +236,7 @@ export function PhotoCarousel({ photoUrls, layout = "stacked" }: PhotoCarouselPr
               <button key={url} type="button" className={`pc-thumb ${index === currentIndex ? "is-active" : ""}`}
                 style={{ width: 60, height: 60 }}
                 onClick={() => goTo(index)} onMouseEnter={() => goTo(index)} aria-label={`View photo ${index + 1}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt={`Thumbnail ${index + 1}`} />
+                <Image src={url} alt={`Thumbnail ${index + 1}`} fill sizes="60px" style={{ objectFit: "cover" }} />
               </button>
             ))}
           </div>

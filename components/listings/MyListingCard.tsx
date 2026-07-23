@@ -23,6 +23,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatRelativeDate } from "@/lib/client/formatRelativeDate";
@@ -548,8 +549,15 @@ export function MyListingCard({ listing, index = 0, layout = "grid" }: Props) {
         <div className={`mlc-list${isSold ? " mll-sold" : ""}`} style={{ animationDelay: `${(index % 12) * 40}ms` }}>
           <Link href={href} className="mll-photo" aria-label={listing.title}>
             {coverUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={coverUrl} alt={listing.title} className="mll-img" />
+              <Image
+                src={coverUrl}
+                alt={listing.title}
+                fill
+                /* Fixed 96px thumbnail — no responsive variation needed. */
+                sizes="96px"
+                className="mll-img"
+                style={{ objectFit: "cover" }}
+              />
             ) : (
               <div className="mll-noimg">📦</div>
             )}
@@ -612,8 +620,14 @@ export function MyListingCard({ listing, index = 0, layout = "grid" }: Props) {
       <div className={`lc mlc${isSold ? " mlc--sold" : ""}`} style={{ animationDelay: `${(index % 12) * 40}ms` }}>
         <Link href={href} className="lc-photo" aria-label={listing.title}>
           {coverUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={coverUrl} alt={listing.title} className="lc-img" />
+            <Image
+              src={coverUrl}
+              alt={listing.title}
+              fill
+              sizes="(min-width: 1024px) 14vw, (min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw"
+              className="lc-img"
+              style={{ objectFit: "cover" }}
+            />
           ) : (
             <div className="lc-noimg">📦</div>
           )}

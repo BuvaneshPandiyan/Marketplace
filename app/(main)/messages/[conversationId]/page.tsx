@@ -14,17 +14,25 @@ export default async function ConversationPage({
   const { conversationId } = await params;
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // The session lookup and the conversation fetch don't depend on each other —
+  // the conversation is found by its id from the URL, not by the viewer. Running
+  // them together costs one round-trip instead of two.
+  //
+  // RLS still decides visibility: the conversations policy limits rows to the
+  // buyer or seller, so fetching before the user check can't leak anything.
+  const [
+    { data: { user } },
+    { data: conversation },
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from("conversations")
+      .select("*, listings(title, status)")
+      .eq("id", conversationId)
+      .single(),
+  ]);
+
   if (!user) redirect("/login");
-
-  const { data: conversation } = await supabase
-    .from("conversations")
-    .select("*, listings(title, status)")
-    .eq("id", conversationId)
-    .single();
-
   if (!conversation) notFound();
 
   const otherUserId =

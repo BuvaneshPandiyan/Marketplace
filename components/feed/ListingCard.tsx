@@ -25,6 +25,7 @@
  */
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { useWishlist } from "@/lib/client/useWishlist";
 import { useActiveLocation } from "@/lib/hooks/useActiveLocation";
@@ -397,8 +398,19 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
         {/* Photo */}
         <Link href={href} className="lc-photo" aria-label={listing.title}>
           {listing.cover_photo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={listing.cover_photo_url} alt={listing.title} className="lc-img" />
+            <Image
+              src={listing.cover_photo_url}
+              alt={listing.title}
+              fill
+              // The card is 2 columns on phones, 3 small / 4 medium / 7 on wide
+              // screens. Telling the browser roughly how wide the image will
+              // actually be lets it pick the smallest sufficient file instead of
+              // downloading a full-size one for a thumbnail — this is where most
+              // of the bandwidth saving comes from, not the format change.
+              sizes="(min-width: 1024px) 14vw, (min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw"
+              className="lc-img"
+              style={{ objectFit: "cover" }}
+            />
           ) : (
             <div className="lc-noimg">📦</div>
           )}

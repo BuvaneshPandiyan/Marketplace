@@ -126,25 +126,30 @@ export default function VerificationPage() {
     try {
       // Upload the government ID photo to the private verif-docs bucket
       const idPath = `${userId}/id-${Date.now()}.jpg`;
-      const { error: idUploadError } = await supabase.storage
-        .from("verif-docs")
-        .upload(idPath, idPhotoBlob, { contentType: "image/jpeg", upsert: true });
-      if (idUploadError) throw new Error("ID photo upload failed: " + idUploadError.message);
-
-      // Upload the selfie photo to the same private bucket
       const selfiePath = `${userId}/selfie-${Date.now()}.jpg`;
-      const { error: selfieUploadError } = await supabase.storage
-        .from("verif-docs")
-        .upload(selfiePath, selfieBlob, { contentType: "image/jpeg", upsert: true });
-      if (selfieUploadError) throw new Error("Selfie upload failed: " + selfieUploadError.message);
 
-      // Build the signed URLs (private bucket — signed URL valid for 1 year)
-      const { data: idSigned } = await supabase.storage
-        .from("verif-docs")
-        .createSignedUrl(idPath, 60 * 60 * 24 * 365);
-      const { data: selfieSigned } = await supabase.storage
-        .from("verif-docs")
-        .createSignedUrl(selfiePath, 60 * 60 * 24 * 365);
+      // Upload both photos at once. Neither depends on the other, and these are
+      // by far the slowest steps here — two full image uploads over a phone
+      // connection. In sequence the user waited for the sum; now they wait for
+      // whichever is slower.
+      const [idUpload, selfieUpload] = await Promise.all([
+        supabase.storage
+          .from("verif-docs")
+          .upload(idPath, idPhotoBlob, { contentType: "image/jpeg", upsert: true }),
+        supabase.storage
+          .from("verif-docs")
+          .upload(selfiePath, selfieBlob, { contentType: "image/jpeg", upsert: true }),
+      ]);
+      // Checked after both are attempted, so a failing ID upload doesn't hide
+      // the fact that the selfie failed too.
+      if (idUpload.error) throw new Error("ID photo upload failed: " + idUpload.error.message);
+      if (selfieUpload.error) throw new Error("Selfie upload failed: " + selfieUpload.error.message);
+
+      // Independent of each other as well.
+      const [{ data: idSigned }, { data: selfieSigned }] = await Promise.all([
+        supabase.storage.from("verif-docs").createSignedUrl(idPath, 60 * 60 * 24 * 365),
+        supabase.storage.from("verif-docs").createSignedUrl(selfiePath, 60 * 60 * 24 * 365),
+      ]);
 
       // Upsert the verification_requests row — on conflict (same user), update the photos
       // so users can re-submit after a rejection without creating a second row
