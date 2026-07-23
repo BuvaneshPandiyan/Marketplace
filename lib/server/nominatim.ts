@@ -7,9 +7,9 @@ const NOMINATIM_BASE_URL = "https://nominatim.openstreetmap.org";
 // an issue with our usage (e.g., if we're accidentally sending too many requests).
 const USER_AGENT = process.env.NOMINATIM_CONTACT_EMAIL
   // If a contact email is configured, include it in the User-Agent string
-  ? `[APP NAME]-marketplace/0.1 (${process.env.NOMINATIM_CONTACT_EMAIL})`
+  ? `bazar.in/1.0 (${process.env.NOMINATIM_CONTACT_EMAIL})`
   // Otherwise, fall back to a generic (but still identifying) User-Agent string
-  : "[APP NAME]-marketplace/0.1 (contact: set NOMINATIM_CONTACT_EMAIL in .env.local)";
+  : "bazar.in/1.0 (contact: set NOMINATIM_CONTACT_EMAIL in .env.local)";
 
 // Restrict search results to this country by default, since this app's initial market is India —
 // remove this constant (and its usage below) once the app expands to other countries
@@ -98,6 +98,11 @@ export async function reverseGeocode(
   const response = await fetch(url, {
     // Attach the headers Nominatim's usage policy expects
     headers: { "User-Agent": USER_AGENT },
+    // Cache hard. A place name and a coordinate's locality are effectively
+    // static, so repeated lookups — map panning, reopening the picker, many
+    // users in the same area — should never reach Nominatim again. This is the
+    // main thing protecting us from their rate limit, more so than throttling.
+    next: { revalidate: 60 * 60 * 24 * 30 },
   });
 
   // If Nominatim responded with an error status, treat this as "couldn't determine a locality"
@@ -136,6 +141,11 @@ export async function searchPlaces(
   const response = await fetch(url, {
     // Attach the headers Nominatim's usage policy expects
     headers: { "User-Agent": USER_AGENT },
+    // Cache hard. A place name and a coordinate's locality are effectively
+    // static, so repeated lookups — map panning, reopening the picker, many
+    // users in the same area — should never reach Nominatim again. This is the
+    // main thing protecting us from their rate limit, more so than throttling.
+    next: { revalidate: 60 * 60 * 24 * 30 },
   });
 
   // If the request failed, just return an empty list rather than throwing

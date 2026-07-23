@@ -1,10 +1,20 @@
 // Import Next.js's helper types for reading the request and sending a JSON response
 import { NextRequest, NextResponse } from "next/server";
+import { allowRequest } from "@/lib/server/rateLimit";
 // Import our server-only reverse geocoding helper
 import { reverseGeocode } from "@/lib/server/nominatim";
 
 // Define the GET handler — runs when the client calls GET /api/geo/reverse?lat=...&lng=...
 export async function GET(request: NextRequest) {
+  // Nominatim bans by IP, and a ban takes out location for every user at once.
+  // Throttle per client so one abusive caller cannot cost everyone else.
+  if (!(await allowRequest(request, "geo-reverse", 40, 60))) {
+    return NextResponse.json(
+      { error: "Too many location requests. Please wait a moment." },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
+
   // Read the lat/lng query parameters off the request URL
   const lat = request.nextUrl.searchParams.get("lat");
   // Read the longitude query parameter
