@@ -177,7 +177,20 @@ export function Header() {
     setSearchExpanded(false); setLogoutConfirm(false); setNavMobileVisible(true);
   }, [pathname]);
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 6);
+    // Batched into rAF and guarded on the value: this fires on every scroll
+    // event, and without the guard each one queued a state update on a very
+    // large component. React bails out on an unchanged value, but the work of
+    // getting there still happens on the main thread mid-scroll.
+    let ticking = false;
+    const fn = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const next = window.scrollY > 6;
+        setScrolled((prev) => (prev === next ? prev : next));
+      });
+    };
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
@@ -417,6 +430,8 @@ export function Header() {
 
         @media(prefers-reduced-motion:reduce){
           .hdr-icon,.sell-fab,.sell-btn,.sell-circle,.heart-pop { animation:none!important; transition-duration:0ms!important; }
+          /* The halo moved to a pseudo-element, so it needs silencing explicitly. */
+          .sell-circle::after,.sell-fab::after { animation:none!important; opacity:0!important; }
           .hdr-icon:hover,.sell-circle:hover { transform:none!important; }
           .tip-in { animation:none!important; }
         }
@@ -443,12 +458,29 @@ export function Header() {
           22%,100%{ transform: translateX(320%)  skewX(-20deg); }
         }
         /* A soft halo that breathes — makes Sell the obvious primary action */
+        /* The expanding halo on the Sell button.
+           Previously this animated box-shadow, which forces the browser to
+           REPAINT the button on every frame — forever, on every page, since the
+           nav is always on screen. Painting is main-thread work, so it competed
+           with scrolling and anything else happening.
+           Now it is a pseudo-element scaled with transform and faded with
+           opacity. Both are compositor-only: the GPU handles them without
+           repainting or recalculating layout, so the same pulse costs
+           essentially nothing. */
         @keyframes sell-halo {
-          0%,100% { box-shadow: 0 3px 12px rgba(8,145,178,0.4), 0 0 0 0 rgba(8,145,178,0.4); }
-          50%     { box-shadow: 0 3px 12px rgba(8,145,178,0.4), 0 0 0 9px rgba(8,145,178,0); }
+          0%   { transform: scale(1);    opacity: 0.45; }
+          70%  { transform: scale(1.55); opacity: 0; }
+          100% { transform: scale(1.55); opacity: 0; }
         }
-        .sell-circle { animation: sell-halo 3.4s ease-out 2s infinite; }
-        .sell-fab    { animation: sell-halo 3.4s ease-out 2s infinite; }
+        .sell-circle, .sell-fab { position: relative; }
+        .sell-circle::after,
+        .sell-fab::after {
+          content: ""; position: absolute; inset: 0; border-radius: 50%;
+          background: rgba(8,145,178,0.4);
+          animation: sell-halo 3.4s ease-out 2s infinite;
+          pointer-events: none; z-index: -1;
+          will-change: transform, opacity;
+        }
         .sell-circle:hover, .sell-fab:hover { animation-play-state: paused; }
         /* The + rotates a quarter turn on hover */
         .sell-circle svg, .sell-fab svg { transition: transform 320ms cubic-bezier(0.34,1.56,0.64,1); }

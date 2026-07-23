@@ -90,11 +90,32 @@ export function CategoryChips() {
 
   /** Track scroll position so the edge fades and arrows only show when there's
    *  actually something in that direction. */
+  // Batched into requestAnimationFrame, and only writes state when the answer
+  // actually changed.
+  //
+  // Two problems with doing this straight from the scroll handler: clientWidth
+  // and scrollWidth force the browser to flush layout, so reading them on every
+  // scroll event stalls the scroll itself; and calling setState each time
+  // re-rendered the whole strip continuously while dragging. Reading inside rAF
+  // means at most one measurement per frame, and the equality checks mean React
+  // only re-renders on the two moments that matter — arriving at, or leaving,
+  // an edge.
+  const edgeTickingRef = useRef(false);
   const syncEdges = useCallback(() => {
-    const el = railRef.current;
-    if (!el) return;
-    setAtStart(el.scrollLeft <= 4);
-    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
+    if (edgeTickingRef.current) return;
+    edgeTickingRef.current = true;
+
+    requestAnimationFrame(() => {
+      edgeTickingRef.current = false;
+      const el = railRef.current;
+      if (!el) return;
+
+      const nextAtStart = el.scrollLeft <= 4;
+      const nextAtEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+
+      setAtStart((prev) => (prev === nextAtStart ? prev : nextAtStart));
+      setAtEnd((prev) => (prev === nextAtEnd ? prev : nextAtEnd));
+    });
   }, []);
 
   useEffect(() => {
