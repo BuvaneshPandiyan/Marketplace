@@ -82,11 +82,18 @@ export function Header() {
   const [logoutConfirm, setLogoutConfirm]     = useState(false);
   const [isSigningOut, setIsSigningOut]       = useState(false);
   const [searchExpanded, setSearchExpanded]   = useState(false);
+  useEffect(() => { searchExpandedRef.current = searchExpanded; }, [searchExpanded]);
   const [navMobileVisible, setNavMobileVisible] = useState(true);
   // Separate from navMobileVisible on purpose: that one is the manual hide (and
   // brings back the restore button). This is the automatic scroll behaviour,
   // which must NOT surface a restore button — scrolling up is how you get it back.
-  const [navHiddenByScroll, setNavHiddenByScroll] = useState(false);
+  // Deliberately refs, not state. Toggling React state on every scroll-direction
+  // change re-rendered this entire (very large) component mid-scroll, which is
+  // what the stutter was. The pill is shown/hidden by adding a class straight to
+  // the DOM node instead — no render, no reconciliation, just a CSS transform
+  // the compositor can handle on its own thread.
+  const pillWrapRef = useRef<HTMLDivElement>(null);
+  const searchExpandedRef = useRef(false);
   const [wishlistPop, setWishlistPop]         = useState(false);
   const [mounted, setMounted]                 = useState(false);
 
@@ -119,10 +126,23 @@ export function Header() {
       const y = Math.max(0, window.scrollY);
       const delta = y - lastY;
 
-      if (y < TOP_ZONE) {
-        setNavHiddenByScroll(false);
-      } else if (Math.abs(delta) > THRESHOLD) {
-        setNavHiddenByScroll(delta > 0);
+      // Never hide while the search field is open — it lives inside the pill,
+      // and the keyboard opening itself fires a scroll event.
+      const shouldHide =
+        !searchExpandedRef.current &&
+        y >= TOP_ZONE &&
+        Math.abs(delta) > THRESHOLD &&
+        delta > 0;
+
+      const shouldShow =
+        y < TOP_ZONE ||
+        searchExpandedRef.current ||
+        (Math.abs(delta) > THRESHOLD && delta < 0);
+
+      const el = pillWrapRef.current;
+      if (el) {
+        if (shouldHide) el.classList.add("is-hidden");
+        else if (shouldShow) el.classList.remove("is-hidden");
       }
       lastY = y;
     };
@@ -137,12 +157,11 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Closing search shouldn't make the bar disappear. While search was open the
-  // page may have scrolled (the keyboard alone can cause it), leaving a stale
-  // "hidden" flag that would snap the pill away the moment search collapsed.
+  // Closing search must not leave the pill stranded off-screen: while it was
+  // open the page may have scrolled, so reveal it again on close.
   useEffect(() => {
     if (!searchExpanded) return;
-    return () => setNavHiddenByScroll(false);
+    pillWrapRef.current?.classList.remove("is-hidden");
   }, [searchExpanded]);
   // ── no navVisible/navCollapsed (collapse removed) ─────────────────
   // ── no mlDropOpen/mlDropRef (dropdown removed) ────────────────────
@@ -294,6 +313,31 @@ export function Header() {
           /* Everything up a step. The bar was 32px targets with 15px glyphs at
              stroke 2 — under Apple's 44px minimum and visually thin against a
              heavy brand. 40px targets, 20px glyphs, stroke 2.4. */
+        /* ── Mobile pill: hide/show on scroll ───────────────────────────
+           Handled entirely in CSS, toggled by adding .is-hidden straight to the
+           DOM node. Nothing re-renders, and transform+opacity are the two
+           properties the browser can animate on the compositor thread without
+           touching layout or paint — which is what makes it smooth. */
+        .mob-pill-wrap {
+          position: fixed; bottom: 12px; left: 16px; right: 16px; z-index: 100;
+          transform: translate3d(0, 0, 0);
+          transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: transform;
+          /* Promote to its own layer up front, so the first hide doesn't pay for
+             layer creation mid-animation — that first-frame cost is exactly what
+             a stutter feels like. */
+          backface-visibility: hidden;
+        }
+        .mob-pill-wrap.is-hidden {
+          /* Past 100% so the shadow clears the edge too. */
+          transform: translate3d(0, calc(100% + 24px), 0);
+          /* Can't swallow taps while off-screen. */
+          pointer-events: none;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mob-pill-wrap { transition: none; }
+        }
+
           .mob-pill .hdr-icon { width:40px; height:40px; }
           .mob-pill .hdr-icon svg { width:20px; height:20px; stroke-width:2.4; }
           .mob-pill .sell-fab  { width:48px; height:48px; }
@@ -858,26 +902,22 @@ export function Header() {
       {/* ══════════════════════════════
           MOBILE BOTTOM FLOATING PILL
           ══════════════════════════════ */}
+      {/* The wrapper below owns the fixed positioning and the hide/show slide.
+          Splitting it from the motion.div matters: `layout` animates the pill's
+          own size when the search field expands, taking exclusive control of
+          THAT element's transform. Sliding the same element would have the two
+          fighting each other on every scroll. The wrapper is untouched by
+          Framer, so a plain CSS transform is safe — and being CSS, it runs on
+          the compositor with React not involved at all. */}
       {navMobileVisible && (
+      <div ref={pillWrapRef} className="sm:hidden mob-pill-wrap">
       <motion.div
         layout
-        className="sm:hidden mob-pill"
-        /* Driven through Framer rather than an inline `transform`, because the
-           `layout` prop above already owns this element's transform — setting
-           it by hand would have the two fighting each other mid-animation. */
-        /* Never slide away while the search field is open — it lives inside
-           this pill, and the keyboard opening fires a scroll event that would
-           otherwise hide the very thing the user just tapped. */
-        animate={{ y: navHiddenByScroll && !searchExpanded ? 110 : 0 }}
+        className="mob-pill"
         style={{
           ...PILL,
-          position:"fixed", bottom:12, left:16, right:16, zIndex:100,
           boxShadow:"0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)",
           overflow:"hidden",
-          /* Stop it swallowing taps while it is off-screen */
-          pointerEvents: navHiddenByScroll && !searchExpanded ? "none" : "auto",
-          /* Compositor layer — prevents URL bar show/hide from triggering a repaint/reposition */
-          willChange: "transform",
         }}
         transition={prefersReducedMotion ? { duration:0 } : { type:"spring", damping:28, stiffness:300 }}
       >
@@ -959,6 +999,7 @@ export function Header() {
           )}
         </AnimatePresence>
       </motion.div>
+      </div>
       )}
 
       {/* Glowing restore button — shown when pill is hidden */}
