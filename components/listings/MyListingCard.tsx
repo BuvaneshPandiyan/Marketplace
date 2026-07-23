@@ -104,6 +104,16 @@ export function MyListingCard({ listing, index = 0, layout = "grid" }: Props) {
     if (!error) setJustSold(true);
     setIsUpdating(false);
     if (error) { alert(error.message ?? "Failed to mark as sold."); return; }
+
+    // Tell everyone who was chatting about this item. Fire-and-forget, matching
+    // how listing-published is sent on the sell flow: the sale is already
+    // committed, so a notification problem must never surface as a failure to
+    // the seller. Errors are logged server-side.
+    fetch("/api/notifications/listing-sold", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ listingId: listing.id }),
+    }).catch(() => {});
+
     syncListingToSearch(listing.id);
     router.refresh();
   }
