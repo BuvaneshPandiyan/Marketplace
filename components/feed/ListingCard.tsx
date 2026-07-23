@@ -28,6 +28,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useWishlist } from "@/lib/client/useWishlist";
+import { useAuthGate } from "@/components/auth/AuthGateContext";
 import { useActiveLocation } from "@/lib/hooks/useActiveLocation";
 import { formatDistance, haversineDistanceKm } from "@/lib/geo";
 import { formatRelativeDate } from "@/lib/client/formatRelativeDate";
@@ -58,6 +59,7 @@ function HeartSVG({ filled }: { filled: boolean }) {
 }
 
 export function ListingCard({ listing, index = 0 }: ListingCardProps) {
+  const { requireAuth } = useAuthGate();
   const { isWishlisted, toggle } = useWishlist({
     listingId: listing.id,
     currentPrice: listing.price,
@@ -432,6 +434,20 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
             rel="noopener noreferrer"
             className="lc-dist"
             aria-label={`${formatDistance(distanceKm)} — open directions in Google Maps`}
+            onClick={(e) => {
+              // Directions reveal roughly where a seller is, so it is gated like
+              // the phone number and chat. requireAuth() shows the sign-in
+              // prompt and returns false when nobody is logged in.
+              //
+              // Left as a real <a> with a valid href rather than a button: for a
+              // signed-in user, middle-click and "open in new tab" then still
+              // work, and assistive tech announces it correctly. The handler
+              // only intercepts the plain-click case.
+              if (!requireAuth("get directions")) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }}
           >
             <svg className="lc-dist-pin" width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />

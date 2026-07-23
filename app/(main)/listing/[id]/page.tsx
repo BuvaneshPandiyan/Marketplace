@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import { PhotoCarousel } from "@/components/listing/PhotoCarousel";
 import { ListingAttributesDisplay } from "@/components/listing/ListingAttributesDisplay";
 import { MapPreview } from "@/components/listing/MapPreview";
+import { ViewLocationButton } from "@/components/listing/ViewLocationButton";
 import { ShowNumberButton } from "@/components/listing/ShowNumberButton";
 import { ChatWithSellerButton } from "@/components/listing/ChatWithSellerButton";
 import { WishlistButton } from "@/components/listing/WishlistButton";
@@ -445,21 +446,11 @@ export default async function ListingDetailPage({
             <div className="lst-map-fill flex-1">
               <MapPreview lat={listing.lat} lng={listing.lng} listingId={listing.id} />
             </div>
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${listing.lat},${listing.lng}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <ViewLocationButton
+              lat={listing.lat}
+              lng={listing.lng}
               className="btn-secondary mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 py-2.5 text-sm font-semibold text-neutral-700"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-                <circle cx="12" cy="9" r="2.5" />
-              </svg>
-              View exact location
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path d="M7 17L17 7M7 7h10v10" />
-              </svg>
-            </a>
+            />
           </div>
         </div>
 
@@ -599,21 +590,11 @@ export default async function ListingDetailPage({
         <div>
           <h2 className="lst-h2">Location</h2>
           <MapPreview lat={listing.lat} lng={listing.lng} listingId={listing.id} />
-          <a
-            href={`https://www.google.com/maps/search/?api=1&query=${listing.lat},${listing.lng}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-secondary mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 py-2.5 text-sm font-semibold text-neutral-700"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-              <circle cx="12" cy="9" r="2.5" />
-            </svg>
-            View exact location
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path d="M7 17L17 7M7 7h10v10" />
-            </svg>
-          </a>
+          <ViewLocationButton
+              lat={listing.lat}
+              lng={listing.lng}
+              className="btn-secondary mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 py-2.5 text-sm font-semibold text-neutral-700"
+            />
         </div>
       </div>
 
