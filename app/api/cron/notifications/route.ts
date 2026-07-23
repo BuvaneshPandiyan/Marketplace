@@ -6,8 +6,6 @@
 import { NextRequest, NextResponse } from "next/server";
 // Import the Supabase admin client creator (bypasses RLS — service-role key)
 import { createClient } from "@supabase/supabase-js";
-// Import the Meilisearch client so we can replay saved searches against the search index
-import { Meilisearch } from "meilisearch";
 // Import our notification sender
 import { createNotification } from "@/lib/server/createNotification";
 
@@ -50,49 +48,37 @@ export async function POST(request: NextRequest) {
     // Fetch all saved searches (across all users) to check against new listings
     const { data: savedSearches } = await supabase.from("saved_searches").select("*");
     if (savedSearches && savedSearches.length > 0) {
-      // Initialize the Meilisearch client to replay each saved search
-      const meili = new Meilisearch({
-        host: process.env.MEILISEARCH_HOST!,
-        apiKey: process.env.MEILISEARCH_API_KEY!,
-      });
-      const index = meili.index("listings");
-
-      // Process each saved search
+      // Saved searches are replayed through the same Postgres search the site
+      // uses, so a saved search matches exactly what the user would see.
       for (const search of savedSearches) {
         try {
-          // Build a Meilisearch filter that replicates the saved filter state, plus
-          // a date restriction so we only match listings created since the cutoff
-          const filterParts: string[] = [
-            // Only show active listings
-            `status = "active"`,
-            // Only match listings created since the cutoff time
-            `created_at_ts >= ${Math.floor(new Date(cutoffTime).getTime() / 1000)}`,
-          ];
-          // Add each active filter from the saved search's filters JSON
-          const filters = search.filters as Record<string, string | null>;
-          if (filters.categoryId) filterParts.push(`category_id = "${filters.categoryId}"`);
-          if (filters.priceMin) filterParts.push(`price >= ${filters.priceMin}`);
-          if (filters.priceMax) filterParts.push(`price <= ${filters.priceMax}`);
-          if (filters.condition) filterParts.push(`condition = "${filters.condition}"`);
-          if (filters.listingType) filterParts.push(`listing_type = "${filters.listingType}"`);
+          const filters = (search.filters ?? {}) as Record<string, string | null>;
 
-          // Run the search against Meilisearch — a single hit is enough to trigger a notification
-          const result = await index.search(search.query, {
-            filter: filterParts.join(" AND "),
-            limit: 3, // fetch a few so we can mention a specific listing in the notification
+          const { data: matches, error: searchError } = await supabase.rpc("search_listings", {
+            p_q: search.query ?? "",
+            p_category_id: filters.categoryId ?? null,
+            p_price_min: filters.priceMin ? Number(filters.priceMin) : null,
+            p_price_max: filters.priceMax ? Number(filters.priceMax) : null,
+            p_condition: filters.condition ?? null,
+            p_listing_type: filters.listingType ?? null,
+            // Only listings posted since the last run should trigger a notification.
+            p_created_after: cutoffTime,
+            // Never notify someone about their own listing.
+            p_exclude_seller: search.user_id,
+            p_limit: 3,
           });
+          if (searchError) throw new Error(searchError.message);
 
-          // If any new listings matched, send a notification
-          if (result.hits.length > 0) {
-            const firstHit = result.hits[0] as { title?: string };
+          const hits = (matches ?? []) as Array<{ title?: string }>;
+          if (hits.length > 0) {
+            const firstHit = hits[0];
             const label = search.label ?? (search.query ? `"${search.query}"` : "your saved search");
             await createNotification({
               userId: search.user_id,
               type: "new_match",
               title: `New match for ${label}`,
               body: `${firstHit.title ?? "A new listing"} was just posted near you.`,
-              // Link to the search results so they can browse all matches
-              link: `/search?q=${encodeURIComponent(search.query)}`,
+              link: `/search?q=${encodeURIComponent(search.query ?? "")}`,
             });
             summary.matchNotifications++;
           }

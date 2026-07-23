@@ -10,8 +10,7 @@
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare build && wrangler dev",
     "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "cf:typegen": "wrangler types",
-    "search:setup": "node scripts/setup-meilisearch-index.mjs"
+    "cf:typegen": "wrangler types"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
@@ -20,7 +19,6 @@
     "firebase": "^12.15.0",
     "framer-motion": "^12.42.2",
     "leaflet": "^1.9.4",
-    "meilisearch": "^0.58.0",
     "next": "^15.5.19",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"

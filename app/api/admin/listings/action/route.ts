@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminForApi, getAdminSupabase, writeAuditLog } from "@/lib/server/adminUtils";
 
 // A helper that pings our own /api/search/sync route after every admin listing status change,
-// so Meilisearch stays consistent with the database.  We hit our own route (not Meilisearch
+// so cached pages stay consistent with the database. We hit our own route (not the DB
 // directly) so the sync logic stays in one place.
 async function syncAfterAction(listingId: string, request: NextRequest): Promise<void> {
   try {
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       .eq("id", body.listingId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     await writeAuditLog({ adminId, action: "approve_listing", targetType: "listing", targetId: body.listingId, notes: body.notes ?? `Approved: "${listing.title}"` });
-    // Re-index in Meilisearch now that the listing is active again
+    // Purge cached pages now that the listing is active again
     await syncAfterAction(body.listingId, request);
   }
 
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     const { error } = await admin.from("listings").update({ status: "removed" }).eq("id", body.listingId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     await writeAuditLog({ adminId, action: "remove_listing", targetType: "listing", targetId: body.listingId, notes: body.notes ?? `Removed: "${listing.title}"` });
-    // Delete from Meilisearch — removed listings must not appear in search results
+    // Purge cached pages — removed listings must not appear anywhere
     await syncAfterAction(body.listingId, request);
   }
 
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     // Also mark this specific listing as removed
     await admin.from("listings").update({ status: "removed" }).eq("id", body.listingId);
     await writeAuditLog({ adminId, action: "ban_seller", targetType: "user", targetId: listing.seller_id, notes: body.notes ?? `Banned seller of "${listing.title}"` });
-    // Remove from Meilisearch
+    // Purge cached pages
     await syncAfterAction(body.listingId, request);
   }
 

@@ -2,7 +2,7 @@
 import type { FeedListingItem } from "@/types";
 
 // Define the shape of a hit as it actually comes back from our /api/search/query route —
-// matches ListingSearchDocument plus the optional Meilisearch-computed geo distance field
+// The search API returns this shape; _geoDistance is present only for distance sorts.
 export type SearchHit = {
   id: string;
   title: string;
