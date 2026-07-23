@@ -117,13 +117,36 @@ export function MyListingCard({ listing, index = 0, layout = "grid" }: Props) {
       const btn = menuRef.current?.querySelector("button");
       if (!btn) return;
       const r = btn.getBoundingClientRect();
-      setMenuPos({
-        top: r.bottom + 6,
-        // Right-aligned to the button, measured from the viewport's right edge.
-        right: Math.max(8, window.innerWidth - r.right),
-      });
+
+      // Ideally the menu's right edge lines up with the button. But on a narrow
+      // phone the button often sits only ~160px from the left edge, while the
+      // menu is ~196px wide — so right-aligning pushed it off the screen.
+      //
+      // Measure the menu if it is already on screen (re-open, resize), and fall
+      // back to the CSS min-width on the very first open when it has not been
+      // rendered yet. Then clamp so BOTH edges stay inside the viewport, with
+      // the right edge winning if the menu is somehow wider than the screen.
+      const measured = menuPopRef.current?.offsetWidth ?? 0;
+      const width = measured || (window.innerWidth < 640 ? 196 : 184);
+      const GUTTER = 8;
+
+      const idealRight = window.innerWidth - r.right;
+      const maxRight = Math.max(GUTTER, window.innerWidth - width - GUTTER);
+      const right = Math.min(Math.max(idealRight, GUTTER), maxRight);
+
+      // Flip above the button if there is not enough room below it.
+      const spaceBelow = window.innerHeight - r.bottom;
+      const estHeight = 160;
+      const top = spaceBelow < estHeight + GUTTER
+        ? Math.max(GUTTER, r.top - estHeight - 6)
+        : r.bottom + 6;
+
+      setMenuPos({ top, right });
     }
     place();
+    // Re-run once the menu has actually rendered, so the clamp uses its real
+    // width rather than the estimate.
+    const raf = requestAnimationFrame(place);
 
     // A fixed-position menu would otherwise drift away from its button as the
     // page moves, so just close it — simpler and less jarring than chasing it.
@@ -131,6 +154,7 @@ export function MyListingCard({ listing, index = 0, layout = "grid" }: Props) {
     window.addEventListener("scroll", close, { passive: true, capture: true });
     window.addEventListener("resize", close);
     return () => {
+      cancelAnimationFrame(raf);
       window.removeEventListener("scroll", close, { capture: true });
       window.removeEventListener("resize", close);
     };
