@@ -49,10 +49,18 @@ export function WhatsAppSellerButton({
   const [error, setError] = useState<string | null>(null);
   const { requireAuth } = useAuthGate();
 
-  // Never offer a seller a WhatsApp chat with themselves — the RPC would reject it anyway
-  if (isOwnListing) return null;
+  /**
+   * Note: this component used to `return null` when isOwnListing was true.
+   * That made it impossible to tell "hidden on purpose" apart from "broken",
+   * so now it always renders and simply disables itself on your own listing.
+   * reveal_seller_phone raises 'This is your own listing.' anyway, so there's
+   * nothing useful to click — but you can at least see what buyers see.
+   */
 
   async function handleClick() {
+    // Clicking your own listing does nothing — the RPC would refuse it
+    if (isOwnListing) return;
+
     // Same gate as the phone reveal. If they're logged out this opens the auth
     // modal and returns false, and we stop here without opening any window.
     if (!requireAuth("message the seller on WhatsApp")) return;
@@ -196,9 +204,13 @@ export function WhatsAppSellerButton({
         <button
           type="button"
           onClick={handleClick}
-          disabled={isLoading}
+          disabled={isLoading || isOwnListing}
           className="wa-seller-btn"
-          aria-label="Message the seller about this item on WhatsApp"
+          aria-label={
+            isOwnListing
+              ? "This is your own listing"
+              : "Message the seller about this item on WhatsApp"
+          }
         >
           {isLoading ? (
             <svg className="wa-spinner" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" aria-hidden="true">
@@ -210,7 +222,11 @@ export function WhatsAppSellerButton({
             </svg>
           )}
           <span className="wa-seller-label">
-            {isLoading ? "Opening…" : "WhatsApp seller"}
+            {isOwnListing
+              ? "Your listing"
+              : isLoading
+                ? "Opening…"
+                : "WhatsApp seller"}
           </span>
         </button>
       </div>
