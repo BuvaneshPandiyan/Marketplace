@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import { Header } from "@/components/ui/Header";
 import { Footer } from "@/components/ui/Footer";
+import { PushPermissionPrompt } from "@/components/notifications/PushPermissionPrompt";
 import { AuthGateProvider } from "@/components/auth/AuthGateContext";
 import { useUser } from "@/lib/hooks/useUser";
 
@@ -35,6 +36,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
       <Footer />
+      {/* Asks signed-in users to enable push. Self-hiding: renders nothing unless
+          the browser supports push, permission is still undecided, and the user
+          hasn't recently dismissed it. */}
+      <PushPermissionPrompt />
     </div>
     </AuthGateProvider>
   );
