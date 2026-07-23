@@ -78,16 +78,35 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       if (!user) return;
 
       // Upsert the token — if this exact (user, token) pair already exists, update created_at
-      // so we know the token is still active and recently verified
-      await supabase.from("push_tokens").upsert(
+      // so we know the token is still active and recently verified.
+      //
+      // The `error` here MUST be inspected. supabase-js does not throw on
+      // database or RLS failures — it resolves with { data, error }. Ignoring it
+      // meant a rejected write looked exactly like a successful one, so push
+      // registration could fail for every user indefinitely with no signal
+      // anywhere. Push stays enhancement-only (we never rethrow), but a failure
+      // is now visible instead of silent.
+      const { error: upsertError } = await supabase.from("push_tokens").upsert(
         // The row to insert or update
         { user_id: user.id, token },
         // On conflict (same user + token already in the table), just touch created_at
         { onConflict: "user_id,token" }
       );
-    } catch {
-      // If Firebase isn't configured (no env vars), or anything else goes wrong, fail silently
-      // — push notifications are enhancement-only and must never break the core chat flow
+
+      if (upsertError) {
+        console.warn(
+          "[push] could not save the device token — notifications will not arrive on this device:",
+          upsertError.message
+        );
+        return;
+      }
+
+      return true;
+    } catch (error) {
+      // Firebase not configured, permission denied, service worker blocked, etc.
+      // Still non-fatal — push is an enhancement and must never break chat — but
+      // log it, because swallowing this silently is what hid the problem before.
+      console.warn("[push] registration failed:", error instanceof Error ? error.message : error);
     }
   }
 
