@@ -136,6 +136,14 @@ export function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Closing search shouldn't make the bar disappear. While search was open the
+  // page may have scrolled (the keyboard alone can cause it), leaving a stale
+  // "hidden" flag that would snap the pill away the moment search collapsed.
+  useEffect(() => {
+    if (!searchExpanded) return;
+    return () => setNavHiddenByScroll(false);
+  }, [searchExpanded]);
   // ── no navVisible/navCollapsed (collapse removed) ─────────────────
   // ── no mlDropOpen/mlDropRef (dropdown removed) ────────────────────
 
@@ -857,14 +865,17 @@ export function Header() {
         /* Driven through Framer rather than an inline `transform`, because the
            `layout` prop above already owns this element's transform — setting
            it by hand would have the two fighting each other mid-animation. */
-        animate={{ y: navHiddenByScroll ? 110 : 0 }}
+        /* Never slide away while the search field is open — it lives inside
+           this pill, and the keyboard opening fires a scroll event that would
+           otherwise hide the very thing the user just tapped. */
+        animate={{ y: navHiddenByScroll && !searchExpanded ? 110 : 0 }}
         style={{
           ...PILL,
           position:"fixed", bottom:12, left:16, right:16, zIndex:100,
           boxShadow:"0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)",
           overflow:"hidden",
           /* Stop it swallowing taps while it is off-screen */
-          pointerEvents: navHiddenByScroll ? "none" : "auto",
+          pointerEvents: navHiddenByScroll && !searchExpanded ? "none" : "auto",
           /* Compositor layer — prevents URL bar show/hide from triggering a repaint/reposition */
           willChange: "transform",
         }}
