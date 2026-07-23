@@ -25,6 +25,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { formatRelativeDate } from "@/lib/client/formatRelativeDate";
 import { syncListingToSearch } from "@/lib/client/syncSearch";
@@ -89,13 +90,50 @@ export function MyListingCard({ listing, index = 0, layout = "grid" }: Props) {
   useEffect(() => {
     if (!menuOpen) return;
     function onClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-        setIsConfirmingDelete(false);
-      }
+      const t = e.target as Node;
+      // The menu is portaled to <body>, so it is NOT inside menuRef any more —
+      // check it separately or every click on the menu would close it.
+      if (menuRef.current?.contains(t)) return;
+      if (menuPopRef.current?.contains(t)) return;
+      setMenuOpen(false);
+      setIsConfirmingDelete(false);
     }
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [menuOpen]);
+
+  // Portals need the document, so guard against the server render.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  // Where to draw the portaled menu, measured from the ⋮ button.
+  const menuPopRef = useRef<HTMLDivElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
+
+  useEffect(() => {
+    if (!menuOpen) { setMenuPos(null); return; }
+
+    function place() {
+      const btn = menuRef.current?.querySelector("button");
+      if (!btn) return;
+      const r = btn.getBoundingClientRect();
+      setMenuPos({
+        top: r.bottom + 6,
+        // Right-aligned to the button, measured from the viewport's right edge.
+        right: Math.max(8, window.innerWidth - r.right),
+      });
+    }
+    place();
+
+    // A fixed-position menu would otherwise drift away from its button as the
+    // page moves, so just close it — simpler and less jarring than chasing it.
+    const close = () => setMenuOpen(false);
+    window.addEventListener("scroll", close, { passive: true, capture: true });
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("scroll", close, { capture: true });
+      window.removeEventListener("resize", close);
+    };
   }, [menuOpen]);
 
   async function handleMarkAsSold() {
@@ -456,6 +494,29 @@ export function MyListingCard({ listing, index = 0, layout = "grid" }: Props) {
           z-index: 10;
         }
         @keyframes mlc-menu-in { from { opacity: 0; transform: translateY(-6px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+        /* The portaled variant lives on <body>, so it positions against the
+           viewport rather than the card, and needs to sit above everything —
+           including the floating bottom nav (z-index 100). */
+        .mlc-menu--portal {
+          position: fixed;
+          top: auto; right: auto;
+          z-index: 200;
+          min-width: 184px;
+          padding: 7px;
+          border-radius: 16px;
+          border: 1px solid rgba(0,0,0,0.06);
+          box-shadow:
+            0 20px 50px rgba(0,0,0,0.20),
+            0 4px 12px rgba(0,0,0,0.08);
+          transform-origin: top right;
+        }
+        /* Slightly larger touch targets on phones — 9px padding is fine with a
+           mouse, but cramped for a thumb. */
+        @media (max-width: 639px) {
+          .mlc-menu--portal .mlc-item { padding: 11px 12px; font-size: 13.5px; }
+          .mlc-menu--portal { min-width: 196px; }
+        }
         .mlc-item {
           display: flex; align-items: center; gap: 9px; width: 100%;
           padding: 9px 10px; border: none; background: transparent;
@@ -658,8 +719,17 @@ export function MyListingCard({ listing, index = 0, layout = "grid" }: Props) {
             </svg>
           </button>
 
-          {menuOpen && (
-            <div className="mlc-menu" role="menu">
+          {/* Portaled to <body>. The card sets overflow:hidden so its photo
+              corners stay rounded, which also CLIPPED this menu — it was being
+              cut off at the card's edge. Rendering it outside the card escapes
+              that, and position:fixed keeps it anchored to the button. */}
+          {menuOpen && mounted && menuPos && createPortal(
+            <div
+              ref={menuPopRef}
+              className="mlc-menu mlc-menu--portal"
+              role="menu"
+              style={{ top: menuPos.top, right: menuPos.right }}
+            >
               {!isSold && (
                 <button type="button" className="mlc-item" role="menuitem" disabled={isUpdating}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenuOpen(false); setIsEditOpen(true); }}>
@@ -683,7 +753,8 @@ export function MyListingCard({ listing, index = 0, layout = "grid" }: Props) {
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /></svg>
                 {isConfirmingDelete ? "Tap again to delete" : "Delete"}
               </button>
-            </div>
+            </div>,
+            document.body
           )}
         </div>
 
