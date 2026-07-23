@@ -1,5 +1,6 @@
 // Import Next.js's helper types for reading the request and sending a JSON response
 import { NextRequest, NextResponse } from "next/server";
+import { allowRequest } from "@/lib/server/rateLimit";
 // Used to identify the caller so we can keep their own listings out of results
 import { createClient } from "@/lib/supabase/server";
 // Cookie-free client for the Postgres search path
@@ -10,6 +11,13 @@ type SortOption = "relevance" | "price_asc" | "price_desc" | "newest" | "distanc
 
 // Define the GET handler — runs when the client calls GET /api/search/query?...
 export async function GET(request: NextRequest) {
+  if (!(await allowRequest(request, "search", 60, 60))) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down." },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
+
   // Grab the URL's query parameters for easy reading
   const params = request.nextUrl.searchParams;
 

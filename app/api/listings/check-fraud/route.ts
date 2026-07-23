@@ -1,5 +1,6 @@
 // Import Next.js helpers
 import { NextRequest, NextResponse } from "next/server";
+import { allowRequest } from "@/lib/server/rateLimit";
 // Import the server-side Supabase client (reads the session cookie to identify the caller)
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,6 +12,13 @@ type RequestBody = {
 
 // POST /api/listings/check-fraud — runs all server-side fraud checks on a newly created listing
 export async function POST(request: NextRequest) {
+  if (!(await allowRequest(request, "check-fraud", 20, 60))) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down." },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
+
   // Parse the request body to get the listing ID
   const body = (await request.json()) as RequestBody;
   // Validate that we received a listing ID
