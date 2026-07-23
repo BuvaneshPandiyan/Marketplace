@@ -65,6 +65,26 @@ export default async function ConversationPage({
           display: none !important;
         }
 
+        /* Stop the window scrolling on this page at all.
+           This is what actually fixes the gap. The container is sized with svh
+           — the viewport at its SMALLEST, i.e. with the browser URL bar showing
+           — because that value never changes when the keyboard opens, which
+           keeps the composer from jumping.
+           But the URL bar only hides BECAUSE the page scrolls. When it did, the
+           real viewport grew taller than svh, and since the container is fixed
+           at a set height, that extra height appeared as dead space underneath
+           it rather than as more room for messages.
+           Locking scroll means the URL bar stays put, so svh always matches the
+           real viewport: no gap, and still no keyboard jump. The message list
+           has its own internal scroll, so nothing becomes unreachable. */
+        html:has(.chat-page-container),
+        body:has(.chat-page-container) {
+          overflow: hidden !important;
+          /* Kills the rubber-band overscroll that can nudge the URL bar away
+             even without a real scroll. */
+          overscroll-behavior: none !important;
+        }
+
         .chat-page-container {
           position: fixed;
           top: 76px;
