@@ -99,14 +99,23 @@ export default async function ConversationPage({
           .chat-page-container {
             top: 0 !important;
             bottom: auto !important;
-            /* svh: stable, never changes with URL bar or keyboard */
-            height: calc(100svh - 68px) !important;
+            /* Full viewport height, NOT minus the nav.
+               The nav pill is position:fixed and floats OVER the page, so it
+               occupies no layout space — subtracting its height just left a dead
+               grey band between the composer and the nav, with the chat surface
+               stopping short of the bottom of the screen.
+               The composer clears the nav with its own bottom padding instead
+               (see .chat-input-wrap), which keeps the chat background running
+               edge to edge.
+               svh rather than vh: stable, never changes with the URL bar or the
+               keyboard opening. */
+            height: 100svh !important;
           }
 
           /* Fallback for browsers without svh */
           @supports not (height: 100svh) {
             .chat-page-container {
-              height: calc(100vh - 68px) !important;
+              height: 100vh !important;
             }
           }
         }

@@ -382,8 +382,15 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
         /* The composer sits directly above the floating nav on mobile. Enough
            clearance that they read as separate things, without the dead band a
            larger value left behind. */
+        /* The chat container now runs the full height of the screen, so the
+           composer is what has to clear the floating nav pill.
+           The pill sits at bottom:12px and is ~56px tall, so it covers roughly
+           the bottom 68px. 78px puts the send button just above it with a small
+           gap, rather than tucked underneath.
+           This page can't scroll the window (the container is fixed), so the nav
+           never auto-hides here — the clearance is stable, not wasted space. */
         @media(max-width:639px){
-          .chat-input-wrap { padding-bottom: calc(30px + env(safe-area-inset-bottom)) !important; }
+          .chat-input-wrap { padding-bottom: calc(78px + env(safe-area-inset-bottom)) !important; }
         }
 
         /* Sold notice — a pill sized to its text, not a full-width bar */
