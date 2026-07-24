@@ -149,7 +149,6 @@ export function LocationModal({ onClose }: LocationModalProps) {
           box-shadow: 0 -16px 56px rgba(0,0,0,0.25);
           /* Promote to its own layer before the slide starts, so the first frame
              isn't spent rasterising a blurred, shadowed, rounded box */
-          will-change: transform;
           animation: lm-sheet 320ms cubic-bezier(0.22,1,0.36,1) both;
         }
         @media (min-width: 640px) {

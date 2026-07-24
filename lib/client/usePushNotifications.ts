@@ -37,8 +37,71 @@ export function usePushNotifications(): UsePushNotificationsReturn {
   }
 
   // Internal function that does the actual Firebase initialization and token storage
+  /**
+   * Native push registration, used inside the Capacitor app.
+   *
+   * The web path asks Firebase JS for a token via a service worker. That whole
+   * mechanism does not exist in a WebView — there is no service-worker push, and
+   * the OS owns delivery. The plugin asks the platform directly (FCM on Android,
+   * APNs bridged through FCM on iOS) and returns a token.
+   *
+   * The token lands in the SAME push_tokens table, and the server already sends
+   * via FCM v1 — so no backend change at all. One send path serves both.
+   */
+  async function registerNativeToken(): Promise<boolean> {
+    const { PushNotifications } = await import("@capacitor/push-notifications");
+
+    const perm = await PushNotifications.checkPermissions();
+    let status = perm.receive;
+    if (status === "prompt" || status === "prompt-with-rationale") {
+      status = (await PushNotifications.requestPermissions()).receive;
+    }
+    if (status !== "granted") return false;
+
+    // The token arrives via an event rather than a return value, so wrap the
+    // listener in a promise WITH a timeout — a device that never registers would
+    // otherwise leave this hanging forever.
+    const token = await new Promise<string | null>((resolve) => {
+      const timer = setTimeout(() => resolve(null), 12000);
+      PushNotifications.addListener("registration", (t) => {
+        clearTimeout(timer);
+        resolve(t.value);
+      });
+      PushNotifications.addListener("registrationError", (err) => {
+        clearTimeout(timer);
+        console.warn("[push] native registration failed:", err.error);
+        resolve(null);
+      });
+      PushNotifications.register();
+    });
+
+    if (!token) return false;
+
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { error } = await supabase
+      .from("push_tokens")
+      .upsert({ user_id: user.id, token }, { onConflict: "user_id,token" });
+
+    if (error) {
+      console.warn("[push] could not save the native device token:", error.message);
+      return false;
+    }
+    return true;
+  }
+
   async function registerToken() {
     try {
+      // Inside the app, use the native path and stop — the Firebase JS /
+      // service-worker approach below cannot work in a WebView.
+      const { Capacitor } = await import("@capacitor/core");
+      if (Capacitor.isNativePlatform()) {
+        await registerNativeToken();
+        return;
+      }
+
       // Dynamically import Firebase only in the browser (it uses window/navigator internally)
       const { initializeApp, getApps } = await import("firebase/app");
       // Import the messaging module and its token getter

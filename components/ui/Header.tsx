@@ -479,7 +479,6 @@ export function Header() {
           background: rgba(8,145,178,0.4);
           animation: sell-halo 3.4s ease-out 2s infinite;
           pointer-events: none; z-index: -1;
-          will-change: transform, opacity;
         }
         .sell-circle:hover, .sell-fab:hover { animation-play-state: paused; }
         /* The + rotates a quarter turn on hover */

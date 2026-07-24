@@ -94,7 +94,6 @@ export default async function ConversationPage({
           flex-direction: column;
           overflow: hidden;
           /* Compositor layer — prevents fixed-element jitter during scroll */
-          will-change: transform;
           -webkit-transform: translateZ(0);
           transform: translateZ(0);
         }

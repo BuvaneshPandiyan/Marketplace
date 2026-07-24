@@ -132,7 +132,6 @@ input, textarea, select, button {
   border-radius: 50%;
   filter: blur(70px);
   opacity: 0.5;
-  will-change: transform;
 }
 .bz-blob-1 {
   width: 46vw; height: 46vw; max-width: 620px; max-height: 620px;
@@ -220,4 +219,123 @@ input, textarea, select, button {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ============================================================================
+   NATIVE APP PERFORMANCE MODE
+   ============================================================================
+   Applied only when running inside Capacitor (see NativePlatformFlag.tsx).
+
+   Android's WebView shares Chromium's engine but not its compositing budget.
+   Two properties in particular tend to drop out of GPU acceleration there and
+   fall back to software rasterisation — meaning main-thread work on every
+   frame:
+
+     • backdrop-filter — the site uses 82 of these. A feed card has three, so a
+       screen of ~50 listings asks for ~150 backdrop blurs PER FRAME.
+     • large blur() radii — cost grows with the square of the radius.
+
+   On desktop the GPU absorbs both and nobody notices. In a WebView on a
+   mid-range phone it is the difference between smooth and visibly stuttering.
+
+   So inside the app these are swapped for cheap equivalents. The frosted look
+   is replaced with a solid tint at similar lightness, which reads almost
+   identically while costing nothing. The website is untouched.
+   ========================================================================= */
+
+/* ── 1. Kill every backdrop-filter ──────────────────────────────────────── */
+.is-native-app *,
+.is-native-app *::before,
+.is-native-app *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Frosted surfaces relied on the blur for legibility. Without it a translucent
+   white looks washed out, so make the light ones more opaque and the dark
+   overlays closer to solid. */
+.is-native-app .chat-sold-pill,
+.is-native-app .srch-filter-trigger,
+.is-native-app .auth-card {
+  background: #ffffff !important;
+}
+
+/* ── 2. Tame the ambient blur art ───────────────────────────────────────── */
+/* BannerArt's drifting blobs use blur(40px) across several layers. Halving the
+   radius cuts the cost dramatically and is barely visible at this opacity. */
+.is-native-app .ba-blob {
+  filter: blur(22px) !important;
+}
+
+/* The global page-background blobs are the largest blurred surfaces on the
+   site (up to 620px at blur(70px)). Static and smaller inside the app. */
+.is-native-app .bz-blob {
+  filter: blur(34px) !important;
+  animation: none !important;
+}
+
+/* ── 3. Stop always-on animation on always-visible chrome ───────────────── */
+/* These loop forever on every page. Each one keeps the compositor awake, which
+   is affordable on desktop and not on a phone. */
+.is-native-app .sell-circle::after,
+.is-native-app .sell-fab::after,
+.is-native-app .ba-blob,
+.is-native-app .hh-glow,
+.is-native-app .srch-banner-glow,
+.is-native-app .bz-ambient::before {
+  animation: none !important;
+}
+
+/* ── 4. Cheaper shadows ─────────────────────────────────────────────────── */
+/* Large-radius shadows are repainted whenever the element moves. Tighter
+   radii on the things that animate most. */
+.is-native-app .lc,
+.is-native-app .mob-pill,
+.is-native-app .srch-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10) !important;
+}
+
+
+/* ── 5. Stop ALL decorative looping animation inside the app ─────────────
+   Every infinite animation keeps the compositor awake permanently. On desktop
+   that is free; in a WebView each one competes with scrolling for the same
+   budget, and together they are why every page felt heavy rather than one
+   specific screen.
+   Interaction feedback (hover, tap, open/close transitions) is untouched —
+   only the ambient loops that nobody is looking at. */
+.is-native-app [class*="glow"],
+.is-native-app [class*="shine"],
+.is-native-app [class*="float"],
+.is-native-app [class*="drift"],
+.is-native-app [class*="pulse"],
+.is-native-app [class*="bob"],
+.is-native-app [class*="breathe"],
+.is-native-app [class*="halo"],
+.is-native-app [class*="ambient"] {
+  animation: none !important;
+}
+
+/* The blurred ambient art is pure decoration and the single most expensive
+   thing to composite. Inside the app, hide it entirely rather than blur it
+   more cheaply — the gradients underneath already carry the look. */
+.is-native-app .ba-blob,
+.is-native-app .bz-blob,
+.is-native-app .bz-ambient::before {
+  display: none !important;
+}
+
+/* Any remaining blur is capped. Cost scales with the square of the radius, so
+   a large radius is disproportionately expensive on a WebView. */
+.is-native-app [style*="blur"],
+.is-native-app .hh-glow,
+.is-native-app .srch-banner-glow,
+.is-native-app .cr-band-glow,
+.is-native-app .bl-band-glow {
+  filter: none !important;
+}
+
+/* Smooth momentum scrolling, and stop the whole page rubber-banding — that
+   bounce is what triggers repaints of everything at once. */
+.is-native-app {
+  overscroll-behavior-y: none;
 }

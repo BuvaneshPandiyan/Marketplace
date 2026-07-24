@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "173258140030",
+    "project_id": "marketplace-bfe4c",
+    "storage_bucket": "marketplace-bfe4c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:173258140030:android:a4f5a8533fc14edcf6ab2f",
+        "android_client_info": {
+          "package_name": "in.bazar.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_yWGrdCet4oC_Lg-pAYqUEIrs04IndD0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

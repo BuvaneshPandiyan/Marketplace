@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Header } from "@/components/ui/Header";
 import { Footer } from "@/components/ui/Footer";
 import { PushPermissionPrompt } from "@/components/notifications/PushPermissionPrompt";
+import { NativePlatformFlag } from "@/components/ui/NativePlatformFlag";
 import { AuthGateProvider } from "@/components/auth/AuthGateContext";
 import { useUser } from "@/lib/hooks/useUser";
 
@@ -40,6 +41,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
           the browser supports push, permission is still undecided, and the user
           hasn't recently dismissed it. */}
       <PushPermissionPrompt />
+      {/* Flags <html> when inside the Capacitor app so globals.css can drop the
+          effects Android's WebView renders badly. Renders nothing on the web. */}
+      <NativePlatformFlag />
     </div>
     </AuthGateProvider>
   );

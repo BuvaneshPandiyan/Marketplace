@@ -126,15 +126,6 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
           container-type: inline-size;
           position: relative;
           width: 100%;
-          /* A feed can hold 50+ of these, and each card carries two
-             backdrop-filters and two looping animations — so a full screen was
-             asking the browser for ~100 of each on every frame while scrolling.
-             content-visibility makes it render and animate only the cards that
-             are actually near the viewport; the rest cost nothing until they
-             approach. The auto keyword remembers each card's real height, so the
-             scrollbar stays stable. */
-          content-visibility: auto;
-          contain-intrinsic-size: auto 300px;
           overflow: hidden;
           border-radius: var(--r-md);
           border: 1px solid var(--line);

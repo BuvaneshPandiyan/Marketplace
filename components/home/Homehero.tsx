@@ -73,7 +73,7 @@ const SWAP_MS = 2100;
 
 export function HomeHero() {
   /**
-   * The artwork is optional. If /public/images/hero-marketplace.png isn't there
+   * The artwork is drawn in CSS (see components/ui/BannerArt) — no image file,
    * yet, onError flips this and we fall back to the plain gradient — no broken
    * image icon, no layout shift, hero still looks finished. Drop the file in and
    * it appears on the next load with no code change.
@@ -149,7 +149,6 @@ export function HomeHero() {
         .hh-track {
           display: flex;
           transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
-          will-change: transform;
         }
         .hh-slide {
           flex: 0 0 100%;

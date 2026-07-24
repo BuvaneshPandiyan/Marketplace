@@ -39,8 +39,6 @@ export function BannerArt({ variant, tint, tint2, id, intensity = 1 }: Props) {
       <style>{`
         .ba {
           position: absolute; inset: 0; pointer-events: none; overflow: hidden;
-          /* Repaints inside the art can't invalidate anything outside it. */
-          contain: paint;
         }
         /* Everything fades out toward the left so headline text never fights it */
         .${k} {
@@ -56,7 +54,6 @@ export function BannerArt({ variant, tint, tint2, id, intensity = 1 }: Props) {
           filter: blur(40px);
           animation: ba-drift 18s ease-in-out infinite;
           /* Rasterise the blur once, then move the layer on the GPU */
-          will-change: transform;
           transform: translateZ(0);
           backface-visibility: hidden;
         }

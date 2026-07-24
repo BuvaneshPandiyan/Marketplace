@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
+import { NativePlatformFlag } from "@/components/ui/NativePlatformFlag";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div style={{ height:"100svh", maxHeight:"100svh", overflow:"hidden", display:"flex", fontFamily:"inherit" }}>
+      <NativePlatformFlag />
       <style>{`
         /* ── Floating card animations ── */
         @keyframes fl-1 { 0%,100%{transform:translate(0,0) rotate(-3deg)} 50%{transform:translate(10px,-16px) rotate(2deg)} }
