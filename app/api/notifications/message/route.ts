@@ -32,19 +32,53 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Fetch the conversation to find the other participant and the listing title
+  // Fetch the conversation to find both participants and the listing title
   const { data: conversation } = await supabase
     .from("conversations")
     .select("buyer_id, seller_id, listings(title)")
     .eq("id", body.conversationId)
     .single();
 
-  // If the conversation doesn't exist or this user isn't a participant, refuse
+  // If the conversation doesn't exist (or RLS hid it because the caller isn't a
+  // participant), refuse.
   if (!conversation) {
     return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
   }
 
-  // Work out who the OTHER participant is (the one who should receive the notification)
+  // Defence in depth: prove participation explicitly instead of relying on the
+  // conversations RLS SELECT policy alone. If that policy were ever loosened,
+  // deriving "the other participant" from an unchecked row would let anyone
+  // trigger a notification at an arbitrary user. Require the caller to actually
+  // be the buyer or the seller.
+  const isParticipant =
+    conversation.buyer_id === user.id || conversation.seller_id === user.id;
+  if (!isParticipant) {
+    return NextResponse.json(
+      { error: "You are not a participant in this conversation." },
+      { status: 403 }
+    );
+  }
+
+  // Confirm a real, recent message from THIS caller exists in the conversation.
+  // This endpoint is meant to fire immediately after the caller sends a message;
+  // without this check a participant could call it on a loop to spam the other
+  // party with "new message" alerts for messages that were never sent. A short
+  // window keeps it aligned with genuine post-send calls while blocking replay.
+  const RECENT_WINDOW_MS = 2 * 60 * 1000;
+  const since = new Date(Date.now() - RECENT_WINDOW_MS).toISOString();
+  const { count: recentFromCaller } = await supabase
+    .from("messages")
+    .select("id", { count: "exact", head: true })
+    .eq("conversation_id", body.conversationId)
+    .eq("sender_id", user.id)
+    .gte("created_at", since);
+
+  // No genuine recent message from this caller — there is nothing to notify about.
+  if (!recentFromCaller) {
+    return NextResponse.json({ ok: true, notified: 0 });
+  }
+
+  // The recipient is whichever participant is NOT the caller.
   const recipientId =
     conversation.buyer_id === user.id ? conversation.seller_id : conversation.buyer_id;
 
