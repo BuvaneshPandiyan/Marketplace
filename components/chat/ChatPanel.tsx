@@ -17,6 +17,7 @@ import { RatingPrompt } from "@/components/chat/RatingPrompt";
 import { SafetyWarningBanner } from "@/components/trust/SafetyWarningBanner";
 // Import the push-permission hook so we can ask contextually after the first send
 import { usePushNotifications } from "@/lib/client/usePushNotifications";
+import ChatImage from "@/components/chat/ChatImage";
 
 // Define the extended conversation shape this panel receives from its parent server component —
 // the base Conversation type plus two extra fields the server joined in for us
@@ -285,13 +286,13 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
     setIsUploadingImage(false);
     // If the upload failed, bail silently — don't leave a dangling message row
     if (uploadError) return;
-    // Retrieve the public URL of the now-stored image
-    const { data: urlData } = supabase.storage.from("chat-images").getPublicUrl(path);
-    // Send an image-only message (no text content)
+    // The bucket is private, so store the storage PATH (not a public URL). The
+    // recipient resolves it to a short-lived signed URL at render time (ChatImage),
+    // which only conversation participants are allowed to do.
     await supabase.from("messages").insert({
       conversation_id: conversation.id,
       sender_id: currentUserId,
-      image_url: urlData.publicUrl,
+      image_url: path,
     });
   }
 
@@ -538,20 +539,10 @@ export function ChatPanel({ conversation, currentUserId, otherUserId, otherUserP
                   )
                 )}
                 <div style={{ maxWidth: "68%", display: "flex", flexDirection: "column", alignItems: isOwn ? "flex-end" : "flex-start", gap: 4 }}>
-                  {/* Image — thumbnail, click to enlarge */}
+                  {/* Image — thumbnail, click to enlarge. ChatImage resolves the
+                      stored storage path to a short-lived signed URL. */}
                   {msg.image_url && (
-                    <div
-                      onClick={() => setLightboxUrl(msg.image_url!)}
-                      style={{ cursor: "pointer", borderRadius: 14, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.15)", maxWidth: 200, transition: "transform 150ms ease" }}
-                      className="hover:scale-[1.02]"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={msg.image_url} alt="Shared image"
-                        style={{ width: "100%", maxHeight: 200, objectFit: "cover", display: "block" }} />
-                      <div style={{ background: "rgba(0,0,0,0.45)", padding: "4px 10px", fontSize: 10, color: "rgba(255,255,255,0.8)", textAlign: "center" }}>
-                        Tap to expand
-                      </div>
-                    </div>
+                    <ChatImage imageUrl={msg.image_url} onExpand={setLightboxUrl} />
                   )}
                   {/* Text bubble */}
                   {msg.text && (

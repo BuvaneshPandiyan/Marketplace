@@ -31,7 +31,7 @@
     "firebase": "^12.15.0",
     "framer-motion": "^12.42.2",
     "leaflet": "^1.9.4",
-    "next": "^15.5.19",
+    "next": "^15.5.21",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
@@ -47,5 +47,11 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.105.0"
-  }
+  },
+  "overrides": {
+     "sharp": "^0.35.3",
+     "postcss": "^8.5.23",
+     "protobufjs": "^7.6.5",
+     "brace-expansion": "^2.0.2"
+   }
 }
