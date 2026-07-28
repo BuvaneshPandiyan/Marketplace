@@ -10,6 +10,7 @@ import { NavigationProgress } from "@/components/ui/NavigationProgress";
 import { UserProvider } from "@/components/providers/UserProvider";
 // Import the provider that tracks the active browsing location across the whole app
 import { LocationProvider } from "@/components/providers/LocationProvider";
+import { LocationPrompt } from "@/components/location/LocationPrompt";
 
 /**
  * THE APP'S TYPEFACE.
@@ -113,6 +114,8 @@ export default function RootLayout({
         <UserProvider>
           {/* LocationProvider tracks the active location (default + browsing) in React Context */}
           <LocationProvider>
+            {/* First-visit prompt asking the user to enable location */}
+            <LocationPrompt />
             {/* The active page/layout rendered here */}
             {children}
           </LocationProvider>
