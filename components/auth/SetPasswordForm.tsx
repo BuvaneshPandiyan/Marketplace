@@ -2,11 +2,13 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { safeInternalPath } from "@/lib/safeRedirect";
 
 export function SetPasswordForm() {
   const router       = useRouter();
   const params       = useSearchParams();
-  const redirectTo   = params.get("redirect") ?? "/";
+  // Only allow same-origin relative paths (blocks open-redirect via ?redirect=).
+  const redirectTo   = safeInternalPath(params.get("redirect"));
   const [supabase]   = useState(() => createClient());
 
   const [password,   setPassword]  = useState("");

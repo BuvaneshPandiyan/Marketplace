@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { DEFAULT_COUNTRY_CODE, toE164 } from "@/lib/phone";
 import { CountryCodeSelect } from "@/components/auth/CountryCodeSelect";
 import { OtpInput } from "@/components/auth/OtpInput";
+import { safeInternalPath } from "@/lib/safeRedirect";
 import Link from "next/link";
 
 type Mode = "password" | "otp";
@@ -27,7 +28,9 @@ export function LoginFlow() {
   const [cooldown,      setCooldown]     = useState(0);
   const [showSignupHint,setShowSignupHint] = useState(false);
 
-  const redirectTo = searchParams.get("redirect") ?? "/";
+  // Sanitize the redirect target: only same-origin relative paths are allowed,
+  // so an attacker can't craft ?redirect=https://evil.com to phish after login.
+  const redirectTo = safeInternalPath(searchParams.get("redirect"));
 
   useEffect(() => {
     if (cooldown <= 0) return;
